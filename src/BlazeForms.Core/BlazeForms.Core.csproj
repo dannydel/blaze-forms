@@ -6,6 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!--
+      Markdig is Core's sole third-party dependency (PRD §9). It backs the shared safe-Markdown
+      pipeline of PRD §5.1 — raw HTML disabled, link protocols allow-listed — which lands in a
+      later slice, so nothing references it yet. It must never appear in a public signature; the
+      agnosticism test in tests/BlazeForms.Architecture.Tests enforces that.
+    -->
     <PackageReference Include="Markdig" Version="1.3.2" />
   </ItemGroup>
 

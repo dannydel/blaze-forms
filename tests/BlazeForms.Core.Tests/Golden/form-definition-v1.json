@@ -1,0 +1,360 @@
+{
+  "schemaVersion": 1,
+  "id": "form-transport-enrollment",
+  "name": "Student transportation enrollment",
+  "description": "Annual request for district-provided student transportation.",
+  "program": "Transportation",
+  "owner": "transportation-office",
+  "pages": [
+    {
+      "id": "page-student",
+      "title": "Student",
+      "sections": [
+        {
+          "id": "section-student-details",
+          "title": "Student details",
+          "description": "Tell us who is enrolling.",
+          "nodes": [
+            {
+              "id": "node-student-heading",
+              "type": "heading",
+              "label": "About the student",
+              "required": false,
+              "requiredWhenVisible": false,
+              "half": false,
+              "options": [],
+              "level": 2,
+              "children": []
+            },
+            {
+              "id": "node-student-intro",
+              "type": "paragraph",
+              "content": "Enrollment closes on **1 September**. See the [policy page](https://example.gov/policy).",
+              "required": false,
+              "requiredWhenVisible": false,
+              "half": false,
+              "options": [],
+              "children": []
+            },
+            {
+              "id": "node-first-name",
+              "type": "text",
+              "label": "First name",
+              "placeholder": "Ada",
+              "required": true,
+              "requiredWhenVisible": false,
+              "half": true,
+              "options": [],
+              "children": []
+            },
+            {
+              "id": "node-last-name",
+              "type": "text",
+              "label": "Last name",
+              "required": true,
+              "requiredWhenVisible": false,
+              "half": true,
+              "options": [],
+              "children": []
+            },
+            {
+              "id": "node-date-of-birth",
+              "type": "date",
+              "label": "Date of birth",
+              "help": "Use the date on the birth certificate.",
+              "required": true,
+              "requiredWhenVisible": false,
+              "half": false,
+              "options": [],
+              "children": []
+            },
+            {
+              "id": "node-grade-level",
+              "type": "number",
+              "label": "Grade level",
+              "required": true,
+              "requiredWhenVisible": false,
+              "half": false,
+              "options": [],
+              "min": 0,
+              "max": 12,
+              "children": []
+            },
+            {
+              "id": "node-annual-fee",
+              "type": "currency",
+              "label": "Annual fee",
+              "required": false,
+              "requiredWhenVisible": false,
+              "half": false,
+              "options": [],
+              "min": 0,
+              "max": 1500,
+              "children": []
+            },
+            {
+              "id": "node-guardian-email",
+              "type": "email",
+              "label": "Guardian email",
+              "required": true,
+              "requiredWhenVisible": false,
+              "half": false,
+              "options": [],
+              "children": []
+            },
+            {
+              "id": "node-guardian-phone",
+              "type": "phone",
+              "label": "Guardian phone",
+              "required": false,
+              "requiredWhenVisible": false,
+              "half": false,
+              "options": [],
+              "children": []
+            },
+            {
+              "id": "node-student-divider",
+              "type": "divider",
+              "required": false,
+              "requiredWhenVisible": false,
+              "half": false,
+              "options": [],
+              "children": []
+            },
+            {
+              "id": "node-residency-notice",
+              "type": "callout",
+              "content": "Proof of residency is required for *new* students.",
+              "required": false,
+              "requiredWhenVisible": false,
+              "half": false,
+              "options": [],
+              "children": []
+            },
+            {
+              "id": "node-proof-of-residency",
+              "type": "file",
+              "label": "Proof of residency",
+              "help": "Upload arrives in a later phase.",
+              "required": false,
+              "requiredWhenVisible": false,
+              "half": false,
+              "options": [],
+              "children": []
+            },
+            {
+              "id": "node-school-code",
+              "type": "lookup",
+              "label": "School",
+              "required": false,
+              "requiredWhenVisible": false,
+              "half": false,
+              "options": [],
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "page-transportation",
+      "title": "Transportation",
+      "sections": [
+        {
+          "id": "section-transportation",
+          "title": "Transportation request",
+          "nodes": [
+            {
+              "id": "node-needs-transport",
+              "type": "yesno",
+              "label": "Does the student need transportation?",
+              "required": true,
+              "requiredWhenVisible": false,
+              "half": false,
+              "options": [
+                {
+                  "value": "yes",
+                  "label": "Yes"
+                },
+                {
+                  "value": "no",
+                  "label": "No"
+                }
+              ],
+              "children": []
+            },
+            {
+              "id": "node-bus-route",
+              "type": "select",
+              "label": "Preferred bus route",
+              "required": false,
+              "requiredWhenVisible": true,
+              "half": false,
+              "options": [
+                {
+                  "value": "route-a",
+                  "label": "Route A \u2014 North"
+                },
+                {
+                  "value": "route-b",
+                  "label": "Route B \u2014 South"
+                }
+              ],
+              "children": [],
+              "visibleWhen": {
+                "join": "all",
+                "conditions": [
+                  {
+                    "field": "node-needs-transport",
+                    "op": "is",
+                    "value": "yes"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "node-pickup-type",
+              "type": "radio",
+              "label": "Pickup location",
+              "required": false,
+              "requiredWhenVisible": false,
+              "half": false,
+              "options": [
+                {
+                  "value": "home",
+                  "label": "Home"
+                },
+                {
+                  "value": "stop",
+                  "label": "Neighbourhood stop"
+                }
+              ],
+              "children": [],
+              "visibleWhen": {
+                "join": "any",
+                "conditions": [
+                  {
+                    "field": "node-needs-transport",
+                    "op": "is",
+                    "value": "yes"
+                  },
+                  {
+                    "field": "node-grade-level",
+                    "op": "lt",
+                    "value": "3"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "node-accommodations",
+              "type": "checkboxgroup",
+              "label": "Accommodations needed",
+              "required": false,
+              "requiredWhenVisible": false,
+              "half": false,
+              "options": [
+                {
+                  "value": "lift",
+                  "label": "Wheelchair lift"
+                },
+                {
+                  "value": "aide",
+                  "label": "Riding aide"
+                },
+                {
+                  "value": "harness",
+                  "label": "Safety harness"
+                }
+              ],
+              "children": []
+            },
+            {
+              "id": "node-service-window",
+              "type": "daterange",
+              "label": "Service window",
+              "required": false,
+              "requiredWhenVisible": false,
+              "half": false,
+              "options": [],
+              "children": []
+            },
+            {
+              "id": "node-notes",
+              "type": "textarea",
+              "label": "Anything else we should know?",
+              "placeholder": "Optional",
+              "required": false,
+              "requiredWhenVisible": false,
+              "half": false,
+              "options": [],
+              "children": []
+            },
+            {
+              "id": "node-consent",
+              "type": "boolean",
+              "label": "I confirm the information above is accurate",
+              "required": true,
+              "requiredWhenVisible": false,
+              "half": false,
+              "options": [],
+              "children": []
+            },
+            {
+              "id": "node-estimated-cost",
+              "type": "calc",
+              "label": "Estimated annual cost",
+              "help": "Calculated once the calc engine ships.",
+              "required": false,
+              "requiredWhenVisible": false,
+              "half": false,
+              "options": [],
+              "children": []
+            },
+            {
+              "id": "node-siblings",
+              "type": "repeating",
+              "label": "Siblings also enrolling",
+              "required": false,
+              "requiredWhenVisible": false,
+              "half": false,
+              "options": [],
+              "children": [
+                {
+                  "id": "node-sibling-name",
+                  "type": "text",
+                  "label": "Sibling name",
+                  "required": false,
+                  "requiredWhenVisible": false,
+                  "half": false,
+                  "options": [],
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "validationRules": [
+    {
+      "target": "node-bus-route",
+      "message": "Choose a bus route, or answer No to the transportation question.",
+      "expression": {
+        "join": "all",
+        "conditions": [
+          {
+            "field": "node-needs-transport",
+            "op": "is",
+            "value": "yes"
+          },
+          {
+            "field": "node-bus-route",
+            "op": "isBlank"
+          }
+        ]
+      }
+    }
+  ]
+}
