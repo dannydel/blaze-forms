@@ -1,0 +1,381 @@
+#nullable enable
+BlazeForms.Definitions.FormDefinition
+BlazeForms.Definitions.FormDefinition.<Clone>$() -> BlazeForms.Definitions.FormDefinition!
+BlazeForms.Definitions.FormDefinition.Description.get -> string?
+BlazeForms.Definitions.FormDefinition.Description.init -> void
+BlazeForms.Definitions.FormDefinition.Equals(BlazeForms.Definitions.FormDefinition? other) -> bool
+BlazeForms.Definitions.FormDefinition.FormDefinition() -> void
+BlazeForms.Definitions.FormDefinition.Id.get -> string!
+BlazeForms.Definitions.FormDefinition.Id.init -> void
+BlazeForms.Definitions.FormDefinition.Name.get -> string!
+BlazeForms.Definitions.FormDefinition.Name.init -> void
+BlazeForms.Definitions.FormDefinition.Owner.get -> string?
+BlazeForms.Definitions.FormDefinition.Owner.init -> void
+BlazeForms.Definitions.FormDefinition.Pages.get -> System.Collections.Generic.IReadOnlyList<BlazeForms.Definitions.FormPage!>!
+BlazeForms.Definitions.FormDefinition.Pages.init -> void
+BlazeForms.Definitions.FormDefinition.Program.get -> string?
+BlazeForms.Definitions.FormDefinition.Program.init -> void
+BlazeForms.Definitions.FormDefinition.SchemaVersion.get -> int
+BlazeForms.Definitions.FormDefinition.SchemaVersion.init -> void
+BlazeForms.Definitions.FormDefinition.ValidationRules.get -> System.Collections.Generic.IReadOnlyList<BlazeForms.Expressions.ValidationRule!>!
+BlazeForms.Definitions.FormDefinition.ValidationRules.init -> void
+BlazeForms.Definitions.FormDefinitionExtensions
+BlazeForms.Definitions.FormIds
+BlazeForms.Definitions.FormNode
+BlazeForms.Definitions.FormNode.<Clone>$() -> BlazeForms.Definitions.FormNode!
+BlazeForms.Definitions.FormNode.Children.get -> System.Collections.Generic.IReadOnlyList<BlazeForms.Definitions.FormNode!>!
+BlazeForms.Definitions.FormNode.Children.init -> void
+BlazeForms.Definitions.FormNode.Content.get -> string?
+BlazeForms.Definitions.FormNode.Content.init -> void
+BlazeForms.Definitions.FormNode.Equals(BlazeForms.Definitions.FormNode? other) -> bool
+BlazeForms.Definitions.FormNode.FormNode() -> void
+BlazeForms.Definitions.FormNode.Half.get -> bool
+BlazeForms.Definitions.FormNode.Half.init -> void
+BlazeForms.Definitions.FormNode.Help.get -> string?
+BlazeForms.Definitions.FormNode.Help.init -> void
+BlazeForms.Definitions.FormNode.Id.get -> string!
+BlazeForms.Definitions.FormNode.Id.init -> void
+BlazeForms.Definitions.FormNode.Label.get -> string?
+BlazeForms.Definitions.FormNode.Label.init -> void
+BlazeForms.Definitions.FormNode.Level.get -> int?
+BlazeForms.Definitions.FormNode.Level.init -> void
+BlazeForms.Definitions.FormNode.Max.get -> decimal?
+BlazeForms.Definitions.FormNode.Max.init -> void
+BlazeForms.Definitions.FormNode.Min.get -> decimal?
+BlazeForms.Definitions.FormNode.Min.init -> void
+BlazeForms.Definitions.FormNode.Options.get -> System.Collections.Generic.IReadOnlyList<BlazeForms.Definitions.FormOption!>!
+BlazeForms.Definitions.FormNode.Options.init -> void
+BlazeForms.Definitions.FormNode.Placeholder.get -> string?
+BlazeForms.Definitions.FormNode.Placeholder.init -> void
+BlazeForms.Definitions.FormNode.Required.get -> bool
+BlazeForms.Definitions.FormNode.Required.init -> void
+BlazeForms.Definitions.FormNode.RequiredWhenVisible.get -> bool
+BlazeForms.Definitions.FormNode.RequiredWhenVisible.init -> void
+BlazeForms.Definitions.FormNode.Type.get -> BlazeForms.Definitions.NodeType
+BlazeForms.Definitions.FormNode.Type.init -> void
+BlazeForms.Definitions.FormNode.VisibleWhen.get -> BlazeForms.Expressions.ConditionGroup?
+BlazeForms.Definitions.FormNode.VisibleWhen.init -> void
+BlazeForms.Definitions.FormOption
+BlazeForms.Definitions.FormOption.<Clone>$() -> BlazeForms.Definitions.FormOption!
+BlazeForms.Definitions.FormOption.Equals(BlazeForms.Definitions.FormOption? other) -> bool
+BlazeForms.Definitions.FormOption.FormOption() -> void
+BlazeForms.Definitions.FormOption.Label.get -> string!
+BlazeForms.Definitions.FormOption.Label.init -> void
+BlazeForms.Definitions.FormOption.Value.get -> string!
+BlazeForms.Definitions.FormOption.Value.init -> void
+BlazeForms.Definitions.FormPage
+BlazeForms.Definitions.FormPage.<Clone>$() -> BlazeForms.Definitions.FormPage!
+BlazeForms.Definitions.FormPage.Equals(BlazeForms.Definitions.FormPage? other) -> bool
+BlazeForms.Definitions.FormPage.FormPage() -> void
+BlazeForms.Definitions.FormPage.Id.get -> string!
+BlazeForms.Definitions.FormPage.Id.init -> void
+BlazeForms.Definitions.FormPage.Sections.get -> System.Collections.Generic.IReadOnlyList<BlazeForms.Definitions.FormSection!>!
+BlazeForms.Definitions.FormPage.Sections.init -> void
+BlazeForms.Definitions.FormPage.Title.get -> string?
+BlazeForms.Definitions.FormPage.Title.init -> void
+BlazeForms.Definitions.FormSchema
+BlazeForms.Definitions.FormSection
+BlazeForms.Definitions.FormSection.<Clone>$() -> BlazeForms.Definitions.FormSection!
+BlazeForms.Definitions.FormSection.Description.get -> string?
+BlazeForms.Definitions.FormSection.Description.init -> void
+BlazeForms.Definitions.FormSection.Equals(BlazeForms.Definitions.FormSection? other) -> bool
+BlazeForms.Definitions.FormSection.FormSection() -> void
+BlazeForms.Definitions.FormSection.Id.get -> string!
+BlazeForms.Definitions.FormSection.Id.init -> void
+BlazeForms.Definitions.FormSection.Nodes.get -> System.Collections.Generic.IReadOnlyList<BlazeForms.Definitions.FormNode!>!
+BlazeForms.Definitions.FormSection.Nodes.init -> void
+BlazeForms.Definitions.FormSection.Title.get -> string?
+BlazeForms.Definitions.FormSection.Title.init -> void
+BlazeForms.Definitions.NodeType
+BlazeForms.Definitions.NodeType.Boolean = 12 -> BlazeForms.Definitions.NodeType
+BlazeForms.Definitions.NodeType.Calc = 17 -> BlazeForms.Definitions.NodeType
+BlazeForms.Definitions.NodeType.Callout = 15 -> BlazeForms.Definitions.NodeType
+BlazeForms.Definitions.NodeType.CheckboxGroup = 10 -> BlazeForms.Definitions.NodeType
+BlazeForms.Definitions.NodeType.Currency = 5 -> BlazeForms.Definitions.NodeType
+BlazeForms.Definitions.NodeType.Date = 6 -> BlazeForms.Definitions.NodeType
+BlazeForms.Definitions.NodeType.DateRange = 7 -> BlazeForms.Definitions.NodeType
+BlazeForms.Definitions.NodeType.Divider = 16 -> BlazeForms.Definitions.NodeType
+BlazeForms.Definitions.NodeType.Email = 2 -> BlazeForms.Definitions.NodeType
+BlazeForms.Definitions.NodeType.File = 19 -> BlazeForms.Definitions.NodeType
+BlazeForms.Definitions.NodeType.Heading = 13 -> BlazeForms.Definitions.NodeType
+BlazeForms.Definitions.NodeType.Lookup = 20 -> BlazeForms.Definitions.NodeType
+BlazeForms.Definitions.NodeType.Number = 4 -> BlazeForms.Definitions.NodeType
+BlazeForms.Definitions.NodeType.Paragraph = 14 -> BlazeForms.Definitions.NodeType
+BlazeForms.Definitions.NodeType.Phone = 3 -> BlazeForms.Definitions.NodeType
+BlazeForms.Definitions.NodeType.Radio = 9 -> BlazeForms.Definitions.NodeType
+BlazeForms.Definitions.NodeType.Repeating = 18 -> BlazeForms.Definitions.NodeType
+BlazeForms.Definitions.NodeType.Select = 8 -> BlazeForms.Definitions.NodeType
+BlazeForms.Definitions.NodeType.Text = 0 -> BlazeForms.Definitions.NodeType
+BlazeForms.Definitions.NodeType.TextArea = 1 -> BlazeForms.Definitions.NodeType
+BlazeForms.Definitions.NodeType.YesNo = 11 -> BlazeForms.Definitions.NodeType
+BlazeForms.Expressions.Condition
+BlazeForms.Expressions.Condition.<Clone>$() -> BlazeForms.Expressions.Condition!
+BlazeForms.Expressions.Condition.Condition() -> void
+BlazeForms.Expressions.Condition.Equals(BlazeForms.Expressions.Condition? other) -> bool
+BlazeForms.Expressions.Condition.Field.get -> string!
+BlazeForms.Expressions.Condition.Field.init -> void
+BlazeForms.Expressions.Condition.Operator.get -> BlazeForms.Expressions.ConditionOperator
+BlazeForms.Expressions.Condition.Operator.init -> void
+BlazeForms.Expressions.Condition.Value.get -> string?
+BlazeForms.Expressions.Condition.Value.init -> void
+BlazeForms.Expressions.ConditionEvaluator
+BlazeForms.Expressions.ConditionGroup
+BlazeForms.Expressions.ConditionGroup.<Clone>$() -> BlazeForms.Expressions.ConditionGroup!
+BlazeForms.Expressions.ConditionGroup.ConditionGroup() -> void
+BlazeForms.Expressions.ConditionGroup.Conditions.get -> System.Collections.Generic.IReadOnlyList<BlazeForms.Expressions.Condition!>!
+BlazeForms.Expressions.ConditionGroup.Conditions.init -> void
+BlazeForms.Expressions.ConditionGroup.Equals(BlazeForms.Expressions.ConditionGroup? other) -> bool
+BlazeForms.Expressions.ConditionGroup.Join.get -> BlazeForms.Expressions.ConditionJoin
+BlazeForms.Expressions.ConditionGroup.Join.init -> void
+BlazeForms.Expressions.ConditionJoin
+BlazeForms.Expressions.ConditionJoin.All = 0 -> BlazeForms.Expressions.ConditionJoin
+BlazeForms.Expressions.ConditionJoin.Any = 1 -> BlazeForms.Expressions.ConditionJoin
+BlazeForms.Expressions.ConditionOperator
+BlazeForms.Expressions.ConditionOperator.Contains = 8 -> BlazeForms.Expressions.ConditionOperator
+BlazeForms.Expressions.ConditionOperator.GreaterThan = 6 -> BlazeForms.Expressions.ConditionOperator
+BlazeForms.Expressions.ConditionOperator.Is = 0 -> BlazeForms.Expressions.ConditionOperator
+BlazeForms.Expressions.ConditionOperator.IsBlank = 4 -> BlazeForms.Expressions.ConditionOperator
+BlazeForms.Expressions.ConditionOperator.IsFalse = 3 -> BlazeForms.Expressions.ConditionOperator
+BlazeForms.Expressions.ConditionOperator.IsNot = 1 -> BlazeForms.Expressions.ConditionOperator
+BlazeForms.Expressions.ConditionOperator.IsNotBlank = 5 -> BlazeForms.Expressions.ConditionOperator
+BlazeForms.Expressions.ConditionOperator.IsTrue = 2 -> BlazeForms.Expressions.ConditionOperator
+BlazeForms.Expressions.ConditionOperator.LessThan = 7 -> BlazeForms.Expressions.ConditionOperator
+BlazeForms.Expressions.ValidationRule
+BlazeForms.Expressions.ValidationRule.<Clone>$() -> BlazeForms.Expressions.ValidationRule!
+BlazeForms.Expressions.ValidationRule.Equals(BlazeForms.Expressions.ValidationRule? other) -> bool
+BlazeForms.Expressions.ValidationRule.Expression.get -> BlazeForms.Expressions.ConditionGroup!
+BlazeForms.Expressions.ValidationRule.Expression.init -> void
+BlazeForms.Expressions.ValidationRule.Message.get -> string!
+BlazeForms.Expressions.ValidationRule.Message.init -> void
+BlazeForms.Expressions.ValidationRule.Target.get -> string!
+BlazeForms.Expressions.ValidationRule.Target.init -> void
+BlazeForms.Expressions.ValidationRule.ValidationRule() -> void
+BlazeForms.Expressions.VisibilityEvaluator
+BlazeForms.Hosting.FormDraft
+BlazeForms.Hosting.FormDraft.<Clone>$() -> BlazeForms.Hosting.FormDraft!
+BlazeForms.Hosting.FormDraft.CurrentPageIndex.get -> int
+BlazeForms.Hosting.FormDraft.CurrentPageIndex.init -> void
+BlazeForms.Hosting.FormDraft.Equals(BlazeForms.Hosting.FormDraft? other) -> bool
+BlazeForms.Hosting.FormDraft.FormDraft() -> void
+BlazeForms.Hosting.FormDraft.Key.get -> BlazeForms.Hosting.FormDraftKey!
+BlazeForms.Hosting.FormDraft.Key.init -> void
+BlazeForms.Hosting.FormDraft.StartedAt.get -> System.DateTimeOffset
+BlazeForms.Hosting.FormDraft.StartedAt.init -> void
+BlazeForms.Hosting.FormDraft.UpdatedAt.get -> System.DateTimeOffset
+BlazeForms.Hosting.FormDraft.UpdatedAt.init -> void
+BlazeForms.Hosting.FormDraft.Values.get -> System.Collections.Generic.IReadOnlyDictionary<string!, System.Text.Json.JsonElement>!
+BlazeForms.Hosting.FormDraft.Values.init -> void
+BlazeForms.Hosting.FormDraftKey
+BlazeForms.Hosting.FormDraftKey.<Clone>$() -> BlazeForms.Hosting.FormDraftKey!
+BlazeForms.Hosting.FormDraftKey.Deconstruct(out string! FormId, out int DefinitionVersion, out string! RespondentKey) -> void
+BlazeForms.Hosting.FormDraftKey.DefinitionVersion.get -> int
+BlazeForms.Hosting.FormDraftKey.DefinitionVersion.init -> void
+BlazeForms.Hosting.FormDraftKey.Equals(BlazeForms.Hosting.FormDraftKey? other) -> bool
+BlazeForms.Hosting.FormDraftKey.FormDraftKey(string! FormId, int DefinitionVersion, string! RespondentKey) -> void
+BlazeForms.Hosting.FormDraftKey.FormId.get -> string!
+BlazeForms.Hosting.FormDraftKey.FormId.init -> void
+BlazeForms.Hosting.FormDraftKey.RespondentKey.get -> string!
+BlazeForms.Hosting.FormDraftKey.RespondentKey.init -> void
+BlazeForms.Hosting.FormSubmissionEnvelope
+BlazeForms.Hosting.FormSubmissionEnvelope.<Clone>$() -> BlazeForms.Hosting.FormSubmissionEnvelope!
+BlazeForms.Hosting.FormSubmissionEnvelope.DefinitionVersion.get -> int
+BlazeForms.Hosting.FormSubmissionEnvelope.DefinitionVersion.init -> void
+BlazeForms.Hosting.FormSubmissionEnvelope.Equals(BlazeForms.Hosting.FormSubmissionEnvelope? other) -> bool
+BlazeForms.Hosting.FormSubmissionEnvelope.FormId.get -> string!
+BlazeForms.Hosting.FormSubmissionEnvelope.FormId.init -> void
+BlazeForms.Hosting.FormSubmissionEnvelope.FormSubmissionEnvelope() -> void
+BlazeForms.Hosting.FormSubmissionEnvelope.RespondentKey.get -> string?
+BlazeForms.Hosting.FormSubmissionEnvelope.RespondentKey.init -> void
+BlazeForms.Hosting.FormSubmissionEnvelope.StartedAt.get -> System.DateTimeOffset
+BlazeForms.Hosting.FormSubmissionEnvelope.StartedAt.init -> void
+BlazeForms.Hosting.FormSubmissionEnvelope.SubmissionId.get -> string!
+BlazeForms.Hosting.FormSubmissionEnvelope.SubmissionId.init -> void
+BlazeForms.Hosting.FormSubmissionEnvelope.SubmittedAt.get -> System.DateTimeOffset
+BlazeForms.Hosting.FormSubmissionEnvelope.SubmittedAt.init -> void
+BlazeForms.Hosting.FormSubmissionEnvelope.Values.get -> System.Collections.Generic.IReadOnlyDictionary<string!, System.Text.Json.JsonElement>!
+BlazeForms.Hosting.FormSubmissionEnvelope.Values.init -> void
+BlazeForms.Hosting.IFieldComponentRegistry
+BlazeForms.Hosting.IFieldComponentRegistry.TryGetComponentType(BlazeForms.Definitions.NodeType nodeType, out System.Type? componentType) -> bool
+BlazeForms.Hosting.IFormDefinitionStore
+BlazeForms.Hosting.IFormDefinitionStore.DeleteDraftAsync(string! formId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+BlazeForms.Hosting.IFormDefinitionStore.GetDraftAsync(string! formId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<BlazeForms.Versioning.FormVersion?>!
+BlazeForms.Hosting.IFormDefinitionStore.GetLatestPublishedVersionAsync(string! formId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<BlazeForms.Versioning.FormVersion?>!
+BlazeForms.Hosting.IFormDefinitionStore.GetVersionAsync(string! formId, int version, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<BlazeForms.Versioning.FormVersion?>!
+BlazeForms.Hosting.IFormDefinitionStore.ListFormsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<BlazeForms.Versioning.FormVersionSummary!>!>!
+BlazeForms.Hosting.IFormDefinitionStore.ListVersionsAsync(string! formId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<BlazeForms.Versioning.FormVersionSummary!>!>!
+BlazeForms.Hosting.IFormDefinitionStore.PublishAsync(string! formId, string! changeNote, string! author, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<BlazeForms.Versioning.FormVersion!>!
+BlazeForms.Hosting.IFormDefinitionStore.RetireAsync(string! formId, int version, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+BlazeForms.Hosting.IFormDefinitionStore.SaveDraftAsync(BlazeForms.Versioning.FormVersion! draft, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+BlazeForms.Hosting.IFormDraftStore
+BlazeForms.Hosting.IFormDraftStore.DeleteAsync(BlazeForms.Hosting.FormDraftKey! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+BlazeForms.Hosting.IFormDraftStore.LoadAsync(BlazeForms.Hosting.FormDraftKey! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<BlazeForms.Hosting.FormDraft?>!
+BlazeForms.Hosting.IFormDraftStore.SaveAsync(BlazeForms.Hosting.FormDraft! draft, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+BlazeForms.Hosting.IFormSubmissionSink
+BlazeForms.Hosting.IFormSubmissionSink.SubmitAsync(BlazeForms.Hosting.FormSubmissionEnvelope! envelope, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+BlazeForms.Hosting.InMemory.InMemoryFormDefinitionStore
+BlazeForms.Hosting.InMemory.InMemoryFormDefinitionStore.DeleteDraftAsync(string! formId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+BlazeForms.Hosting.InMemory.InMemoryFormDefinitionStore.GetDraftAsync(string! formId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<BlazeForms.Versioning.FormVersion?>!
+BlazeForms.Hosting.InMemory.InMemoryFormDefinitionStore.GetLatestPublishedVersionAsync(string! formId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<BlazeForms.Versioning.FormVersion?>!
+BlazeForms.Hosting.InMemory.InMemoryFormDefinitionStore.GetVersionAsync(string! formId, int version, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<BlazeForms.Versioning.FormVersion?>!
+BlazeForms.Hosting.InMemory.InMemoryFormDefinitionStore.InMemoryFormDefinitionStore(System.TimeProvider? timeProvider = null) -> void
+BlazeForms.Hosting.InMemory.InMemoryFormDefinitionStore.ListFormsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<BlazeForms.Versioning.FormVersionSummary!>!>!
+BlazeForms.Hosting.InMemory.InMemoryFormDefinitionStore.ListVersionsAsync(string! formId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<BlazeForms.Versioning.FormVersionSummary!>!>!
+BlazeForms.Hosting.InMemory.InMemoryFormDefinitionStore.PublishAsync(string! formId, string! changeNote, string! author, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<BlazeForms.Versioning.FormVersion!>!
+BlazeForms.Hosting.InMemory.InMemoryFormDefinitionStore.RetireAsync(string! formId, int version, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+BlazeForms.Hosting.InMemory.InMemoryFormDefinitionStore.SaveDraftAsync(BlazeForms.Versioning.FormVersion! draft, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+BlazeForms.Hosting.InMemory.InMemoryFormDraftStore
+BlazeForms.Hosting.InMemory.InMemoryFormDraftStore.DeleteAsync(BlazeForms.Hosting.FormDraftKey! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+BlazeForms.Hosting.InMemory.InMemoryFormDraftStore.InMemoryFormDraftStore() -> void
+BlazeForms.Hosting.InMemory.InMemoryFormDraftStore.LoadAsync(BlazeForms.Hosting.FormDraftKey! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<BlazeForms.Hosting.FormDraft?>!
+BlazeForms.Hosting.InMemory.InMemoryFormDraftStore.SaveAsync(BlazeForms.Hosting.FormDraft! draft, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+BlazeForms.Serialization.FormJson
+BlazeForms.Serialization.FormValues
+BlazeForms.Versioning.FormLifecycle
+BlazeForms.Versioning.FormLifecycleState
+BlazeForms.Versioning.FormLifecycleState.Draft = 0 -> BlazeForms.Versioning.FormLifecycleState
+BlazeForms.Versioning.FormLifecycleState.Published = 1 -> BlazeForms.Versioning.FormLifecycleState
+BlazeForms.Versioning.FormLifecycleState.Retired = 2 -> BlazeForms.Versioning.FormLifecycleState
+BlazeForms.Versioning.FormVersion
+BlazeForms.Versioning.FormVersion.<Clone>$() -> BlazeForms.Versioning.FormVersion!
+BlazeForms.Versioning.FormVersion.Author.get -> string?
+BlazeForms.Versioning.FormVersion.Author.init -> void
+BlazeForms.Versioning.FormVersion.ChangeNote.get -> string?
+BlazeForms.Versioning.FormVersion.ChangeNote.init -> void
+BlazeForms.Versioning.FormVersion.Definition.get -> BlazeForms.Definitions.FormDefinition!
+BlazeForms.Versioning.FormVersion.Definition.init -> void
+BlazeForms.Versioning.FormVersion.Equals(BlazeForms.Versioning.FormVersion? other) -> bool
+BlazeForms.Versioning.FormVersion.FormId.get -> string!
+BlazeForms.Versioning.FormVersion.FormId.init -> void
+BlazeForms.Versioning.FormVersion.FormVersion() -> void
+BlazeForms.Versioning.FormVersion.PublishedAt.get -> System.DateTimeOffset?
+BlazeForms.Versioning.FormVersion.PublishedAt.init -> void
+BlazeForms.Versioning.FormVersion.RetiredAt.get -> System.DateTimeOffset?
+BlazeForms.Versioning.FormVersion.RetiredAt.init -> void
+BlazeForms.Versioning.FormVersion.State.get -> BlazeForms.Versioning.FormLifecycleState
+BlazeForms.Versioning.FormVersion.State.init -> void
+BlazeForms.Versioning.FormVersion.Version.get -> int
+BlazeForms.Versioning.FormVersion.Version.init -> void
+BlazeForms.Versioning.FormVersionSummary
+BlazeForms.Versioning.FormVersionSummary.<Clone>$() -> BlazeForms.Versioning.FormVersionSummary!
+BlazeForms.Versioning.FormVersionSummary.Author.get -> string?
+BlazeForms.Versioning.FormVersionSummary.Author.init -> void
+BlazeForms.Versioning.FormVersionSummary.ChangeNote.get -> string?
+BlazeForms.Versioning.FormVersionSummary.ChangeNote.init -> void
+BlazeForms.Versioning.FormVersionSummary.Equals(BlazeForms.Versioning.FormVersionSummary? other) -> bool
+BlazeForms.Versioning.FormVersionSummary.FormId.get -> string!
+BlazeForms.Versioning.FormVersionSummary.FormId.init -> void
+BlazeForms.Versioning.FormVersionSummary.FormVersionSummary() -> void
+BlazeForms.Versioning.FormVersionSummary.Name.get -> string!
+BlazeForms.Versioning.FormVersionSummary.Name.init -> void
+BlazeForms.Versioning.FormVersionSummary.PublishedAt.get -> System.DateTimeOffset?
+BlazeForms.Versioning.FormVersionSummary.PublishedAt.init -> void
+BlazeForms.Versioning.FormVersionSummary.RetiredAt.get -> System.DateTimeOffset?
+BlazeForms.Versioning.FormVersionSummary.RetiredAt.init -> void
+BlazeForms.Versioning.FormVersionSummary.State.get -> BlazeForms.Versioning.FormLifecycleState
+BlazeForms.Versioning.FormVersionSummary.State.init -> void
+BlazeForms.Versioning.FormVersionSummary.SubmissionCount.get -> int
+BlazeForms.Versioning.FormVersionSummary.SubmissionCount.init -> void
+BlazeForms.Versioning.FormVersionSummary.Version.get -> int
+BlazeForms.Versioning.FormVersionSummary.Version.init -> void
+const BlazeForms.Definitions.FormSchema.CurrentVersion = 1 -> int
+const BlazeForms.Versioning.FormLifecycle.UnpublishedVersion = 0 -> int
+override BlazeForms.Definitions.FormDefinition.Equals(object? obj) -> bool
+override BlazeForms.Definitions.FormDefinition.GetHashCode() -> int
+override BlazeForms.Definitions.FormDefinition.ToString() -> string!
+override BlazeForms.Definitions.FormNode.Equals(object? obj) -> bool
+override BlazeForms.Definitions.FormNode.GetHashCode() -> int
+override BlazeForms.Definitions.FormNode.ToString() -> string!
+override BlazeForms.Definitions.FormOption.Equals(object? obj) -> bool
+override BlazeForms.Definitions.FormOption.GetHashCode() -> int
+override BlazeForms.Definitions.FormOption.ToString() -> string!
+override BlazeForms.Definitions.FormPage.Equals(object? obj) -> bool
+override BlazeForms.Definitions.FormPage.GetHashCode() -> int
+override BlazeForms.Definitions.FormPage.ToString() -> string!
+override BlazeForms.Definitions.FormSection.Equals(object? obj) -> bool
+override BlazeForms.Definitions.FormSection.GetHashCode() -> int
+override BlazeForms.Definitions.FormSection.ToString() -> string!
+override BlazeForms.Expressions.Condition.Equals(object? obj) -> bool
+override BlazeForms.Expressions.Condition.GetHashCode() -> int
+override BlazeForms.Expressions.Condition.ToString() -> string!
+override BlazeForms.Expressions.ConditionGroup.Equals(object? obj) -> bool
+override BlazeForms.Expressions.ConditionGroup.GetHashCode() -> int
+override BlazeForms.Expressions.ConditionGroup.ToString() -> string!
+override BlazeForms.Expressions.ValidationRule.Equals(object? obj) -> bool
+override BlazeForms.Expressions.ValidationRule.GetHashCode() -> int
+override BlazeForms.Expressions.ValidationRule.ToString() -> string!
+override BlazeForms.Hosting.FormDraft.Equals(object? obj) -> bool
+override BlazeForms.Hosting.FormDraft.GetHashCode() -> int
+override BlazeForms.Hosting.FormDraft.ToString() -> string!
+override BlazeForms.Hosting.FormDraftKey.Equals(object? obj) -> bool
+override BlazeForms.Hosting.FormDraftKey.GetHashCode() -> int
+override BlazeForms.Hosting.FormDraftKey.ToString() -> string!
+override BlazeForms.Hosting.FormSubmissionEnvelope.Equals(object? obj) -> bool
+override BlazeForms.Hosting.FormSubmissionEnvelope.GetHashCode() -> int
+override BlazeForms.Hosting.FormSubmissionEnvelope.ToString() -> string!
+override BlazeForms.Versioning.FormVersion.Equals(object? obj) -> bool
+override BlazeForms.Versioning.FormVersion.GetHashCode() -> int
+override BlazeForms.Versioning.FormVersion.ToString() -> string!
+override BlazeForms.Versioning.FormVersionSummary.Equals(object? obj) -> bool
+override BlazeForms.Versioning.FormVersionSummary.GetHashCode() -> int
+override BlazeForms.Versioning.FormVersionSummary.ToString() -> string!
+static BlazeForms.Definitions.FormDefinition.operator !=(BlazeForms.Definitions.FormDefinition? left, BlazeForms.Definitions.FormDefinition? right) -> bool
+static BlazeForms.Definitions.FormDefinition.operator ==(BlazeForms.Definitions.FormDefinition? left, BlazeForms.Definitions.FormDefinition? right) -> bool
+static BlazeForms.Definitions.FormDefinitionExtensions.EnumerateNodes(this BlazeForms.Definitions.FormDefinition! definition) -> System.Collections.Generic.IEnumerable<BlazeForms.Definitions.FormNode!>!
+static BlazeForms.Definitions.FormDefinitionExtensions.EnumerateNodes(this BlazeForms.Definitions.FormSection! section) -> System.Collections.Generic.IEnumerable<BlazeForms.Definitions.FormNode!>!
+static BlazeForms.Definitions.FormDefinitionExtensions.FindNode(this BlazeForms.Definitions.FormDefinition! definition, string! nodeId) -> BlazeForms.Definitions.FormNode?
+static BlazeForms.Definitions.FormDefinitionExtensions.LocateNode(this BlazeForms.Definitions.FormDefinition! definition, string! nodeId) -> (int PageIndex, int SectionIndex)?
+static BlazeForms.Definitions.FormIds.NewFormId() -> string!
+static BlazeForms.Definitions.FormIds.NewNodeId() -> string!
+static BlazeForms.Definitions.FormIds.NewPageId() -> string!
+static BlazeForms.Definitions.FormIds.NewSectionId() -> string!
+static BlazeForms.Definitions.FormIds.NewSubmissionId() -> string!
+static BlazeForms.Definitions.FormNode.operator !=(BlazeForms.Definitions.FormNode? left, BlazeForms.Definitions.FormNode? right) -> bool
+static BlazeForms.Definitions.FormNode.operator ==(BlazeForms.Definitions.FormNode? left, BlazeForms.Definitions.FormNode? right) -> bool
+static BlazeForms.Definitions.FormOption.operator !=(BlazeForms.Definitions.FormOption? left, BlazeForms.Definitions.FormOption? right) -> bool
+static BlazeForms.Definitions.FormOption.operator ==(BlazeForms.Definitions.FormOption? left, BlazeForms.Definitions.FormOption? right) -> bool
+static BlazeForms.Definitions.FormPage.operator !=(BlazeForms.Definitions.FormPage? left, BlazeForms.Definitions.FormPage? right) -> bool
+static BlazeForms.Definitions.FormPage.operator ==(BlazeForms.Definitions.FormPage? left, BlazeForms.Definitions.FormPage? right) -> bool
+static BlazeForms.Definitions.FormSchema.IsInputNode(BlazeForms.Definitions.NodeType nodeType) -> bool
+static BlazeForms.Definitions.FormSchema.IsReservedForLaterPhase(BlazeForms.Definitions.NodeType nodeType) -> bool
+static BlazeForms.Definitions.FormSchema.IsStaticNode(BlazeForms.Definitions.NodeType nodeType) -> bool
+static BlazeForms.Definitions.FormSchema.PhaseOneNodeTypes.get -> System.Collections.Generic.IReadOnlyList<BlazeForms.Definitions.NodeType>!
+static BlazeForms.Definitions.FormSchema.ReservedNodeTypes.get -> System.Collections.Generic.IReadOnlyList<BlazeForms.Definitions.NodeType>!
+static BlazeForms.Definitions.FormSchema.StaticNodeTypes.get -> System.Collections.Generic.IReadOnlyList<BlazeForms.Definitions.NodeType>!
+static BlazeForms.Definitions.FormSection.operator !=(BlazeForms.Definitions.FormSection? left, BlazeForms.Definitions.FormSection? right) -> bool
+static BlazeForms.Definitions.FormSection.operator ==(BlazeForms.Definitions.FormSection? left, BlazeForms.Definitions.FormSection? right) -> bool
+static BlazeForms.Expressions.Condition.operator !=(BlazeForms.Expressions.Condition? left, BlazeForms.Expressions.Condition? right) -> bool
+static BlazeForms.Expressions.Condition.operator ==(BlazeForms.Expressions.Condition? left, BlazeForms.Expressions.Condition? right) -> bool
+static BlazeForms.Expressions.ConditionEvaluator.Evaluate(BlazeForms.Expressions.Condition! condition, System.Collections.Generic.IReadOnlyDictionary<string!, object?>! values) -> bool
+static BlazeForms.Expressions.ConditionEvaluator.Evaluate(BlazeForms.Expressions.ConditionGroup! group, System.Collections.Generic.IReadOnlyDictionary<string!, object?>! values) -> bool
+static BlazeForms.Expressions.ConditionGroup.operator !=(BlazeForms.Expressions.ConditionGroup? left, BlazeForms.Expressions.ConditionGroup? right) -> bool
+static BlazeForms.Expressions.ConditionGroup.operator ==(BlazeForms.Expressions.ConditionGroup? left, BlazeForms.Expressions.ConditionGroup? right) -> bool
+static BlazeForms.Expressions.ValidationRule.operator !=(BlazeForms.Expressions.ValidationRule? left, BlazeForms.Expressions.ValidationRule? right) -> bool
+static BlazeForms.Expressions.ValidationRule.operator ==(BlazeForms.Expressions.ValidationRule? left, BlazeForms.Expressions.ValidationRule? right) -> bool
+static BlazeForms.Expressions.VisibilityEvaluator.FilterToVisible(BlazeForms.Definitions.FormDefinition! definition, System.Collections.Generic.IReadOnlyDictionary<string!, object?>! values) -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>!
+static BlazeForms.Expressions.VisibilityEvaluator.GetVisibleNodes(BlazeForms.Definitions.FormDefinition! definition, System.Collections.Generic.IReadOnlyDictionary<string!, object?>! values) -> System.Collections.Generic.IReadOnlyList<BlazeForms.Definitions.FormNode!>!
+static BlazeForms.Expressions.VisibilityEvaluator.IsVisible(BlazeForms.Definitions.FormNode! node, System.Collections.Generic.IReadOnlyDictionary<string!, object?>! values) -> bool
+static BlazeForms.Hosting.FormDraft.operator !=(BlazeForms.Hosting.FormDraft? left, BlazeForms.Hosting.FormDraft? right) -> bool
+static BlazeForms.Hosting.FormDraft.operator ==(BlazeForms.Hosting.FormDraft? left, BlazeForms.Hosting.FormDraft? right) -> bool
+static BlazeForms.Hosting.FormDraftKey.operator !=(BlazeForms.Hosting.FormDraftKey? left, BlazeForms.Hosting.FormDraftKey? right) -> bool
+static BlazeForms.Hosting.FormDraftKey.operator ==(BlazeForms.Hosting.FormDraftKey? left, BlazeForms.Hosting.FormDraftKey? right) -> bool
+static BlazeForms.Hosting.FormSubmissionEnvelope.operator !=(BlazeForms.Hosting.FormSubmissionEnvelope? left, BlazeForms.Hosting.FormSubmissionEnvelope? right) -> bool
+static BlazeForms.Hosting.FormSubmissionEnvelope.operator ==(BlazeForms.Hosting.FormSubmissionEnvelope? left, BlazeForms.Hosting.FormSubmissionEnvelope? right) -> bool
+static BlazeForms.Serialization.FormJson.DeserializeConditionGroup(string! json) -> BlazeForms.Expressions.ConditionGroup!
+static BlazeForms.Serialization.FormJson.DeserializeDefinition(string! json) -> BlazeForms.Definitions.FormDefinition!
+static BlazeForms.Serialization.FormJson.DeserializeEnvelope(string! json) -> BlazeForms.Hosting.FormSubmissionEnvelope!
+static BlazeForms.Serialization.FormJson.Options.get -> System.Text.Json.JsonSerializerOptions!
+static BlazeForms.Serialization.FormJson.SerializeConditionGroup(BlazeForms.Expressions.ConditionGroup! group) -> string!
+static BlazeForms.Serialization.FormJson.SerializeDefinition(BlazeForms.Definitions.FormDefinition! definition, bool indented = false) -> string!
+static BlazeForms.Serialization.FormJson.SerializeEnvelope(BlazeForms.Hosting.FormSubmissionEnvelope! envelope, bool indented = false) -> string!
+static BlazeForms.Serialization.FormJson.TypeInfoResolver.get -> System.Text.Json.Serialization.Metadata.IJsonTypeInfoResolver!
+static BlazeForms.Serialization.FormValues.FromJsonValues(System.Collections.Generic.IReadOnlyDictionary<string!, System.Text.Json.JsonElement>! values) -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>!
+static BlazeForms.Serialization.FormValues.ToJsonValues(System.Collections.Generic.IReadOnlyDictionary<string!, object?>! values) -> System.Collections.Generic.IReadOnlyDictionary<string!, System.Text.Json.JsonElement>!
+static BlazeForms.Versioning.FormLifecycle.CreateDraft(BlazeForms.Definitions.FormDefinition! definition) -> BlazeForms.Versioning.FormVersion!
+static BlazeForms.Versioning.FormLifecycle.Publish(BlazeForms.Versioning.FormVersion! draft, int version, string! changeNote, string! author, System.DateTimeOffset publishedAt) -> BlazeForms.Versioning.FormVersion!
+static BlazeForms.Versioning.FormLifecycle.Retire(BlazeForms.Versioning.FormVersion! published, System.DateTimeOffset retiredAt) -> BlazeForms.Versioning.FormVersion!
+static BlazeForms.Versioning.FormLifecycle.ReviseAsDraft(BlazeForms.Versioning.FormVersion! version) -> BlazeForms.Versioning.FormVersion!
+static BlazeForms.Versioning.FormLifecycle.Summarize(BlazeForms.Versioning.FormVersion! version, int submissionCount = 0) -> BlazeForms.Versioning.FormVersionSummary!
+static BlazeForms.Versioning.FormVersion.operator !=(BlazeForms.Versioning.FormVersion? left, BlazeForms.Versioning.FormVersion? right) -> bool
+static BlazeForms.Versioning.FormVersion.operator ==(BlazeForms.Versioning.FormVersion? left, BlazeForms.Versioning.FormVersion? right) -> bool
+static BlazeForms.Versioning.FormVersionSummary.operator !=(BlazeForms.Versioning.FormVersionSummary? left, BlazeForms.Versioning.FormVersionSummary? right) -> bool
+static BlazeForms.Versioning.FormVersionSummary.operator ==(BlazeForms.Versioning.FormVersionSummary? left, BlazeForms.Versioning.FormVersionSummary? right) -> bool
