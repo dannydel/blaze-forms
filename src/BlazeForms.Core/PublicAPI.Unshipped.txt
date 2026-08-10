@@ -228,6 +228,60 @@ BlazeForms.Hosting.InMemory.InMemoryFormDraftStore.DeleteAsync(BlazeForms.Hostin
 BlazeForms.Hosting.InMemory.InMemoryFormDraftStore.InMemoryFormDraftStore() -> void
 BlazeForms.Hosting.InMemory.InMemoryFormDraftStore.LoadAsync(BlazeForms.Hosting.FormDraftKey! key, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<BlazeForms.Hosting.FormDraft?>!
 BlazeForms.Hosting.InMemory.InMemoryFormDraftStore.SaveAsync(BlazeForms.Hosting.FormDraft! draft, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+BlazeForms.Linting.FormLinter
+BlazeForms.Linting.FormLinter.FormLinter(System.Collections.Generic.IEnumerable<BlazeForms.Linting.ILintRule!>! rules) -> void
+BlazeForms.Linting.FormLinter.Lint(BlazeForms.Definitions.FormDefinition! definition) -> System.Collections.Generic.IReadOnlyList<BlazeForms.Linting.LintResult!>!
+BlazeForms.Linting.ILintRule
+BlazeForms.Linting.ILintRule.Analyze(BlazeForms.Linting.LintContext! context) -> System.Collections.Generic.IEnumerable<BlazeForms.Linting.LintResult!>!
+BlazeForms.Linting.ILintRule.Id.get -> string!
+BlazeForms.Linting.ILintRule.Rationale.get -> string!
+BlazeForms.Linting.ILintRule.Severity.get -> BlazeForms.Linting.LintSeverity
+BlazeForms.Linting.LintContext
+BlazeForms.Linting.LintContext.<Clone>$() -> BlazeForms.Linting.LintContext!
+BlazeForms.Linting.LintContext.Definition.get -> BlazeForms.Definitions.FormDefinition!
+BlazeForms.Linting.LintContext.Definition.init -> void
+BlazeForms.Linting.LintContext.Equals(BlazeForms.Linting.LintContext? other) -> bool
+BlazeForms.Linting.LintContext.LintContext() -> void
+BlazeForms.Linting.LintResult
+BlazeForms.Linting.LintResult.<Clone>$() -> BlazeForms.Linting.LintResult!
+BlazeForms.Linting.LintResult.Detail.get -> string?
+BlazeForms.Linting.LintResult.Detail.init -> void
+BlazeForms.Linting.LintResult.Equals(BlazeForms.Linting.LintResult? other) -> bool
+BlazeForms.Linting.LintResult.LintResult() -> void
+BlazeForms.Linting.LintResult.Message.get -> string!
+BlazeForms.Linting.LintResult.Message.init -> void
+BlazeForms.Linting.LintResult.NodeId.get -> string?
+BlazeForms.Linting.LintResult.NodeId.init -> void
+BlazeForms.Linting.LintResult.PageIndex.get -> int?
+BlazeForms.Linting.LintResult.PageIndex.init -> void
+BlazeForms.Linting.LintResult.RuleId.get -> string!
+BlazeForms.Linting.LintResult.RuleId.init -> void
+BlazeForms.Linting.LintResult.SectionIndex.get -> int?
+BlazeForms.Linting.LintResult.SectionIndex.init -> void
+BlazeForms.Linting.LintResult.Severity.get -> BlazeForms.Linting.LintSeverity
+BlazeForms.Linting.LintResult.Severity.init -> void
+BlazeForms.Linting.LintResultExtensions
+BlazeForms.Linting.LintRuleIds
+BlazeForms.Linting.LintRuleRegistry
+BlazeForms.Linting.LintSeverity
+BlazeForms.Linting.LintSeverity.Advisory = 1 -> BlazeForms.Linting.LintSeverity
+BlazeForms.Linting.LintSeverity.Blocking = 0 -> BlazeForms.Linting.LintSeverity
+BlazeForms.Markdown.MarkdownLink
+BlazeForms.Markdown.MarkdownLink.<Clone>$() -> BlazeForms.Markdown.MarkdownLink!
+BlazeForms.Markdown.MarkdownLink.Equals(BlazeForms.Markdown.MarkdownLink? other) -> bool
+BlazeForms.Markdown.MarkdownLink.IsExternal.get -> bool
+BlazeForms.Markdown.MarkdownLink.IsExternal.init -> void
+BlazeForms.Markdown.MarkdownLink.MarkdownLink() -> void
+BlazeForms.Markdown.MarkdownLink.Text.get -> string!
+BlazeForms.Markdown.MarkdownLink.Text.init -> void
+BlazeForms.Markdown.MarkdownLink.Url.get -> string!
+BlazeForms.Markdown.MarkdownLink.Url.init -> void
+BlazeForms.Markdown.SafeHtml
+BlazeForms.Markdown.SafeHtml.Equals(BlazeForms.Markdown.SafeHtml other) -> bool
+BlazeForms.Markdown.SafeHtml.SafeHtml() -> void
+BlazeForms.Markdown.SafeHtml.SafeHtml(string! value) -> void
+BlazeForms.Markdown.SafeHtml.Value.get -> string!
+BlazeForms.Markdown.SafeMarkdown
 BlazeForms.Serialization.FormJson
 BlazeForms.Serialization.FormValues
 BlazeForms.Versioning.FormLifecycle
@@ -278,6 +332,11 @@ BlazeForms.Versioning.FormVersionSummary.SubmissionCount.init -> void
 BlazeForms.Versioning.FormVersionSummary.Version.get -> int
 BlazeForms.Versioning.FormVersionSummary.Version.init -> void
 const BlazeForms.Definitions.FormSchema.CurrentVersion = 1 -> int
+const BlazeForms.Linting.LintRuleIds.A11y01 = "A11Y-01" -> string!
+const BlazeForms.Linting.LintRuleIds.A11y06 = "A11Y-06" -> string!
+const BlazeForms.Linting.LintRuleIds.A11y08 = "A11Y-08" -> string!
+const BlazeForms.Linting.LintRuleIds.A11y09 = "A11Y-09" -> string!
+const BlazeForms.Linting.LintRuleIds.Fr03 = "FR-03" -> string!
 const BlazeForms.Versioning.FormLifecycle.UnpublishedVersion = 0 -> int
 override BlazeForms.Definitions.FormDefinition.Equals(object? obj) -> bool
 override BlazeForms.Definitions.FormDefinition.GetHashCode() -> int
@@ -312,6 +371,17 @@ override BlazeForms.Hosting.FormDraftKey.ToString() -> string!
 override BlazeForms.Hosting.FormSubmissionEnvelope.Equals(object? obj) -> bool
 override BlazeForms.Hosting.FormSubmissionEnvelope.GetHashCode() -> int
 override BlazeForms.Hosting.FormSubmissionEnvelope.ToString() -> string!
+override BlazeForms.Linting.LintContext.Equals(object? obj) -> bool
+override BlazeForms.Linting.LintContext.GetHashCode() -> int
+override BlazeForms.Linting.LintContext.ToString() -> string!
+override BlazeForms.Linting.LintResult.Equals(object? obj) -> bool
+override BlazeForms.Linting.LintResult.GetHashCode() -> int
+override BlazeForms.Linting.LintResult.ToString() -> string!
+override BlazeForms.Markdown.MarkdownLink.Equals(object? obj) -> bool
+override BlazeForms.Markdown.MarkdownLink.GetHashCode() -> int
+override BlazeForms.Markdown.MarkdownLink.ToString() -> string!
+override BlazeForms.Markdown.SafeHtml.GetHashCode() -> int
+override BlazeForms.Markdown.SafeHtml.ToString() -> string!
 override BlazeForms.Versioning.FormVersion.Equals(object? obj) -> bool
 override BlazeForms.Versioning.FormVersion.GetHashCode() -> int
 override BlazeForms.Versioning.FormVersion.ToString() -> string!
@@ -360,6 +430,20 @@ static BlazeForms.Hosting.FormDraftKey.operator !=(BlazeForms.Hosting.FormDraftK
 static BlazeForms.Hosting.FormDraftKey.operator ==(BlazeForms.Hosting.FormDraftKey? left, BlazeForms.Hosting.FormDraftKey? right) -> bool
 static BlazeForms.Hosting.FormSubmissionEnvelope.operator !=(BlazeForms.Hosting.FormSubmissionEnvelope? left, BlazeForms.Hosting.FormSubmissionEnvelope? right) -> bool
 static BlazeForms.Hosting.FormSubmissionEnvelope.operator ==(BlazeForms.Hosting.FormSubmissionEnvelope? left, BlazeForms.Hosting.FormSubmissionEnvelope? right) -> bool
+static BlazeForms.Linting.FormLinter.CreateDefault() -> BlazeForms.Linting.FormLinter!
+static BlazeForms.Linting.LintContext.operator !=(BlazeForms.Linting.LintContext? left, BlazeForms.Linting.LintContext? right) -> bool
+static BlazeForms.Linting.LintContext.operator ==(BlazeForms.Linting.LintContext? left, BlazeForms.Linting.LintContext? right) -> bool
+static BlazeForms.Linting.LintResult.operator !=(BlazeForms.Linting.LintResult? left, BlazeForms.Linting.LintResult? right) -> bool
+static BlazeForms.Linting.LintResult.operator ==(BlazeForms.Linting.LintResult? left, BlazeForms.Linting.LintResult? right) -> bool
+static BlazeForms.Linting.LintResultExtensions.Blocking(this System.Collections.Generic.IEnumerable<BlazeForms.Linting.LintResult!>! results) -> System.Collections.Generic.IEnumerable<BlazeForms.Linting.LintResult!>!
+static BlazeForms.Linting.LintResultExtensions.HasBlockingIssues(this System.Collections.Generic.IEnumerable<BlazeForms.Linting.LintResult!>! results) -> bool
+static BlazeForms.Linting.LintRuleRegistry.Default.get -> System.Collections.Generic.IReadOnlyList<BlazeForms.Linting.ILintRule!>!
+static BlazeForms.Markdown.MarkdownLink.operator !=(BlazeForms.Markdown.MarkdownLink? left, BlazeForms.Markdown.MarkdownLink? right) -> bool
+static BlazeForms.Markdown.MarkdownLink.operator ==(BlazeForms.Markdown.MarkdownLink? left, BlazeForms.Markdown.MarkdownLink? right) -> bool
+static BlazeForms.Markdown.SafeHtml.operator !=(BlazeForms.Markdown.SafeHtml left, BlazeForms.Markdown.SafeHtml right) -> bool
+static BlazeForms.Markdown.SafeHtml.operator ==(BlazeForms.Markdown.SafeHtml left, BlazeForms.Markdown.SafeHtml right) -> bool
+static BlazeForms.Markdown.SafeMarkdown.ExtractLinks(string? markdown) -> System.Collections.Generic.IReadOnlyList<BlazeForms.Markdown.MarkdownLink!>!
+static BlazeForms.Markdown.SafeMarkdown.ToHtml(string? markdown) -> BlazeForms.Markdown.SafeHtml
 static BlazeForms.Serialization.FormJson.DeserializeConditionGroup(string! json) -> BlazeForms.Expressions.ConditionGroup!
 static BlazeForms.Serialization.FormJson.DeserializeDefinition(string! json) -> BlazeForms.Definitions.FormDefinition!
 static BlazeForms.Serialization.FormJson.DeserializeEnvelope(string! json) -> BlazeForms.Hosting.FormSubmissionEnvelope!
@@ -379,3 +463,4 @@ static BlazeForms.Versioning.FormVersion.operator !=(BlazeForms.Versioning.FormV
 static BlazeForms.Versioning.FormVersion.operator ==(BlazeForms.Versioning.FormVersion? left, BlazeForms.Versioning.FormVersion? right) -> bool
 static BlazeForms.Versioning.FormVersionSummary.operator !=(BlazeForms.Versioning.FormVersionSummary? left, BlazeForms.Versioning.FormVersionSummary? right) -> bool
 static BlazeForms.Versioning.FormVersionSummary.operator ==(BlazeForms.Versioning.FormVersionSummary? left, BlazeForms.Versioning.FormVersionSummary? right) -> bool
+~override BlazeForms.Markdown.SafeHtml.Equals(object obj) -> bool
