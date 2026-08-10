@@ -294,6 +294,185 @@ internal static class TestDefinitions
         ],
     };
 
+    /// <summary>
+    /// A small, entirely well-formed definition: every input is labelled, headings step by one,
+    /// links describe their destinations, and the one validation rule references a live field with
+    /// a message that states a remedy. The linter reports zero results against it.
+    /// </summary>
+    internal static FormDefinition CleanDefinition { get; } = new()
+    {
+        Id = "form-clean",
+        Name = "Clean form",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Title = "Page one",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Title = "Section one",
+                        Nodes =
+                        [
+                            new FormNode
+                            {
+                                Id = "clean-heading",
+                                Type = NodeType.Heading,
+                                Label = "Contact details",
+                                Level = 2,
+                            },
+                            new FormNode
+                            {
+                                Id = "clean-intro",
+                                Type = NodeType.Paragraph,
+                                Content = "Read the [enrollment policy](https://example.gov/policy) before you begin.",
+                            },
+                            new FormNode
+                            {
+                                Id = "clean-name",
+                                Type = NodeType.Text,
+                                Label = "Full name",
+                                Help = "Enter the name on the [official record](https://example.gov/records).",
+                                Required = true,
+                            },
+                            new FormNode
+                            {
+                                Id = "clean-email",
+                                Type = NodeType.Email,
+                                Label = "Email address",
+                                Required = true,
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+        ValidationRules =
+        [
+            new ValidationRule
+            {
+                Target = "clean-email",
+                Message = "Enter an email address so we can confirm the enrollment.",
+                Expression = new ConditionGroup
+                {
+                    Conditions =
+                    [
+                        new Condition
+                        {
+                            Field = "clean-email",
+                            Operator = ConditionOperator.IsBlank,
+                        },
+                    ],
+                },
+            },
+        ],
+    };
+
+    /// <summary>
+    /// One page, one section, seeded so each built-in lint rule fires exactly once:
+    /// <c>fixture-unlabeled</c> has no label (A11Y-01); <c>fixture-detail</c>'s visibility rule
+    /// points at a field that does not exist (FR-03); the validation message reads "Invalid"
+    /// (A11Y-06); the second heading jumps from level 2 to level 4 (A11Y-08); the paragraph carries
+    /// a "click here" link (A11Y-09). Every anchored node sits at page 0, section 0.
+    /// </summary>
+    internal static FormDefinition LintFixtureDefinition { get; } = new()
+    {
+        Id = "form-lint-fixture",
+        Name = "Lint fixture",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Title = "Page one",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Title = "Section one",
+                        Nodes =
+                        [
+                            new FormNode
+                            {
+                                Id = "fixture-heading-top",
+                                Type = NodeType.Heading,
+                                Label = "Welcome",
+                                Level = 2,
+                            },
+                            new FormNode
+                            {
+                                Id = "fixture-heading-skip",
+                                Type = NodeType.Heading,
+                                Label = "Details",
+                                Level = 4,
+                            },
+                            new FormNode
+                            {
+                                Id = "fixture-intro",
+                                Type = NodeType.Paragraph,
+                                Content = "For the form, [click here](https://example.gov/form).",
+                            },
+                            new FormNode
+                            {
+                                Id = "fixture-unlabeled",
+                                Type = NodeType.Text,
+                                Placeholder = "A placeholder is not a label",
+                            },
+                            new FormNode
+                            {
+                                Id = "fixture-name",
+                                Type = NodeType.Text,
+                                Label = "Full name",
+                                Required = true,
+                            },
+                            new FormNode
+                            {
+                                Id = "fixture-detail",
+                                Type = NodeType.Text,
+                                Label = "Extra detail",
+                                VisibleWhen = new ConditionGroup
+                                {
+                                    Conditions =
+                                    [
+                                        new Condition
+                                        {
+                                            Field = "fixture-ghost",
+                                            Operator = ConditionOperator.Is,
+                                            Value = "yes",
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+        ValidationRules =
+        [
+            new ValidationRule
+            {
+                Target = "fixture-name",
+                Message = "Invalid",
+                Expression = new ConditionGroup
+                {
+                    Conditions =
+                    [
+                        new Condition
+                        {
+                            Field = "fixture-name",
+                            Operator = ConditionOperator.IsBlank,
+                        },
+                    ],
+                },
+            },
+        ],
+    };
+
     private static FormDefinition SinglePage(string id, params FormNode[] nodes) => new()
     {
         Id = id,
