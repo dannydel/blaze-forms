@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BlazeForms.Core\BlazeForms.Core.csproj" />
+    <ProjectReference Include="..\BlazeForms.Renderer\BlazeForms.Renderer.csproj" />
+  </ItemGroup>
+
+</Project>

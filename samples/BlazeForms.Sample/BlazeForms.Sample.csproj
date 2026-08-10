@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\BlazeForms.Core\BlazeForms.Core.csproj" />
+    <ProjectReference Include="..\..\src\BlazeForms.Renderer\BlazeForms.Renderer.csproj" />
+    <ProjectReference Include="..\..\src\BlazeForms.Designer\BlazeForms.Designer.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+  </PropertyGroup>
+
+</Project>
