@@ -1,0 +1,4 @@
+.bf-paragraph {
+    margin-block-end: var(--bf-space-4);
+    color: var(--bf-color-text);
+}

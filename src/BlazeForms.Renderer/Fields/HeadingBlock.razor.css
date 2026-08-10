@@ -1,0 +1,5 @@
+.bf-heading {
+    font-family: var(--bf-font-sans);
+    color: var(--bf-color-text);
+    margin-block: var(--bf-space-5) var(--bf-space-2);
+}

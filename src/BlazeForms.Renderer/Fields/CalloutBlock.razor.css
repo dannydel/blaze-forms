@@ -1,0 +1,8 @@
+.bf-callout {
+    margin-block-end: var(--bf-space-4);
+    padding: var(--bf-space-3) var(--bf-space-4);
+    background-color: var(--bf-color-surface);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-md);
+    color: var(--bf-color-text);
+}

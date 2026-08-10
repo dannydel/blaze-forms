@@ -1,0 +1,37 @@
+.bf-fieldset {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-2);
+    margin-block-end: var(--bf-space-4);
+}
+
+.bf-daterange {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--bf-space-3);
+}
+
+.bf-daterange__part {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-1);
+}
+
+.bf-field__help {
+    font-size: var(--bf-font-size-sm);
+    color: var(--bf-color-muted);
+}
+
+.bf-field__error {
+    font-size: var(--bf-font-size-sm);
+    color: var(--bf-color-danger);
+}
+
+/* Stack the two dates on narrow viewports, same breakpoint as half-width field pairs (PRD §4.2).
+ * A `@media` condition cannot reference a custom property, so this literal mirrors
+ * `--bf-breakpoint-collapse`. */
+@media (max-width: 480px) {
+    .bf-daterange {
+        grid-template-columns: 1fr;
+    }
+}

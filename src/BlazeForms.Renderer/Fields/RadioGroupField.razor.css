@@ -1,0 +1,22 @@
+.bf-fieldset {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-2);
+    margin-block-end: var(--bf-space-4);
+}
+
+.bf-choice-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-1);
+}
+
+.bf-field__help {
+    font-size: var(--bf-font-size-sm);
+    color: var(--bf-color-muted);
+}
+
+.bf-field__error {
+    font-size: var(--bf-font-size-sm);
+    color: var(--bf-color-danger);
+}

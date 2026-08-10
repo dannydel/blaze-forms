@@ -1,0 +1,23 @@
+@inherits FormFieldBase
+<div class="bf-field bf-field--boolean">
+    <div class="bf-choice">
+        <input id="@FieldId"
+               type="checkbox"
+               disabled="@Disabled"
+               aria-required="@RequiredAttributeValue"
+               aria-invalid="@InvalidAttributeValue"
+               aria-describedby="@BuildDescribedBy()"
+               @bind:get="BoolValue"
+               @bind:set="SetBoolValueAsync"
+               @onblur="OnBlurAsync" />
+        <label for="@FieldId">@Node.Label</label>
+    </div>
+    @if (HasHelp)
+    {
+        <div id="@HelpElementId" class="bf-field__help bf-prose">@HelpMarkup</div>
+    }
+    @if (HasError)
+    {
+        <span id="@ErrorElementId" class="bf-field__error">@Error</span>
+    }
+</div>

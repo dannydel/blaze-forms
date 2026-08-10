@@ -1,0 +1,211 @@
+/*
+ * BlazeForms neutral default theme (PRD §10, docs/theming.md).
+ *
+ * This file is the token contract's *default value set* plus a light reset and the baseline
+ * element styling the field and structure components in `Fields/` build on. Every visual
+ * decision a shipped component makes flows through a `--bf-*` custom property declared here, so
+ * a host restyles the whole renderer by re-declaring these properties on `:root` (or any
+ * ancestor) -- no build step, no Tailwind toolchain required downstream.
+ *
+ * Served at `_content/BlazeForms.Renderer/blazeforms.css`; consumers add one <link>. Component
+ * CSS isolation (the collocated `.razor.css` files) is bundled separately by the Blazor build
+ * and speaks these tokens exclusively -- it never hard-codes a color, space, radius, or font
+ * value (AGENTS.md Blazor standards).
+ */
+
+:root {
+  /* Color */
+  --bf-color-bg: #ffffff;
+  --bf-color-surface: #f7f7f8;
+  --bf-color-text: #1a1a1e;
+  --bf-color-muted: #5b5f66;
+  --bf-color-border: #c7c9cd;
+  --bf-color-primary: #1155cc;
+  --bf-color-primary-contrast: #ffffff;
+  --bf-color-danger: #b3261e;
+  --bf-color-danger-contrast: #ffffff;
+  --bf-color-focus-ring: #1155cc;
+
+  /* Typography */
+  --bf-font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --bf-font-size-sm: 0.8125rem;
+  --bf-font-size-base: 1rem;
+  --bf-font-size-lg: 1.25rem;
+  --bf-line-height: 1.5;
+
+  /* Space */
+  --bf-space-1: 0.25rem;
+  --bf-space-2: 0.5rem;
+  --bf-space-3: 0.75rem;
+  --bf-space-4: 1rem;
+  --bf-space-5: 1.5rem;
+  --bf-space-6: 2rem;
+
+  /* Shape */
+  --bf-radius-sm: 0.25rem;
+  --bf-radius-md: 0.5rem;
+  --bf-border-width: 1px;
+
+  /* Focus */
+  --bf-focus-ring-width: 2px;
+  --bf-focus-ring-offset: 2px;
+
+  /* Touch */
+  --bf-touch-target: 44px;
+
+  /* Motion */
+  --bf-motion-duration: 150ms;
+  --bf-motion-ease: ease-in-out;
+
+  /* Layout */
+  --bf-breakpoint-collapse: 480px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --bf-motion-duration: 0ms;
+    --bf-motion-ease: linear;
+  }
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * Reset
+ * ------------------------------------------------------------------------------------------- */
+
+.bf-field,
+.bf-field *,
+.bf-fieldset,
+.bf-fieldset * {
+  box-sizing: border-box;
+}
+
+.bf-fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * Baseline element styling. Every rule here is expressed in `--bf-*` tokens so a host that only
+ * re-declares the tokens -- never touching this stylesheet -- restyles every field.
+ * ------------------------------------------------------------------------------------------- */
+
+.bf-field,
+.bf-fieldset {
+  font-family: var(--bf-font-sans);
+  font-size: var(--bf-font-size-base);
+  line-height: var(--bf-line-height);
+  color: var(--bf-color-text);
+}
+
+.bf-field input[type="text"],
+.bf-field input[type="email"],
+.bf-field input[type="tel"],
+.bf-field input[type="number"],
+.bf-field input[type="date"],
+.bf-field textarea,
+.bf-field select,
+.bf-daterange__part input[type="date"] {
+  display: block;
+  width: 100%;
+  min-height: var(--bf-touch-target);
+  padding: var(--bf-space-2) var(--bf-space-3);
+  background-color: var(--bf-color-bg);
+  color: var(--bf-color-text);
+  border: var(--bf-border-width) solid var(--bf-color-border);
+  border-radius: var(--bf-radius-sm);
+  font: inherit;
+  transition: border-color var(--bf-motion-duration) var(--bf-motion-ease),
+    box-shadow var(--bf-motion-duration) var(--bf-motion-ease);
+}
+
+.bf-field textarea {
+  min-height: calc(var(--bf-touch-target) * 2);
+  resize: vertical;
+}
+
+.bf-field input:disabled,
+.bf-field textarea:disabled,
+.bf-field select:disabled {
+  background-color: var(--bf-color-surface);
+  color: var(--bf-color-muted);
+}
+
+.bf-field input[aria-invalid="true"],
+.bf-field textarea[aria-invalid="true"],
+.bf-field select[aria-invalid="true"] {
+  border-color: var(--bf-color-danger);
+}
+
+.bf-field label,
+.bf-fieldset legend {
+  display: block;
+  font-weight: 600;
+  margin-block-end: var(--bf-space-1);
+}
+
+.bf-choice {
+  display: flex;
+  align-items: center;
+  gap: var(--bf-space-2);
+  min-height: var(--bf-touch-target);
+}
+
+.bf-choice input[type="radio"],
+.bf-choice input[type="checkbox"] {
+  inline-size: var(--bf-space-5);
+  block-size: var(--bf-space-5);
+  accent-color: var(--bf-color-primary);
+  flex-shrink: 0;
+}
+
+/* Visible focus ring throughout (PRD §11) -- :focus-visible so pointer interaction stays quiet. */
+.bf-field input:focus-visible,
+.bf-field textarea:focus-visible,
+.bf-field select:focus-visible,
+.bf-choice input:focus-visible,
+.bf-daterange__part input:focus-visible {
+  outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+  outline-offset: var(--bf-focus-ring-offset);
+}
+
+/* Date-range: two labelled date inputs sitting side by side, stacking below the collapse width. */
+.bf-daterange {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bf-space-3);
+}
+
+.bf-daterange__part {
+  flex: 1 1 12rem;
+}
+
+.bf-daterange__part label {
+  display: block;
+  font-weight: 600;
+  margin-block-end: var(--bf-space-1);
+}
+
+/* Prose emitted by the safe-Markdown pipeline (help text, paragraph/callout content). */
+.bf-prose p {
+  margin-block: var(--bf-space-2);
+}
+
+.bf-prose ul,
+.bf-prose ol {
+  margin-block: var(--bf-space-2);
+  padding-inline-start: var(--bf-space-5);
+}
+
+.bf-prose a {
+  color: var(--bf-color-primary);
+}
+
+/* Below the collapse breakpoint, half-width field pairs stack to a single column (PRD §4.2).
+ * A `@media` condition cannot reference a custom property, so this literal mirrors
+ * `--bf-breakpoint-collapse` -- keep the two in sync if that token's value ever changes. */
+@media (max-width: 480px) {
+  .bf-row {
+    grid-template-columns: 1fr !important;
+  }
+}

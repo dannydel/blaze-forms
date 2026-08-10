@@ -1,0 +1,14 @@
+@inherits FormFieldBase
+<div class="bf-field">
+    <label for="@FieldId">@Node.Label</label>
+    <input id="@FieldId"
+           type="text"
+           readonly="readonly"
+           disabled="disabled"
+           value="@DisplayText"
+           aria-describedby="@BuildDescribedBy()" />
+    @if (HasHelp)
+    {
+        <div id="@HelpElementId" class="bf-field__help bf-prose">@HelpMarkup</div>
+    }
+</div>

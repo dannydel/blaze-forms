@@ -1,0 +1,36 @@
+@inherits FormFieldBase
+<fieldset class="bf-fieldset" disabled="@Disabled" aria-describedby="@BuildDescribedBy()">
+    <legend>@Node.Label</legend>
+    <div class="bf-daterange">
+        <div class="bf-daterange__part">
+            <label for="@StartFieldId">Start date</label>
+            <input id="@StartFieldId"
+                   type="date"
+                   disabled="@Disabled"
+                   aria-required="@RequiredAttributeValue"
+                   aria-invalid="@InvalidAttributeValue"
+                   @bind:get="StartDate"
+                   @bind:set="SetStartDateAsync"
+                   @onblur="OnBlurAsync" />
+        </div>
+        <div class="bf-daterange__part">
+            <label for="@EndFieldId">End date</label>
+            <input id="@EndFieldId"
+                   type="date"
+                   disabled="@Disabled"
+                   aria-required="@RequiredAttributeValue"
+                   aria-invalid="@InvalidAttributeValue"
+                   @bind:get="EndDate"
+                   @bind:set="SetEndDateAsync"
+                   @onblur="OnBlurAsync" />
+        </div>
+    </div>
+    @if (HasHelp)
+    {
+        <div id="@HelpElementId" class="bf-field__help bf-prose">@HelpMarkup</div>
+    }
+    @if (HasError)
+    {
+        <span id="@ErrorElementId" class="bf-field__error">@Error</span>
+    }
+</fieldset>

@@ -1,5 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
+  <PropertyGroup>
+    <RootNamespace>BlazeForms</RootNamespace>
+    <!--
+      RS0041 ("public members should not use oblivious types") fires on every component's
+      compiler-generated BuildRenderTree override: RazorSourceGenerator emits that method under
+      `#nullable restore` regardless of this project's own `<Nullable>enable</Nullable>`. That
+      obliviousness is an artifact of Razor codegen, not an actual nullability gap in a
+      component's public API (see .editorconfig for the same rationale on the analyzer side);
+      NoWarn is required here because RS0041 is reported before analyzer-config severity
+      overrides are honored for compiler-generated symbols.
+    -->
+    <NoWarn>$(NoWarn);RS0041</NoWarn>
+  </PropertyGroup>
+
   <ItemGroup>
     <SupportedPlatform Include="browser" />
   </ItemGroup>
@@ -10,6 +24,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BlazeForms.Core\BlazeForms.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The resolver in Fields/DefaultFieldComponents.cs is internal by design (PRD §10 remarks
+         there) but its registry-precedence behavior is bUnit-tested directly, not just through
+         the (later-slice) FormRenderer that calls it. -->
+    <InternalsVisibleTo Include="BlazeForms.Renderer.Tests" />
   </ItemGroup>
 
 </Project>

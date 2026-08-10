@@ -1,0 +1,26 @@
+@inherits FormFieldBase
+<div class="bf-field">
+    <label for="@FieldId">@Node.Label</label>
+    <select id="@FieldId"
+            disabled="@Disabled"
+            aria-required="@RequiredAttributeValue"
+            aria-invalid="@InvalidAttributeValue"
+            aria-describedby="@BuildDescribedBy()"
+            @bind:get="StringValue"
+            @bind:set="SetStringValueAsync"
+            @onblur="OnBlurAsync">
+        <option value="">@Node.Placeholder</option>
+        @foreach (var option in Node.Options)
+        {
+            <option value="@option.Value" @key="option.Value">@option.Label</option>
+        }
+    </select>
+    @if (HasHelp)
+    {
+        <div id="@HelpElementId" class="bf-field__help bf-prose">@HelpMarkup</div>
+    }
+    @if (HasError)
+    {
+        <span id="@ErrorElementId" class="bf-field__error">@Error</span>
+    }
+</div>
