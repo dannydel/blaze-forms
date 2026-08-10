@@ -6,7 +6,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Authors>Daniel Del Grosso and contributors</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/ddelgrosso/blaze-forms</RepositoryUrl>
+    <RepositoryUrl>https://github.com/dannydel/blaze-forms</RepositoryUrl>
     <Version>0.1.0-preview.1</Version>
   </PropertyGroup>
 
