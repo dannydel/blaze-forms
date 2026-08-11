@@ -5,6 +5,7 @@ using BlazeForms.Palette;
 using BlazeForms.Versioning;
 using Bunit;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BlazeForms.Designer.Tests;
@@ -203,6 +204,83 @@ public sealed class FormDesignerTests : DesignerTestContext
         // this is the only externally observable proof of that from outside the context itself.
         editContext.AddNode(NodeType.Text, "section-1");
     }
+
+    [Fact]
+    public async Task PaletteAddTargetsTheActivePagesLastSectionByDefaultAndSelectsTheNewNodeWithNewNodeIntent()
+    {
+        var store = new InMemoryFormDefinitionStore();
+        const string formId = "form-1";
+        await store.SaveDraftAsync(FormLifecycle.CreateDraft(DesignerTestFixtures.TwoSectionDefinition(formId)));
+        Services.AddSingleton<IFormDefinitionStore>(store);
+
+        var cut = Render<FormDesigner>(p => p.Add(f => f.FormId, formId));
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Instance.EditContext));
+        var editContext = cut.Instance.EditContext!;
+
+        // No selection yet -- "section-2" ("Housing") is the active page's last section, the
+        // "add near what the author is already looking at" default absent any stronger signal.
+        await FindPaletteButton(cut, "Email").ClickAsync(new MouseEventArgs());
+
+        cut.WaitForAssertion(() => Assert.Equal(2, editContext.Draft.Definition.Pages[0].Sections[1].Nodes.Count));
+        var added = editContext.Draft.Definition.Pages[0].Sections[1].Nodes[1];
+        Assert.Equal(NodeType.Email, added.Type);
+        Assert.Equal(added.Id, editContext.Selection.NodeId);
+        Assert.Equal("section-2", editContext.Selection.SectionId);
+        Assert.Equal(DesignerFocusIntent.NewNode, editContext.Selection.Intent);
+
+        // The new row lands on the canvas, selected and carrying real DOM focus.
+        cut.WaitForAssertion(() => Assert.Equal(5, cut.FindAll("div.bf-canvas-row").Count));
+        Assert.Single(cut.FindAll("div.bf-canvas-row[aria-selected='true']"));
+        JSInterop.VerifyFocusAsyncInvoke();
+    }
+
+    [Fact]
+    public async Task PaletteAddTargetsTheCurrentlySelectedSectionWhenOneIsSelected()
+    {
+        var store = new InMemoryFormDefinitionStore();
+        const string formId = "form-1";
+        await store.SaveDraftAsync(FormLifecycle.CreateDraft(DesignerTestFixtures.TwoSectionDefinition(formId)));
+        Services.AddSingleton<IFormDefinitionStore>(store);
+
+        var cut = Render<FormDesigner>(p => p.Add(f => f.FormId, formId));
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Instance.EditContext));
+        var editContext = cut.Instance.EditContext!;
+        editContext.Select(DesignerSelection.ForNode("node-a", "page-1", "section-1", DesignerFocusIntent.None));
+
+        await FindPaletteButton(cut, "Email").ClickAsync(new MouseEventArgs());
+
+        cut.WaitForAssertion(() => Assert.Equal(4, editContext.Draft.Definition.Pages[0].Sections[0].Nodes.Count));
+        Assert.Single(editContext.Draft.Definition.Pages[0].Sections[1].Nodes);
+    }
+
+    [Fact]
+    public async Task PaletteAddCreatesABlankSectionFirstWhenTheActivePageHasNoneYet()
+    {
+        var store = new InMemoryFormDefinitionStore();
+        const string formId = "form-1";
+        var definition = new FormDefinition
+        {
+            Id = formId,
+            Name = "Blank",
+            Pages = [new FormPage { Id = "page-1", Title = "Page one" }],
+        };
+        await store.SaveDraftAsync(FormLifecycle.CreateDraft(definition));
+        Services.AddSingleton<IFormDefinitionStore>(store);
+
+        var cut = Render<FormDesigner>(p => p.Add(f => f.FormId, formId));
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Instance.EditContext));
+        var editContext = cut.Instance.EditContext!;
+
+        await FindPaletteButton(cut, "Email").ClickAsync(new MouseEventArgs());
+
+        cut.WaitForAssertion(() => Assert.Single(editContext.Draft.Definition.Pages[0].Sections));
+        Assert.Single(editContext.Draft.Definition.Pages[0].Sections[0].Nodes);
+    }
+
+    private static AngleSharp.Dom.IElement FindPaletteButton(IRenderedComponent<FormDesigner> cut, string label) =>
+        cut.FindAll("span.bf-palette__item-label")
+            .Single(span => span.TextContent == label)
+            .ParentElement!;
 }
 
 /// <summary>

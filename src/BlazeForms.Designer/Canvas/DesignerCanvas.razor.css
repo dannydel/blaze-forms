@@ -1,0 +1,9 @@
+.bf-canvas {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-4);
+}
+
+.bf-canvas__empty {
+    color: var(--bf-color-muted);
+}

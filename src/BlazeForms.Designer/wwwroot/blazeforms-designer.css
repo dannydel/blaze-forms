@@ -20,4 +20,9 @@
   --bf-properties-width: 20rem;
   --bf-pane-gap: 1rem;
   --bf-dock-height: 40rem;
+
+  /* Canvas (PRD §4.1, §11): the roving-focus row's selected-state background. A wholly new
+     semantic token -- the renderer has no notion of a "selected row" for BlazeForms.Designer's
+     own component CSS (DesignerCanvas.razor.css, CanvasNodeRow.razor.css) to reuse. */
+  --bf-canvas-row-selected-bg: color-mix(in srgb, var(--bf-color-primary) 12%, var(--bf-color-bg));
 }

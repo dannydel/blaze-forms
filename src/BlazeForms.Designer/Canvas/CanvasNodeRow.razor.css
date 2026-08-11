@@ -1,0 +1,59 @@
+.bf-canvas-row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-1);
+    padding: var(--bf-space-3);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+    background-color: var(--bf-color-bg);
+    cursor: pointer;
+}
+
+.bf-canvas-row[aria-selected="true"] {
+    border-color: var(--bf-color-primary);
+    background-color: var(--bf-canvas-row-selected-bg);
+}
+
+/* Visible focus ring for the roving-tabindex row that currently holds real DOM focus (PRD §11);
+ * :focus-visible so a mouse click (which also moves focus here) stays quiet. */
+.bf-canvas-row:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}
+
+.bf-canvas-row__header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--bf-space-2);
+}
+
+.bf-canvas-row__label {
+    font-weight: 600;
+}
+
+.bf-canvas-row__chip {
+    padding-inline: var(--bf-space-2);
+    padding-block: var(--bf-space-1);
+    border-radius: var(--bf-radius-sm);
+    background-color: var(--bf-color-surface);
+    color: var(--bf-color-muted);
+    font-size: var(--bf-font-size-sm);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.bf-canvas-row__chip--logic {
+    color: var(--bf-color-primary);
+}
+
+.bf-canvas-row__help {
+    color: var(--bf-color-muted);
+    font-size: var(--bf-font-size-sm);
+}
+
+/* Empty until a later phase (PRD §8) fills it with inline lint messages -- collapses to nothing
+ * rather than reserving visible space for content that is not there yet. */
+.bf-canvas-row__lint:empty {
+    display: none;
+}

@@ -13,9 +13,11 @@ namespace BlazeForms;
 /// <summary>
 /// The designer shell: a three-pane docked layout — field palette, canvas, and properties panel
 /// (PRD §4.1, D9 — docked is the only P1 layout). This phase wires up the mutation engine
-/// (<see cref="DesignerEditContext"/>) and its aria-live announcer; the canvas's own editing UI,
-/// the properties panel's field-specific controls, the linter dock, and the publish dialog all
-/// land in later phases.
+/// (<see cref="DesignerEditContext"/>) and its aria-live announcer, hosts the page tab strip and
+/// the roving-focus canvas (<see cref="Canvas.PageTabStrip"/>, <see cref="Canvas.DesignerCanvas"/>),
+/// and turns the palette's <see cref="Palette.FieldPalette.OnAddRequested"/> into a real
+/// <see cref="DesignerEditContext.AddNode"/> call; the properties panel's field-specific controls,
+/// the linter dock, and the publish dialog all land in later phases.
 /// </summary>
 /// <remarks>
 /// <see cref="OnInitialized"/> resolves the host's <see cref="IFormDefinitionStore"/> only — no
@@ -43,6 +45,7 @@ public partial class FormDesigner : ComponentBase, IAsyncDisposable
 {
     private IFormDefinitionStore _store = default!;
     private DesignerEditContext? _editContext;
+    private string? _activePageId;
     private bool _draftLoadAttempted;
     private bool _disposed;
     private readonly CancellationTokenSource _disposalCts = new();
@@ -120,15 +123,99 @@ public partial class FormDesigner : ComponentBase, IAsyncDisposable
     }
 
     /// <summary>
-    /// Placeholder wiring for the palette's add-request event. Phase 1 has no canvas mutation
-    /// pipeline yet (that lands in Phase 3) — this exists only so the parameter contract between
-    /// <see cref="Palette.FieldPalette"/> and the shell carries the requested node type end to
-    /// end before mutation logic exists to act on it.
+    /// Turns the palette's <see cref="Palette.FieldPalette.OnAddRequested"/> into a real
+    /// <see cref="DesignerEditContext.AddNode"/> call, targeting <see cref="_activePageId"/>'s
+    /// currently-selected section when there is one and it actually belongs to that page, or
+    /// otherwise the page's last section — "add near what the author is already looking at",
+    /// absent any stronger signal (PRD §4.1). A page with no section yet gets one first
+    /// (<see cref="DesignerEditContext.AddSection"/>) so the palette always has somewhere to add
+    /// into; a designer with no page at all, or before the draft has loaded, is a no-op, since
+    /// <see cref="Palette.FieldPalette"/> has nothing to target either way.
     /// </summary>
     /// <param name="nodeType">
     /// The node type the author asked to add.
     /// </param>
-    private static Task OnPaletteAddRequested(NodeType nodeType) => Task.CompletedTask;
+    private void OnPaletteAddRequested(NodeType nodeType)
+    {
+        if (_editContext is null || _activePageId is null)
+        {
+            return;
+        }
+
+        var page = _editContext.Draft.Definition.Pages
+            .FirstOrDefault(candidate => string.Equals(candidate.Id, _activePageId, StringComparison.Ordinal));
+
+        if (page is null)
+        {
+            return;
+        }
+
+        var targetSectionId = ResolveTargetSectionId(page);
+
+        if (targetSectionId is null)
+        {
+            _editContext.AddSection(page.Id);
+            page = _editContext.Draft.Definition.Pages
+                .First(candidate => string.Equals(candidate.Id, _activePageId, StringComparison.Ordinal));
+            targetSectionId = page.Sections[^1].Id;
+        }
+
+        _editContext.AddNode(nodeType, targetSectionId);
+    }
+
+    /// <summary>
+    /// Picks which of <paramref name="page"/>'s sections a palette add lands in -- see
+    /// <see cref="OnPaletteAddRequested"/> for the policy. <see langword="null"/> means the page
+    /// has no section at all yet.
+    /// </summary>
+    private string? ResolveTargetSectionId(FormPage page)
+    {
+        var selectedSectionId = _editContext!.Selection.SectionId;
+
+        if (selectedSectionId is not null
+            && page.Sections.Any(section => string.Equals(section.Id, selectedSectionId, StringComparison.Ordinal)))
+        {
+            return selectedSectionId;
+        }
+
+        return page.Sections.Count > 0 ? page.Sections[^1].Id : null;
+    }
+
+    /// <summary>
+    /// Switches <see cref="_activePageId"/> when the author clicks a different tab in
+    /// <see cref="Canvas.PageTabStrip"/> -- pure Designer view state, not a
+    /// <see cref="DesignerEditContext"/> mutation (PRD §4.1). Adding a page or a section, by
+    /// contrast, follows <see cref="DesignerEditContext.Selection"/> instead, via
+    /// <see cref="SyncActivePageFromSelection"/>.
+    /// </summary>
+    /// <param name="pageId">
+    /// The page the author just switched to.
+    /// </param>
+    private void OnActivePageIdChanged(string pageId) => _activePageId = pageId;
+
+    /// <summary>
+    /// Keeps <see cref="_activePageId"/> pointed at whichever page
+    /// <see cref="DesignerEditContext.Selection"/> currently names, so the tab strip and the
+    /// canvas both follow a mutation's own selection (an added page, an added section) the same
+    /// way <see cref="Canvas.DesignerCanvas"/> follows it down to the node level. Falls back to
+    /// the draft's first page when the currently active one no longer exists and the selection
+    /// does not name a page either -- both fresh loads and (in a later phase) a deleted active
+    /// page land here.
+    /// </summary>
+    private void SyncActivePageFromSelection()
+    {
+        var pages = _editContext!.Draft.Definition.Pages;
+
+        if (_editContext.Selection.PageId is { } selectedPageId
+            && pages.Any(page => string.Equals(page.Id, selectedPageId, StringComparison.Ordinal)))
+        {
+            _activePageId = selectedPageId;
+        }
+        else if (_activePageId is null || !pages.Any(page => string.Equals(page.Id, _activePageId, StringComparison.Ordinal)))
+        {
+            _activePageId = pages.Count > 0 ? pages[0].Id : null;
+        }
+    }
 
     /// <summary>
     /// Loads <see cref="FormId"/>'s working draft, once, after interactivity — see the call site
@@ -161,18 +248,24 @@ public partial class FormDesigner : ComponentBase, IAsyncDisposable
         _editContext = new DesignerEditContext(draft, _store, _disposalCts.Token);
         _editContext.StateChanged += OnEditContextStateChanged;
         _editContext.AutosaveFailed += OnEditContextAutosaveFailed;
+        _activePageId = draft.Definition.Pages.Count > 0 ? draft.Definition.Pages[0].Id : null;
         StateHasChanged();
     }
 
     /// <summary>
-    /// Re-renders the shell whenever <see cref="_editContext"/> reports a mutation. Dispatched
-    /// through <see cref="ComponentBase.InvokeAsync(Action)"/> for the same reason
-    /// <see cref="Palette.FieldPalette.OnAddRequested"/>'s eventual canvas handler will need to —
+    /// Re-renders the shell whenever <see cref="_editContext"/> reports a mutation, after first
+    /// following its selection to whichever page it now names (<see cref="SyncActivePageFromSelection"/>)
+    /// so the tab strip and the canvas stay on the page a mutation just landed on. Dispatched
+    /// through <see cref="ComponentBase.InvokeAsync(Action)"/> because
     /// <see cref="DesignerEditContext.StateChanged"/> is a plain <see cref="Action"/>, not a
     /// Blazor <see cref="EventCallback"/>, so nothing already guarantees this runs on the
     /// renderer's synchronization context.
     /// </summary>
-    private void OnEditContextStateChanged() => InvokeAsync(StateHasChanged);
+    private void OnEditContextStateChanged() => InvokeAsync(() =>
+    {
+        SyncActivePageFromSelection();
+        StateHasChanged();
+    });
 
     /// <summary>
     /// Turns a raised <see cref="DesignerEditContext.AutosaveFailed"/> into the one thing an

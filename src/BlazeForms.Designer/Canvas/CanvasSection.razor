@@ -1,0 +1,36 @@
+<div class="bf-canvas-section" role="group" aria-labelledby="@_headingId">
+    <h3 id="@_headingId" class="bf-canvas-section__title">@SectionTitle</h3>
+    @if (!string.IsNullOrWhiteSpace(Section.Description))
+    {
+        <p class="bf-canvas-section__description">@Section.Description</p>
+    }
+    <div class="bf-canvas-section__rows" role="presentation">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    private readonly string _headingId = "bf-canvas-section-" + Guid.NewGuid().ToString("n");
+
+    /// <summary>
+    /// The section this wrapper groups.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public FormSection Section { get; set; } = default!;
+
+    /// <summary>
+    /// The section's node rows, rendered by <see cref="DesignerCanvas"/>. <see langword="null"/>
+    /// renders an empty (but still grouped and labelled) section. The wrapping
+    /// <c>div.bf-canvas-section__rows</c> carries <c>role="presentation"</c> so it drops out of
+    /// the accessibility tree entirely -- without it, each row's <c>role="option"</c> would sit
+    /// inside a generic, unnamed <c>div</c> rather than being owned directly by this section's own
+    /// <c>role="group"</c>, breaking the listbox → group → option ownership chain WAI-ARIA's
+    /// grouped-listbox pattern requires (an axe <c>aria-required-parent</c> violation).
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private string SectionTitle => Section.Title ?? Localizer["UntitledSectionName"].Value;
+
+    private static IStringLocalizer<DesignerStrings> Localizer => DesignerLocalization.Shared;
+}

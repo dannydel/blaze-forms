@@ -70,10 +70,7 @@
     <value>Properties</value>
   </data>
 
-  <!-- Phase 1 placeholder copy for the two panes that gain real content in later phases. -->
-  <data name="CanvasPlaceholderText" xml:space="preserve">
-    <value>Canvas editing is coming in a later phase. This pane will show the form's pages, sections, and fields.</value>
-  </data>
+  <!-- Phase 1 placeholder copy for the properties pane, which gains real content in a later phase. -->
   <data name="PropertiesPlaceholderText" xml:space="preserve">
     <value>The properties panel is coming in a later phase. Selecting a field on the canvas will show its settings here.</value>
   </data>
@@ -242,5 +239,47 @@
        this just tells them the store write has not happened yet. -->
   <data name="AutosaveFailed" xml:space="preserve">
     <value>Your changes could not be saved. Retrying on your next edit.</value>
+  </data>
+
+  <!-- DesignerCanvas (Phase 3, PRD §4.1, §11): the roving-focus, listbox/option-shaped canvas of
+       the current page's sections and node rows. -->
+  <data name="CanvasRegionLabel" xml:space="preserve">
+    <value>Form fields</value>
+  </data>
+  <data name="CanvasNoPageSelectedText" xml:space="preserve">
+    <value>Add a page to start building this form.</value>
+  </data>
+
+  <!-- CanvasNodeRow (Phase 3, PRD §4.1): a node row's fallback label and chips. {0} in
+       UntitledNodeLabel is the node's localized NodeType{Type} display name (e.g. "Untitled Text"). -->
+  <data name="UntitledNodeLabel" xml:space="preserve">
+    <value>Untitled {0}</value>
+  </data>
+  <data name="RowRequiredChip" xml:space="preserve">
+    <value>Required</value>
+  </data>
+  <data name="RowHalfWidthChip" xml:space="preserve">
+    <value>Half width</value>
+  </data>
+  <data name="RowVisibilityRuleChip" xml:space="preserve">
+    <value>Has visibility rule</value>
+  </data>
+
+  <!-- PageTabStrip (Phase 3, PRD §4.1): the page tablist and its add-page/add-section/empty-page
+       affordances. -->
+  <data name="PageTabStripLabel" xml:space="preserve">
+    <value>Pages</value>
+  </data>
+  <data name="AddPageButtonLabel" xml:space="preserve">
+    <value>Add page</value>
+  </data>
+  <data name="AddSectionButtonLabel" xml:space="preserve">
+    <value>Add blank section</value>
+  </data>
+  <data name="StartFromTemplateButtonLabel" xml:space="preserve">
+    <value>Start from template</value>
+  </data>
+  <data name="EmptyPageText" xml:space="preserve">
+    <value>This page has no sections yet.</value>
   </data>
 </root>

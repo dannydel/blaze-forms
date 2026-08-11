@@ -1,0 +1,26 @@
+.bf-canvas-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-2);
+    padding: var(--bf-space-3);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-md);
+}
+
+.bf-canvas-section__title {
+    margin: 0;
+    font-size: var(--bf-font-size-base);
+    font-weight: 600;
+}
+
+.bf-canvas-section__description {
+    margin: 0;
+    color: var(--bf-color-muted);
+    font-size: var(--bf-font-size-sm);
+}
+
+.bf-canvas-section__rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-2);
+}
