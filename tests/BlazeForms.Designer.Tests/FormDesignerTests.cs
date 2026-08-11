@@ -1,3 +1,4 @@
+using BlazeForms.Definitions;
 using BlazeForms.Hosting;
 using BlazeForms.Hosting.InMemory;
 using BlazeForms.Palette;
@@ -159,6 +160,48 @@ public sealed class FormDesignerTests : DesignerTestContext
         Assert.True(palette.RenderCount > paletteRendersBefore);
         Assert.Equal(canvasMarkupBefore, cut.Find("[aria-label='Canvas']").OuterHtml);
         Assert.Equal(propertiesMarkupBefore, cut.Find("[aria-label='Properties']").OuterHtml);
+    }
+
+    [Fact]
+    public async Task ConstructsExactlyOneEditContextOnceTheDraftLoads()
+    {
+        var store = new InMemoryFormDefinitionStore();
+        const string formId = "form-1";
+        await store.SaveDraftAsync(FormLifecycle.CreateDraft(DesignerTestFixtures.OneFieldDefinition(formId)));
+        Services.AddSingleton<IFormDefinitionStore>(store);
+
+        var cut = Render<FormDesigner>(p => p.Add(f => f.FormId, formId));
+
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Instance.EditContext));
+        var editContext = cut.Instance.EditContext!;
+
+        // A mutation driven straight through the context re-renders the shell (via StateChanged)
+        // and reaches the hosted AriaLiveRegion (via Announced) -- proving FormDesigner actually
+        // wired both, not just constructed the context and left it unobserved.
+        editContext.AddNode(NodeType.Text, "section-1");
+
+        cut.WaitForAssertion(() =>
+            Assert.Contains("Added", cut.Find("[role='status']").TextContent, StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task DisposingTheDesignerDisposesItsEditContext()
+    {
+        var store = new InMemoryFormDefinitionStore();
+        const string formId = "form-1";
+        await store.SaveDraftAsync(FormLifecycle.CreateDraft(DesignerTestFixtures.OneFieldDefinition(formId)));
+        Services.AddSingleton<IFormDefinitionStore>(store);
+
+        var cut = Render<FormDesigner>(p => p.Add(f => f.FormId, formId));
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Instance.EditContext));
+        var editContext = cut.Instance.EditContext!;
+
+        await cut.Instance.DisposeAsync();
+
+        // A mutation attempted after the owning designer disposed its context must not throw --
+        // the context's own autosave scheduler is what disposal actually needs to be safe, and
+        // this is the only externally observable proof of that from outside the context itself.
+        editContext.AddNode(NodeType.Text, "section-1");
     }
 }
 

@@ -43,15 +43,3 @@
 .bf-designer__placeholder {
     color: var(--bf-color-muted);
 }
-
-/* Visually hidden but still reachable by assistive technology -- the classic clip-based pattern,
- * mirroring FormRenderer.razor.css's own copy. Silent this phase: Phase 2 starts populating
- * @_liveMessage with mutation announcements (PRD §4.1, §11). */
-.bf-visually-hidden {
-    position: absolute;
-    inline-size: 1px;
-    block-size: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-}

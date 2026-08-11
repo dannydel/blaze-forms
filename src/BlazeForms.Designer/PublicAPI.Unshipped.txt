@@ -2,6 +2,63 @@
 BlazeForms._Imports
 BlazeForms._Imports._Imports() -> void
 BlazeForms._Imports.Execute() -> void
+BlazeForms.AriaLiveRegion
+BlazeForms.AriaLiveRegion.AriaLiveRegion() -> void
+BlazeForms.AriaLiveRegion.DisposeAsync() -> System.Threading.Tasks.ValueTask
+BlazeForms.AriaLiveRegion.EditContext.get -> BlazeForms.Designer.DesignerEditContext!
+BlazeForms.AriaLiveRegion.EditContext.set -> void
+BlazeForms.Designer.AriaLivePoliteness
+BlazeForms.Designer.AriaLivePoliteness.Assertive = 1 -> BlazeForms.Designer.AriaLivePoliteness
+BlazeForms.Designer.AriaLivePoliteness.Polite = 0 -> BlazeForms.Designer.AriaLivePoliteness
+BlazeForms.Designer.DesignerAnnouncement
+BlazeForms.Designer.DesignerAnnouncement.<Clone>$() -> BlazeForms.Designer.DesignerAnnouncement!
+BlazeForms.Designer.DesignerAnnouncement.DesignerAnnouncement() -> void
+BlazeForms.Designer.DesignerAnnouncement.Equals(BlazeForms.Designer.DesignerAnnouncement? other) -> bool
+BlazeForms.Designer.DesignerAnnouncement.Message.get -> string!
+BlazeForms.Designer.DesignerAnnouncement.Message.init -> void
+BlazeForms.Designer.DesignerAnnouncement.Politeness.get -> BlazeForms.Designer.AriaLivePoliteness
+BlazeForms.Designer.DesignerAnnouncement.Politeness.init -> void
+BlazeForms.Designer.DesignerEditContext
+BlazeForms.Designer.DesignerEditContext.AddNode(BlazeForms.Definitions.NodeType type, string! targetSectionId, int? index = null) -> void
+BlazeForms.Designer.DesignerEditContext.AddPage() -> void
+BlazeForms.Designer.DesignerEditContext.AddSection(string! pageId) -> void
+BlazeForms.Designer.DesignerEditContext.Announced -> System.Action<BlazeForms.Designer.DesignerAnnouncement!>?
+BlazeForms.Designer.DesignerEditContext.AutosaveFailed -> System.Action<System.Exception!>?
+BlazeForms.Designer.DesignerEditContext.CanRedo.get -> bool
+BlazeForms.Designer.DesignerEditContext.CanUndo.get -> bool
+BlazeForms.Designer.DesignerEditContext.DeleteNode(string! nodeId) -> void
+BlazeForms.Designer.DesignerEditContext.DesignerEditContext(BlazeForms.Versioning.FormVersion! draft, BlazeForms.Hosting.IFormDefinitionStore! store, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
+BlazeForms.Designer.DesignerEditContext.DisposeAsync() -> System.Threading.Tasks.ValueTask
+BlazeForms.Designer.DesignerEditContext.Draft.get -> BlazeForms.Versioning.FormVersion!
+BlazeForms.Designer.DesignerEditContext.DuplicateNode(string! nodeId) -> void
+BlazeForms.Designer.DesignerEditContext.IsDirty.get -> bool
+BlazeForms.Designer.DesignerEditContext.MoveNodeAcrossSections(string! nodeId, string! targetSectionId, int index) -> void
+BlazeForms.Designer.DesignerEditContext.MoveNodeToPosition(string! nodeId, string! sectionId, int position) -> void
+BlazeForms.Designer.DesignerEditContext.MoveNodeWithinSection(string! nodeId, int delta) -> void
+BlazeForms.Designer.DesignerEditContext.Redo() -> void
+BlazeForms.Designer.DesignerEditContext.Selection.get -> BlazeForms.Designer.DesignerSelection!
+BlazeForms.Designer.DesignerEditContext.SetValidationRules(System.Collections.Generic.IReadOnlyList<BlazeForms.Expressions.ValidationRule!>! rules) -> void
+BlazeForms.Designer.DesignerEditContext.StateChanged -> System.Action?
+BlazeForms.Designer.DesignerEditContext.Undo() -> void
+BlazeForms.Designer.DesignerEditContext.UpdateNode(BlazeForms.Definitions.FormNode! updated) -> void
+BlazeForms.Designer.DesignerFocusIntent
+BlazeForms.Designer.DesignerFocusIntent.Moved = 3 -> BlazeForms.Designer.DesignerFocusIntent
+BlazeForms.Designer.DesignerFocusIntent.Neighbour = 2 -> BlazeForms.Designer.DesignerFocusIntent
+BlazeForms.Designer.DesignerFocusIntent.NewNode = 1 -> BlazeForms.Designer.DesignerFocusIntent
+BlazeForms.Designer.DesignerFocusIntent.None = 0 -> BlazeForms.Designer.DesignerFocusIntent
+BlazeForms.Designer.DesignerFocusIntent.Restored = 4 -> BlazeForms.Designer.DesignerFocusIntent
+BlazeForms.Designer.DesignerSelection
+BlazeForms.Designer.DesignerSelection.<Clone>$() -> BlazeForms.Designer.DesignerSelection!
+BlazeForms.Designer.DesignerSelection.DesignerSelection() -> void
+BlazeForms.Designer.DesignerSelection.Equals(BlazeForms.Designer.DesignerSelection? other) -> bool
+BlazeForms.Designer.DesignerSelection.Intent.get -> BlazeForms.Designer.DesignerFocusIntent
+BlazeForms.Designer.DesignerSelection.Intent.init -> void
+BlazeForms.Designer.DesignerSelection.NodeId.get -> string?
+BlazeForms.Designer.DesignerSelection.NodeId.init -> void
+BlazeForms.Designer.DesignerSelection.PageId.get -> string?
+BlazeForms.Designer.DesignerSelection.PageId.init -> void
+BlazeForms.Designer.DesignerSelection.SectionId.get -> string?
+BlazeForms.Designer.DesignerSelection.SectionId.init -> void
 BlazeForms.FormDesigner
 BlazeForms.FormDesigner.DisposeAsync() -> System.Threading.Tasks.ValueTask
 BlazeForms.FormDesigner.FormDesigner() -> void
@@ -15,7 +72,23 @@ BlazeForms.Palette.FieldPalette
 BlazeForms.Palette.FieldPalette.FieldPalette() -> void
 BlazeForms.Palette.FieldPalette.OnAddRequested.get -> Microsoft.AspNetCore.Components.EventCallback<BlazeForms.Definitions.NodeType>
 BlazeForms.Palette.FieldPalette.OnAddRequested.set -> void
+override BlazeForms.AriaLiveRegion.OnParametersSet() -> void
+override BlazeForms.Designer.DesignerAnnouncement.Equals(object? obj) -> bool
+override BlazeForms.Designer.DesignerAnnouncement.GetHashCode() -> int
+override BlazeForms.Designer.DesignerAnnouncement.ToString() -> string!
+override BlazeForms.Designer.DesignerSelection.Equals(object? obj) -> bool
+override BlazeForms.Designer.DesignerSelection.GetHashCode() -> int
+override BlazeForms.Designer.DesignerSelection.ToString() -> string!
 override BlazeForms.FormDesigner.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
 override BlazeForms.FormDesigner.OnInitialized() -> void
+static BlazeForms.Designer.DesignerAnnouncement.operator !=(BlazeForms.Designer.DesignerAnnouncement? left, BlazeForms.Designer.DesignerAnnouncement? right) -> bool
+static BlazeForms.Designer.DesignerAnnouncement.operator ==(BlazeForms.Designer.DesignerAnnouncement? left, BlazeForms.Designer.DesignerAnnouncement? right) -> bool
+static BlazeForms.Designer.DesignerSelection.ForNode(string! nodeId, string! pageId, string! sectionId, BlazeForms.Designer.DesignerFocusIntent intent) -> BlazeForms.Designer.DesignerSelection!
+static BlazeForms.Designer.DesignerSelection.ForPage(string! pageId, BlazeForms.Designer.DesignerFocusIntent intent) -> BlazeForms.Designer.DesignerSelection!
+static BlazeForms.Designer.DesignerSelection.ForSection(string! pageId, string! sectionId, BlazeForms.Designer.DesignerFocusIntent intent) -> BlazeForms.Designer.DesignerSelection!
+static BlazeForms.Designer.DesignerSelection.None.get -> BlazeForms.Designer.DesignerSelection!
+static BlazeForms.Designer.DesignerSelection.operator !=(BlazeForms.Designer.DesignerSelection? left, BlazeForms.Designer.DesignerSelection? right) -> bool
+static BlazeForms.Designer.DesignerSelection.operator ==(BlazeForms.Designer.DesignerSelection? left, BlazeForms.Designer.DesignerSelection? right) -> bool
+~override BlazeForms.AriaLiveRegion.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.FormDesigner.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Palette.FieldPalette.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void

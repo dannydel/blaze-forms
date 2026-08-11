@@ -186,4 +186,61 @@
   <data name="NodeTypeLookup" xml:space="preserve">
     <value>Lookup</value>
   </data>
+
+  <!-- Fallback page heading when a FormPage.Title is null, used when building an announcement or
+       an undo/redo description that names a page. Mirrors FormRenderer's own
+       "PageFallbackTitle" (RendererStrings.resx), kept as its own key here since
+       BlazeForms.Designer does not reference BlazeForms.Renderer's resources. -->
+  <data name="PageFallbackTitle" xml:space="preserve">
+    <value>Page {0}</value>
+  </data>
+
+  <!-- Fallback section title when a FormSection.Title is null, used the same way as
+       PageFallbackTitle above. -->
+  <data name="UntitledSectionName" xml:space="preserve">
+    <value>Untitled section</value>
+  </data>
+
+  <!-- DesignerEditContext announcement templates (PRD §4.1, §11): every structural mutation
+       raises exactly one of these, in plain language, to the aria-live region. Each one also
+       becomes that mutation's EditSnapshot.Description, reused verbatim inside
+       AnnouncementUndid/AnnouncementRedid so undoing or redoing announces what is actually being
+       reversed or reapplied. -->
+  <data name="AnnouncementNodeAdded" xml:space="preserve">
+    <value>Added {0} to '{1}'.</value>
+  </data>
+  <data name="AnnouncementNodeUpdated" xml:space="preserve">
+    <value>Updated '{0}'.</value>
+  </data>
+  <data name="AnnouncementNodeDeleted" xml:space="preserve">
+    <value>Deleted '{0}'.</value>
+  </data>
+  <data name="AnnouncementNodeDuplicated" xml:space="preserve">
+    <value>Duplicated '{0}'.</value>
+  </data>
+  <data name="AnnouncementPageAdded" xml:space="preserve">
+    <value>Added page {0}.</value>
+  </data>
+  <data name="AnnouncementSectionAdded" xml:space="preserve">
+    <value>Added a section to '{0}'.</value>
+  </data>
+  <data name="AnnouncementNodeMoved" xml:space="preserve">
+    <value>Moved to position {0} of {1} in '{2}'.</value>
+  </data>
+  <data name="AnnouncementValidationRulesUpdated" xml:space="preserve">
+    <value>Updated the form's validation rules.</value>
+  </data>
+  <data name="AnnouncementUndid" xml:space="preserve">
+    <value>Undid: {0}</value>
+  </data>
+  <data name="AnnouncementRedid" xml:space="preserve">
+    <value>Redid: {0}</value>
+  </data>
+
+  <!-- Announced when a queued autosave actually fails to persist (PRD §7, §11),
+       DesignerEditContext.AutosaveFailed's own message; the author's edit itself is unaffected,
+       this just tells them the store write has not happened yet. -->
+  <data name="AutosaveFailed" xml:space="preserve">
+    <value>Your changes could not be saved. Retrying on your next edit.</value>
+  </data>
 </root>

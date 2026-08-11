@@ -1,0 +1,11 @@
+/* Visually hidden but still reachable by assistive technology -- the classic clip-based pattern,
+ * mirroring FormRenderer.razor.css's own copy and FormDesigner.razor.css's now-removed one this
+ * component replaces (see FormDesigner's remarks on hosting AriaLiveRegion). */
+.bf-aria-live-region {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
