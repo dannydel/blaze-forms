@@ -1,0 +1,43 @@
+<div class="bf-palette">
+    <div class="bf-palette__search">
+        <label class="bf-palette__search-label" for="@_searchInputId">@Localizer["PaletteSearchLabel"].Value</label>
+        <input id="@_searchInputId"
+               type="search"
+               class="bf-palette__search-input"
+               placeholder="@Localizer["PaletteSearchPlaceholder"].Value"
+               value="@_searchTerm"
+               @oninput="OnSearchInput" />
+    </div>
+
+    @foreach (var group in VisibleGroups)
+    {
+        <section class="bf-palette__group" @key="group.ResourceKey">
+            <h3 class="bf-palette__group-title">@GroupLabel(group.ResourceKey)</h3>
+            <ul class="bf-palette__list">
+                @foreach (var nodeType in group.Types)
+                {
+                    <li class="bf-palette__list-item" @key="nodeType">
+                        @if (FormSchema.IsReservedForLaterPhase(nodeType))
+                        {
+                            <button type="button"
+                                    class="bf-palette__item bf-palette__item--disabled"
+                                    disabled
+                                    aria-disabled="true">
+                                <span class="bf-palette__item-label">@TypeLabel(nodeType)</span>
+                                <span class="bf-palette__badge">@Localizer["PalettePhaseBadgeText"].Value</span>
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button"
+                                    class="bf-palette__item"
+                                    @onclick="() => AddAsync(nodeType)">
+                                <span class="bf-palette__item-label">@TypeLabel(nodeType)</span>
+                            </button>
+                        }
+                    </li>
+                }
+            </ul>
+        </section>
+    }
+</div>

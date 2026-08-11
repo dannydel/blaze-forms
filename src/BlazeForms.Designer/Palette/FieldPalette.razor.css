@@ -1,0 +1,96 @@
+.bf-palette {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-4);
+}
+
+.bf-palette__search {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-1);
+}
+
+.bf-palette__search-label {
+    font-size: var(--bf-font-size-sm);
+    font-weight: 600;
+}
+
+.bf-palette__search-input {
+    min-block-size: var(--bf-touch-target);
+    padding-inline: var(--bf-space-3);
+    padding-block: var(--bf-space-2);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+    background-color: var(--bf-color-bg);
+    color: var(--bf-color-text);
+    font: inherit;
+}
+
+.bf-palette__search-input:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}
+
+.bf-palette__group-title {
+    margin-block: 0 var(--bf-space-2);
+    color: var(--bf-color-muted);
+    font-size: var(--bf-font-size-sm);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.bf-palette__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.bf-palette__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--bf-space-2);
+    inline-size: 100%;
+    min-block-size: var(--bf-touch-target);
+    padding-inline: var(--bf-space-3);
+    padding-block: var(--bf-space-2);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+    background-color: var(--bf-color-bg);
+    color: var(--bf-color-text);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+    transition: border-color var(--bf-motion-duration) var(--bf-motion-ease);
+}
+
+.bf-palette__item:hover {
+    border-color: var(--bf-color-primary);
+}
+
+.bf-palette__item:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}
+
+/* The reserved (Phase 2) entries -- disabled natively, so they neither receive focus nor sit in
+ * the tab sequence, and aria-disabled reinforces that state for assistive technology (PRD §5). */
+.bf-palette__item--disabled {
+    background-color: var(--bf-color-surface);
+    color: var(--bf-color-muted);
+    cursor: not-allowed;
+}
+
+.bf-palette__badge {
+    flex-shrink: 0;
+    padding-inline: var(--bf-space-2);
+    padding-block: var(--bf-space-1);
+    border-radius: var(--bf-radius-sm);
+    background-color: var(--bf-color-surface);
+    color: var(--bf-color-muted);
+    font-size: var(--bf-font-size-sm);
+    font-weight: 600;
+}

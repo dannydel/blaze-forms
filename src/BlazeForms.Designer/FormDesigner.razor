@@ -1,0 +1,32 @@
+<div class="bf-designer">
+    <section class="bf-designer__pane bf-designer__pane--palette" role="region" aria-label="@Localizer["PaneTitlePalette"].Value">
+        <h2 class="bf-designer__pane-heading">@Localizer["PaneTitlePalette"].Value</h2>
+        <div class="bf-designer__pane-body">
+            <FieldPalette OnAddRequested="OnPaletteAddRequested" />
+        </div>
+    </section>
+
+    <section class="bf-designer__pane bf-designer__pane--canvas" role="region" aria-label="@Localizer["PaneTitleCanvas"].Value">
+        <h2 class="bf-designer__pane-heading">@Localizer["PaneTitleCanvas"].Value</h2>
+        <div class="bf-designer__pane-body">
+            @if (_draft is null)
+            {
+                <p class="bf-designer__placeholder">@Localizer["DesignerLoading"].Value</p>
+            }
+            else
+            {
+                <p class="bf-designer__draft-name">@_draft.Definition.Name</p>
+                <p class="bf-designer__placeholder">@Localizer["CanvasPlaceholderText"].Value</p>
+            }
+        </div>
+    </section>
+
+    <section class="bf-designer__pane bf-designer__pane--properties" role="region" aria-label="@Localizer["PaneTitleProperties"].Value">
+        <h2 class="bf-designer__pane-heading">@Localizer["PaneTitleProperties"].Value</h2>
+        <div class="bf-designer__pane-body">
+            <p class="bf-designer__placeholder">@Localizer["PropertiesPlaceholderText"].Value</p>
+        </div>
+    </section>
+
+    <div class="bf-visually-hidden" aria-live="polite">@_liveMessage</div>
+</div>

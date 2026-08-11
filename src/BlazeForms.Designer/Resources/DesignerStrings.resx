@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms</value>
+  </resheader>
+
+  <!-- The three docked pane titles (PRD §4.1, D9). Also used as each pane's aria-label. -->
+  <data name="PaneTitlePalette" xml:space="preserve">
+    <value>Field palette</value>
+  </data>
+  <data name="PaneTitleCanvas" xml:space="preserve">
+    <value>Canvas</value>
+  </data>
+  <data name="PaneTitleProperties" xml:space="preserve">
+    <value>Properties</value>
+  </data>
+
+  <!-- Phase 1 placeholder copy for the two panes that gain real content in later phases. -->
+  <data name="CanvasPlaceholderText" xml:space="preserve">
+    <value>Canvas editing is coming in a later phase. This pane will show the form's pages, sections, and fields.</value>
+  </data>
+  <data name="PropertiesPlaceholderText" xml:space="preserve">
+    <value>The properties panel is coming in a later phase. Selecting a field on the canvas will show its settings here.</value>
+  </data>
+
+  <!-- Fallback name for a brand-new form that has never had a name saved (PRD §5, FormDefinition.Name). -->
+  <data name="UntitledFormName" xml:space="preserve">
+    <value>Untitled form</value>
+  </data>
+
+  <!-- Shown in the canvas pane while the working draft loads or in-memory-creates, deferred out of
+       OnInitializedAsync into OnAfterRenderAsync for prerender safety (see FormDesigner's remarks). -->
+  <data name="DesignerLoading" xml:space="preserve">
+    <value>Loading…</value>
+  </data>
+
+  <!-- Field palette chrome (PRD §4.1). -->
+  <data name="PaletteSearchLabel" xml:space="preserve">
+    <value>Search fields</value>
+  </data>
+  <data name="PaletteSearchPlaceholder" xml:space="preserve">
+    <value>Search fields…</value>
+  </data>
+  <data name="PalettePhaseBadgeText" xml:space="preserve">
+    <value>Phase 2</value>
+  </data>
+
+  <!-- Palette group names (PRD §5's node-type table). -->
+  <data name="PaletteGroupText" xml:space="preserve">
+    <value>Text</value>
+  </data>
+  <data name="PaletteGroupNumeric" xml:space="preserve">
+    <value>Numeric</value>
+  </data>
+  <data name="PaletteGroupDate" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="PaletteGroupChoice" xml:space="preserve">
+    <value>Choice</value>
+  </data>
+  <data name="PaletteGroupStatic" xml:space="preserve">
+    <value>Static</value>
+  </data>
+  <data name="PaletteGroupAdvanced" xml:space="preserve">
+    <value>Advanced</value>
+  </data>
+
+  <!-- Node-type display names, one per PRD §5 P1 type plus the three P2-reserved types. Keyed as
+       "NodeType" + the NodeType enum member name so FieldPalette resolves each without a
+       per-value switch. -->
+  <data name="NodeTypeText" xml:space="preserve">
+    <value>Text</value>
+  </data>
+  <data name="NodeTypeTextArea" xml:space="preserve">
+    <value>Text area</value>
+  </data>
+  <data name="NodeTypeEmail" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="NodeTypePhone" xml:space="preserve">
+    <value>Phone</value>
+  </data>
+  <data name="NodeTypeNumber" xml:space="preserve">
+    <value>Number</value>
+  </data>
+  <data name="NodeTypeCurrency" xml:space="preserve">
+    <value>Currency</value>
+  </data>
+  <data name="NodeTypeDate" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="NodeTypeDateRange" xml:space="preserve">
+    <value>Date range</value>
+  </data>
+  <data name="NodeTypeSelect" xml:space="preserve">
+    <value>Dropdown</value>
+  </data>
+  <data name="NodeTypeRadio" xml:space="preserve">
+    <value>Radio buttons</value>
+  </data>
+  <data name="NodeTypeCheckboxGroup" xml:space="preserve">
+    <value>Checkbox group</value>
+  </data>
+  <data name="NodeTypeYesNo" xml:space="preserve">
+    <value>Yes/No</value>
+  </data>
+  <data name="NodeTypeBoolean" xml:space="preserve">
+    <value>Checkbox</value>
+  </data>
+  <data name="NodeTypeHeading" xml:space="preserve">
+    <value>Heading</value>
+  </data>
+  <data name="NodeTypeParagraph" xml:space="preserve">
+    <value>Paragraph</value>
+  </data>
+  <data name="NodeTypeCallout" xml:space="preserve">
+    <value>Callout</value>
+  </data>
+  <data name="NodeTypeDivider" xml:space="preserve">
+    <value>Divider</value>
+  </data>
+  <data name="NodeTypeCalc" xml:space="preserve">
+    <value>Calculated value</value>
+  </data>
+  <data name="NodeTypeRepeating" xml:space="preserve">
+    <value>Repeating group</value>
+  </data>
+  <data name="NodeTypeFile" xml:space="preserve">
+    <value>File upload</value>
+  </data>
+  <data name="NodeTypeLookup" xml:space="preserve">
+    <value>Lookup</value>
+  </data>
+</root>

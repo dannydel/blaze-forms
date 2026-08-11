@@ -1,16 +1,45 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
+  <PropertyGroup>
+    <RootNamespace>BlazeForms</RootNamespace>
+    <!--
+      RS0041 ("public members should not use oblivious types") fires on every component's
+      compiler-generated BuildRenderTree override: RazorSourceGenerator emits that method under
+      `#nullable restore` regardless of this project's own `<Nullable>enable</Nullable>`. That
+      obliviousness is an artifact of Razor codegen, not an actual nullability gap in a
+      component's public API (see .editorconfig for the same rationale on the analyzer side);
+      NoWarn is required here because RS0041 is reported before analyzer-config severity
+      overrides are honored for compiler-generated symbols. Mirrors BlazeForms.Renderer's csproj.
+    -->
+    <NoWarn>$(NoWarn);RS0041</NoWarn>
+  </PropertyGroup>
+
   <ItemGroup>
     <SupportedPlatform Include="browser" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.10" />
+    <!-- Abstractions only: FormDesigner and FieldPalette both speak IStringLocalizer<T>
+         (PRD §12), but resolve it through Internal/DesignerLocalization.cs's own
+         ResourceManager-backed instance, never through DI, so no concrete localization
+         provider ships here, and none is required of the host. -->
+    <PackageReference Include="Microsoft.Extensions.Localization.Abstractions" Version="10.0.10" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\BlazeForms.Core\BlazeForms.Core.csproj" />
     <ProjectReference Include="..\BlazeForms.Renderer\BlazeForms.Renderer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- DesignerStrings and DesignerLocalization are internal by design (PRD §12 remarks on
+         Internal/DesignerLocalization.cs), the same as BlazeForms.Renderer's RendererStrings and
+         RendererLocalization, and (per CA1812) an internal type with no InternalsVisibleTo
+         friend reads as "apparently never instantiated" even though it is; this ItemGroup
+         mirrors BlazeForms.Renderer.csproj's own InternalsVisibleTo for that reason as much as
+         to let the test project register test doubles and exercise internals directly. -->
+    <InternalsVisibleTo Include="BlazeForms.Designer.Tests" />
   </ItemGroup>
 
 </Project>
