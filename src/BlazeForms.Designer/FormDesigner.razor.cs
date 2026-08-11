@@ -51,6 +51,12 @@ public partial class FormDesigner : ComponentBase, IAsyncDisposable
     private bool _showKeyboardHelp;
     private bool _restoreHelpFocusOnNextRender;
     private ElementReference _helpButtonElement;
+    private bool _showPublishDialog;
+    private bool _restorePublishFocusOnNextRender;
+    private ElementReference _publishButtonElement;
+    private bool _showVersionHistory;
+    private bool _restoreVersionHistoryFocusOnNextRender;
+    private ElementReference _versionHistoryButtonElement;
     private bool _draftLoadAttempted;
     private bool _disposed;
     private readonly CancellationTokenSource _disposalCts = new();
@@ -78,6 +84,16 @@ public partial class FormDesigner : ComponentBase, IAsyncDisposable
     /// </summary>
     [Parameter]
     public EventCallback<FormVersion> OnPublished { get; set; }
+
+    /// <summary>
+    /// The host-supplied display name of the person currently editing this draft — forwarded
+    /// verbatim to <see cref="PublishDialog"/>, which is the only place it is actually read (PRD
+    /// §7 requires an author on every publish). <see langword="null"/> is a valid value all the
+    /// way through: <see cref="PublishDialog"/> falls back to a localized "Unknown" rather than
+    /// this shell blocking publish on a host that has not wired an identity up yet.
+    /// </summary>
+    [Parameter]
+    public string? Author { get; set; }
 
     /// <summary>
     /// Used once, in <see cref="OnInitialized"/>, to resolve <see cref="_store"/>. Kept as
@@ -136,6 +152,21 @@ public partial class FormDesigner : ComponentBase, IAsyncDisposable
             // <body> (PRD §11).
             _restoreHelpFocusOnNextRender = false;
             await _helpButtonElement.FocusAsync();
+        }
+
+        if (_restorePublishFocusOnNextRender)
+        {
+            // Same one-shot shape as _restoreHelpFocusOnNextRender above: PublishDialog has
+            // already left the DOM by the time this render runs, whether it closed on a cancel
+            // or a successful publish, so this is always safe to run.
+            _restorePublishFocusOnNextRender = false;
+            await _publishButtonElement.FocusAsync();
+        }
+
+        if (_restoreVersionHistoryFocusOnNextRender)
+        {
+            _restoreVersionHistoryFocusOnNextRender = false;
+            await _versionHistoryButtonElement.FocusAsync();
         }
     }
 
@@ -244,6 +275,107 @@ public partial class FormDesigner : ComponentBase, IAsyncDisposable
     {
         _showKeyboardHelp = false;
         _restoreHelpFocusOnNextRender = true;
+    }
+
+    /// <summary>
+    /// Opens the publish dialog (PRD §7) -- the toolbar's own Publish button. A no-op before the
+    /// draft has loaded, since the button that calls this is only ever rendered once
+    /// <see cref="_editContext"/> exists.
+    /// </summary>
+    private void OpenPublishDialog() => _showPublishDialog = true;
+
+    /// <summary>
+    /// Closes the publish dialog -- its own Cancel button or <c>Esc</c>, and the tail of a
+    /// successful publish too (<see cref="OnDraftPublishedAsync"/> calls this after its own
+    /// teardown-and-reload) -- and arms <see cref="_restorePublishFocusOnNextRender"/> so the very
+    /// next render, once <see cref="PublishDialog"/> has actually left the DOM, moves real DOM
+    /// focus back to the Publish button (PRD §11).
+    /// </summary>
+    private void ClosePublishDialog()
+    {
+        _showPublishDialog = false;
+        _restorePublishFocusOnNextRender = true;
+    }
+
+    /// <summary>
+    /// Reacts to <see cref="PublishDialog.OnPublished"/>: the draft <see cref="_editContext"/> was
+    /// editing no longer exists as a draft at all (<see cref="IFormDefinitionStore.PublishAsync"/>
+    /// consumes it), so this tears that context down exactly as <see cref="DisposeAsync"/> would
+    /// its own, then re-runs <see cref="LoadDraftAsync"/> -- the very same store-miss path that
+    /// already knows how to revise a form's latest published version into a fresh in-memory draft,
+    /// which is now the version <paramref name="published"/> names. Bubbles the same version out
+    /// through <see cref="OnPublished"/> for the host, after this shell's own state is consistent
+    /// again.
+    /// </summary>
+    /// <param name="published">
+    /// The version <see cref="PublishDialog"/> just published.
+    /// </param>
+    [SuppressMessage(
+        "Reliability",
+        "CA2007:Consider calling ConfigureAwait on the awaited task",
+        Justification = "An event-callback handler resumes on the renderer's synchronization context, and must stay on it through to the LoadDraftAsync call, which itself schedules a render.")]
+    private async Task OnDraftPublishedAsync(FormVersion published)
+    {
+        if (_editContext is not null)
+        {
+            _editContext.StateChanged -= OnEditContextStateChanged;
+            _editContext.AutosaveFailed -= OnEditContextAutosaveFailed;
+            await _editContext.DisposeAsync();
+            _editContext = null;
+        }
+
+        await LoadDraftAsync();
+        ClosePublishDialog();
+        _editContext?.Announce(Localizer["PublishDialogVersionAnnouncement", published.Version].Value);
+        await OnPublished.InvokeAsync(published);
+    }
+
+    /// <summary>
+    /// Opens the version-history panel (PRD §7) -- the toolbar's own Version-history button.
+    /// </summary>
+    private void OpenVersionHistory() => _showVersionHistory = true;
+
+    /// <summary>
+    /// Closes the version-history panel -- its own Close button, <c>Esc</c>, or the tail of a
+    /// completed "revise as draft" (<see cref="OnDraftRevisedAsync"/> calls this after its own
+    /// context swap) -- and arms <see cref="_restoreVersionHistoryFocusOnNextRender"/> so the very
+    /// next render moves real DOM focus back to the Version-history button (PRD §11).
+    /// </summary>
+    private void CloseVersionHistory()
+    {
+        _showVersionHistory = false;
+        _restoreVersionHistoryFocusOnNextRender = true;
+    }
+
+    /// <summary>
+    /// Reacts to <see cref="VersionHistory.OnRevised"/>: swaps this designer's whole editing
+    /// session onto the new draft <see cref="VersionHistory"/> just saved, the same
+    /// construct-and-subscribe sequence <see cref="LoadDraftAsync"/> uses for its own draft, minus
+    /// the store round-trip <see cref="VersionHistory"/> already made. The version that draft's
+    /// content was revised from is never touched (AGENTS.md invariant #3) -- this only ever
+    /// replaces which draft <em>this designer instance</em> is looking at.
+    /// </summary>
+    /// <param name="revisedDraft">
+    /// The new, unpublished draft <see cref="VersionHistory"/> just saved.
+    /// </param>
+    [SuppressMessage(
+        "Reliability",
+        "CA2007:Consider calling ConfigureAwait on the awaited task",
+        Justification = "An event-callback handler resumes on the renderer's synchronization context, and must stay on it through to the CloseVersionHistory call at the end.")]
+    private async Task OnDraftRevisedAsync(FormVersion revisedDraft)
+    {
+        if (_editContext is not null)
+        {
+            _editContext.StateChanged -= OnEditContextStateChanged;
+            _editContext.AutosaveFailed -= OnEditContextAutosaveFailed;
+            await _editContext.DisposeAsync();
+        }
+
+        _editContext = new DesignerEditContext(revisedDraft, _store, _disposalCts.Token);
+        _editContext.StateChanged += OnEditContextStateChanged;
+        _editContext.AutosaveFailed += OnEditContextAutosaveFailed;
+        _activePageId = revisedDraft.Definition.Pages.Count > 0 ? revisedDraft.Definition.Pages[0].Id : null;
+        CloseVersionHistory();
     }
 
     /// <summary>

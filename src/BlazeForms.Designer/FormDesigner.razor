@@ -3,6 +3,15 @@
         <button type="button" class="bf-designer__help-button" @ref="_helpButtonElement" @onclick="OpenKeyboardHelp">
             @Localizer["KeyboardHelpOpenButton"].Value
         </button>
+        @if (_editContext is not null)
+        {
+            <button type="button" class="bf-designer__version-history-button" @ref="_versionHistoryButtonElement" @onclick="OpenVersionHistory">
+                @Localizer["ToolbarVersionHistoryButton"].Value
+            </button>
+            <button type="button" class="bf-designer__publish-button" @ref="_publishButtonElement" @onclick="OpenPublishDialog">
+                @Localizer["ToolbarPublishButton"].Value
+            </button>
+        }
     </div>
 
     <div class="bf-designer__panes">
@@ -53,5 +62,15 @@
     @if (_showKeyboardHelp)
     {
         <KeyboardHelpDialog OnClosed="CloseKeyboardHelp" />
+    }
+
+    @if (_showPublishDialog && _editContext is not null)
+    {
+        <PublishDialog EditContext="_editContext" Store="_store" Author="@Author" OnClosed="ClosePublishDialog" OnPublished="OnDraftPublishedAsync" />
+    }
+
+    @if (_showVersionHistory)
+    {
+        <VersionHistory FormId="@FormId" Store="_store" OnClosed="CloseVersionHistory" OnRevised="OnDraftRevisedAsync" />
     }
 </div>

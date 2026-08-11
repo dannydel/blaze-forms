@@ -128,6 +128,8 @@ BlazeForms.Designer.DesignerSelection.PageId.init -> void
 BlazeForms.Designer.DesignerSelection.SectionId.get -> string?
 BlazeForms.Designer.DesignerSelection.SectionId.init -> void
 BlazeForms.FormDesigner
+BlazeForms.FormDesigner.Author.get -> string?
+BlazeForms.FormDesigner.Author.set -> void
 BlazeForms.FormDesigner.DisposeAsync() -> System.Threading.Tasks.ValueTask
 BlazeForms.FormDesigner.FormDesigner() -> void
 BlazeForms.FormDesigner.FormId.get -> string!
@@ -195,6 +197,40 @@ BlazeForms.Rules.VisibilityRuleEditor.NodeId.set -> void
 BlazeForms.Rules.VisibilityRuleEditor.OnClosed.get -> Microsoft.AspNetCore.Components.EventCallback
 BlazeForms.Rules.VisibilityRuleEditor.OnClosed.set -> void
 BlazeForms.Rules.VisibilityRuleEditor.VisibilityRuleEditor() -> void
+BlazeForms.Versioning.PublishDialog
+BlazeForms.Versioning.PublishDialog.Author.get -> string?
+BlazeForms.Versioning.PublishDialog.Author.set -> void
+BlazeForms.Versioning.PublishDialog.DisposeAsync() -> System.Threading.Tasks.ValueTask
+BlazeForms.Versioning.PublishDialog.EditContext.get -> BlazeForms.Designer.DesignerEditContext!
+BlazeForms.Versioning.PublishDialog.EditContext.set -> void
+BlazeForms.Versioning.PublishDialog.OnClosed.get -> Microsoft.AspNetCore.Components.EventCallback
+BlazeForms.Versioning.PublishDialog.OnClosed.set -> void
+BlazeForms.Versioning.PublishDialog.OnPublished.get -> Microsoft.AspNetCore.Components.EventCallback<BlazeForms.Versioning.FormVersion!>
+BlazeForms.Versioning.PublishDialog.OnPublished.set -> void
+BlazeForms.Versioning.PublishDialog.PublishDialog() -> void
+BlazeForms.Versioning.PublishDialog.Store.get -> BlazeForms.Hosting.IFormDefinitionStore!
+BlazeForms.Versioning.PublishDialog.Store.set -> void
+BlazeForms.Versioning.RetireConfirmationDialog
+BlazeForms.Versioning.RetireConfirmationDialog.DisposeAsync() -> System.Threading.Tasks.ValueTask
+BlazeForms.Versioning.RetireConfirmationDialog.FormId.get -> string!
+BlazeForms.Versioning.RetireConfirmationDialog.FormId.set -> void
+BlazeForms.Versioning.RetireConfirmationDialog.OnClosed.get -> Microsoft.AspNetCore.Components.EventCallback
+BlazeForms.Versioning.RetireConfirmationDialog.OnClosed.set -> void
+BlazeForms.Versioning.RetireConfirmationDialog.RetireConfirmationDialog() -> void
+BlazeForms.Versioning.RetireConfirmationDialog.Store.get -> BlazeForms.Hosting.IFormDefinitionStore!
+BlazeForms.Versioning.RetireConfirmationDialog.Store.set -> void
+BlazeForms.Versioning.RetireConfirmationDialog.Version.get -> int
+BlazeForms.Versioning.RetireConfirmationDialog.Version.set -> void
+BlazeForms.Versioning.VersionHistory
+BlazeForms.Versioning.VersionHistory.FormId.get -> string!
+BlazeForms.Versioning.VersionHistory.FormId.set -> void
+BlazeForms.Versioning.VersionHistory.OnClosed.get -> Microsoft.AspNetCore.Components.EventCallback
+BlazeForms.Versioning.VersionHistory.OnClosed.set -> void
+BlazeForms.Versioning.VersionHistory.OnRevised.get -> Microsoft.AspNetCore.Components.EventCallback<BlazeForms.Versioning.FormVersion!>
+BlazeForms.Versioning.VersionHistory.OnRevised.set -> void
+BlazeForms.Versioning.VersionHistory.Store.get -> BlazeForms.Hosting.IFormDefinitionStore!
+BlazeForms.Versioning.VersionHistory.Store.set -> void
+BlazeForms.Versioning.VersionHistory.VersionHistory() -> void
 override BlazeForms.AriaLiveRegion.OnParametersSet() -> void
 override BlazeForms.Canvas.CanvasNodeRow.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
 override BlazeForms.Canvas.CanvasNodeRow.OnInitialized() -> void
@@ -232,6 +268,11 @@ override BlazeForms.Rules.ValidationRuleEditor.OnParametersSet() -> void
 override BlazeForms.Rules.VisibilityRuleEditor.OnAfterRender(bool firstRender) -> void
 override BlazeForms.Rules.VisibilityRuleEditor.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
 override BlazeForms.Rules.VisibilityRuleEditor.OnInitialized() -> void
+override BlazeForms.Versioning.PublishDialog.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
+override BlazeForms.Versioning.PublishDialog.OnInitialized() -> void
+override BlazeForms.Versioning.RetireConfirmationDialog.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
+override BlazeForms.Versioning.VersionHistory.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
+override BlazeForms.Versioning.VersionHistory.OnInitializedAsync() -> System.Threading.Tasks.Task!
 static BlazeForms.Designer.DesignerAnnouncement.operator !=(BlazeForms.Designer.DesignerAnnouncement? left, BlazeForms.Designer.DesignerAnnouncement? right) -> bool
 static BlazeForms.Designer.DesignerAnnouncement.operator ==(BlazeForms.Designer.DesignerAnnouncement? left, BlazeForms.Designer.DesignerAnnouncement? right) -> bool
 static BlazeForms.Designer.DesignerSelection.ForNode(string! nodeId, string! pageId, string! sectionId, BlazeForms.Designer.DesignerFocusIntent intent) -> BlazeForms.Designer.DesignerSelection!
@@ -257,3 +298,6 @@ static BlazeForms.Designer.DesignerSelection.operator ==(BlazeForms.Designer.Des
 ~override BlazeForms.Rules.ConditionRow.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Rules.ValidationRuleEditor.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Rules.VisibilityRuleEditor.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
+~override BlazeForms.Versioning.PublishDialog.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
+~override BlazeForms.Versioning.RetireConfirmationDialog.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
+~override BlazeForms.Versioning.VersionHistory.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void

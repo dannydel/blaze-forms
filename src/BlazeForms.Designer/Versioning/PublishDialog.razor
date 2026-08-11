@@ -1,0 +1,66 @@
+<div class="bf-publish-dialog-backdrop">
+    <div class="bf-publish-dialog"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="@TitleId"
+         @ref="_dialogElement"
+         @onkeydown="OnDialogKeyDown">
+        <h2 id="@TitleId" class="bf-publish-dialog__title">@Localizer["PublishDialogTitle"].Value</h2>
+
+        @if (_lintResults.HasBlockingIssues())
+        {
+            <p id="@BlockReasonId" class="bf-publish-dialog__block-reason">@Localizer["PublishDialogBlockedIntro"].Value</p>
+            <ul class="bf-publish-dialog__blockers">
+                @for (var index = 0; index < _lintResults.Count; index++)
+                {
+                    var result = _lintResults[index];
+
+                    if (result.Severity != LintSeverity.Blocking)
+                    {
+                        continue;
+                    }
+
+                    <li class="bf-publish-dialog__blocker" @key="ResultKey(index, result)">
+                        <span class="bf-publish-dialog__rule-id">@result.RuleId</span>
+                        <p class="bf-publish-dialog__message">@result.Message</p>
+                        @if (CanJumpTo(result))
+                        {
+                            <button type="button" class="bf-publish-dialog__jump" @onclick="() => JumpToNodeAsync(result)">
+                                @Localizer["PublishDialogJumpButton", NodeLabel(result.NodeId!)].Value
+                            </button>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <div class="bf-publish-dialog__field">
+                <label class="bf-publish-dialog__label" for="@NoteTextareaId">@Localizer["PublishDialogChangeNoteLabel"].Value</label>
+                <textarea id="@NoteTextareaId"
+                          class="bf-publish-dialog__input"
+                          aria-describedby="@(string.IsNullOrWhiteSpace(_changeNote) ? NoteRequiredHintId : null)"
+                          @bind:get="_changeNote"
+                          @bind:set="OnChangeNoteChanged"
+                          @bind:event="oninput"></textarea>
+                @if (string.IsNullOrWhiteSpace(_changeNote))
+                {
+                    <p id="@NoteRequiredHintId" class="bf-publish-dialog__hint">@Localizer["PublishDialogNoteRequiredHint"].Value</p>
+                }
+            </div>
+        }
+
+        <div class="bf-publish-dialog__actions">
+            <button type="button"
+                    class="bf-publish-dialog__button bf-publish-dialog__button--primary"
+                    disabled="@IsConfirmDisabled"
+                    aria-describedby="@ConfirmDescribedById"
+                    @onclick="ConfirmAsync">
+                @Localizer["PublishDialogConfirmButton"].Value
+            </button>
+            <button type="button" class="bf-publish-dialog__button" @ref="_cancelButtonElement" @onclick="CancelAsync">
+                @Localizer["PublishDialogCancelButton"].Value
+            </button>
+        </div>
+    </div>
+</div>
