@@ -1,6 +1,14 @@
 BlazeForms._Imports
 BlazeForms._Imports._Imports() -> void
 BlazeForms._Imports.Execute() -> void
+BlazeForms.FormRenderer
+BlazeForms.FormRenderer.FieldComponents.get -> BlazeForms.Hosting.IFieldComponentRegistry?
+BlazeForms.FormRenderer.FieldComponents.set -> void
+BlazeForms.FormRenderer.FormRenderer() -> void
+BlazeForms.FormRenderer.RespondentKey.get -> string?
+BlazeForms.FormRenderer.RespondentKey.set -> void
+BlazeForms.FormRenderer.Version.get -> BlazeForms.Versioning.FormVersion!
+BlazeForms.FormRenderer.Version.set -> void
 BlazeForms.Fields.BooleanField
 BlazeForms.Fields.BooleanField.BooleanField() -> void
 BlazeForms.Fields.CalcField
@@ -78,6 +86,8 @@ override BlazeForms.Fields.EmailField.ShouldRender() -> bool
 override BlazeForms.Fields.FormFieldBase.OnParametersSet() -> void
 virtual BlazeForms.Fields.FormFieldBase.CaptureValueSnapshot() -> void
 override BlazeForms.Fields.HeadingBlock.ShouldRender() -> bool
+override BlazeForms.FormRenderer.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
+override BlazeForms.FormRenderer.OnParametersSet() -> void
 override BlazeForms.Fields.NumberField.CaptureValueSnapshot() -> void
 override BlazeForms.Fields.NumberField.ShouldRender() -> bool
 override BlazeForms.Fields.ParagraphBlock.CaptureValueSnapshot() -> void
@@ -103,6 +113,7 @@ override BlazeForms.Fields.YesNoField.ShouldRender() -> bool
 ~override BlazeForms.Fields.DateRangeField.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Fields.DividerBlock.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Fields.EmailField.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
+~override BlazeForms.FormRenderer.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Fields.HeadingBlock.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Fields.NumberField.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Fields.ParagraphBlock.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
