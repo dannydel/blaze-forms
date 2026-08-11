@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using BlazeForms.Definitions;
 using BlazeForms.Designer;
 using BlazeForms.Internal;
+using BlazeForms.Linting;
 using BlazeForms.Markdown;
 using BlazeForms.Resources;
 using Microsoft.AspNetCore.Components;
@@ -13,8 +14,8 @@ namespace BlazeForms.Canvas;
 /// <summary>
 /// One node's row on the canvas (PRD §4.1): its label (or a localized "Untitled {type}"
 /// fallback), a type chip, the required and half-width flags, its help text rendered through the
-/// safe-Markdown pipeline, a logic-summary chip when it carries a visibility rule, and an
-/// inline-lint slot a later phase fills. <see cref="DesignerCanvas"/> is this row's only intended
+/// safe-Markdown pipeline, a logic-summary chip when it carries a visibility rule, and its own
+/// inline lint findings via <see cref="InlineLintMarker"/> (PRD §8). <see cref="DesignerCanvas"/> is this row's only intended
 /// host — it owns the roving <c>tabindex</c> and DOM focus for every row it renders
 /// (<see cref="IsActive"/>, <see cref="RequestFocus"/>), and this row raises
 /// <see cref="OnActivate"/> rather than selecting itself, so a click and the canvas's own
@@ -52,11 +53,13 @@ namespace BlazeForms.Canvas;
 /// -- a deprecated ARIA 1.1 attribute with no assistive-technology benefit here.
 /// </para>
 /// <para>
-/// <b>Render discipline.</b> <see cref="ShouldRender"/> compares <see cref="Node"/> by reference
-/// (every mutation rebuilds the definition tree immutably, so an unrelated node keeps its exact
-/// prior instance — AGENTS.md invariant #3) alongside <see cref="IsActive"/>,
-/// <see cref="IsSelected"/>, and <see cref="RequestFocus"/>, so editing or adding one row never
-/// re-renders its siblings.
+/// <b>Render discipline.</b> <see cref="ShouldRender"/> compares <see cref="Node"/> and
+/// <see cref="LintFindings"/> by reference (every mutation rebuilds the definition tree
+/// immutably, and <see cref="DesignerCanvas"/> itself only ever hands an unaffected node's row
+/// back the exact same findings list instance it held before — AGENTS.md invariant #3) alongside
+/// <see cref="IsActive"/>, <see cref="IsSelected"/>, and <see cref="RequestFocus"/>, so editing or
+/// adding one row, or a lint pass that changes some other node's findings, never re-renders this
+/// row's own siblings.
 /// </para>
 /// </remarks>
 public partial class CanvasNodeRow : ComponentBase
@@ -66,6 +69,7 @@ public partial class CanvasNodeRow : ComponentBase
     private bool _previousIsActive;
     private bool _previousIsSelected;
     private string? _previousLogicSummary;
+    private IReadOnlyList<LintResult> _previousLintFindings = [];
     private bool _focusOnNextRender;
 
     /// <summary>
@@ -112,6 +116,16 @@ public partial class CanvasNodeRow : ComponentBase
     /// </summary>
     [Parameter]
     public string? LogicSummary { get; set; }
+
+    /// <summary>
+    /// This node's own current lint findings (PRD §8), resolved by <see cref="DesignerCanvas"/>
+    /// from the same debounced lint pass the linter dock runs -- this row renders whatever it is
+    /// given verbatim via <see cref="InlineLintMarker"/>, never running the linter itself. Defaults
+    /// to empty so a test that renders this row in isolation (with no reason to exercise lint
+    /// findings) needs no explicit value.
+    /// </summary>
+    [Parameter]
+    public IReadOnlyList<LintResult> LintFindings { get; set; } = [];
 
     /// <summary>
     /// Raised when this row is clicked. <see cref="DesignerCanvas"/> is the only intended
@@ -177,6 +191,7 @@ public partial class CanvasNodeRow : ComponentBase
         _previousIsActive = IsActive;
         _previousIsSelected = IsSelected;
         _previousLogicSummary = LogicSummary;
+        _previousLintFindings = LintFindings;
     }
 
     /// <inheritdoc/>
@@ -186,11 +201,13 @@ public partial class CanvasNodeRow : ComponentBase
             || _previousIsActive != IsActive
             || _previousIsSelected != IsSelected
             || !string.Equals(_previousLogicSummary, LogicSummary, StringComparison.Ordinal)
+            || !ReferenceEquals(_previousLintFindings, LintFindings)
             || RequestFocus;
         _previousNode = Node;
         _previousIsActive = IsActive;
         _previousIsSelected = IsSelected;
         _previousLogicSummary = LogicSummary;
+        _previousLintFindings = LintFindings;
         return changed;
     }
 

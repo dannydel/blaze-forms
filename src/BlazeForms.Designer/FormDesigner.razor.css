@@ -1,15 +1,44 @@
+/* The shell as a whole (PRD §4.1, D9): a toolbar (the keyboard-help button), the three-pane
+ * docked layout, and, below the panes, the linter dock (PRD §8) and the aria-live region -- all
+ * stacked in one column. */
+.bf-designer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-3);
+    font-family: var(--bf-font-sans);
+    color: var(--bf-color-text);
+}
+
+.bf-designer__toolbar {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.bf-designer__help-button {
+    padding-inline: var(--bf-space-3);
+    padding-block: var(--bf-space-2);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+    background-color: var(--bf-color-surface);
+    color: var(--bf-color-text);
+    cursor: pointer;
+}
+
+.bf-designer__help-button:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}
+
 /* Three-pane docked layout (PRD §4.1, D9 -- docked is the only P1 layout). The three column
  * widths/gap and the shell's minimum height are the designer's own new tokens
  * (docs/theming.md); every other value here is one BlazeForms.Renderer's blazeforms.css already
  * declares, since FormDesigner depends on the renderer and a host that links this component
  * links that stylesheet too (PRD §9). */
-.bf-designer {
+.bf-designer__panes {
     display: grid;
     grid-template-columns: var(--bf-palette-width) minmax(0, 1fr) var(--bf-properties-width);
     gap: var(--bf-pane-gap);
     min-block-size: var(--bf-dock-height);
-    font-family: var(--bf-font-sans);
-    color: var(--bf-color-text);
 }
 
 .bf-designer__pane {

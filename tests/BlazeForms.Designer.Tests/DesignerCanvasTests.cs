@@ -3,6 +3,7 @@ using BlazeForms.Definitions;
 using BlazeForms.Expressions;
 using BlazeForms.Hosting;
 using BlazeForms.Hosting.InMemory;
+using BlazeForms.Linting;
 using BlazeForms.Versioning;
 using Bunit;
 using Microsoft.AspNetCore.Components.Web;
@@ -504,5 +505,203 @@ public sealed class DesignerCanvasTests : DesignerTestContext
 
         Assert.Equal(["node-a", "node-b", "node-c"], context.Draft.Definition.Pages[0].Sections[0].Nodes.Select(n => n.Id));
         Assert.Null(announcement);
+    }
+
+    // --- Phase 7: Ctrl+D/Ctrl+Z/Ctrl+Shift+Z, delete protection, and inline lint (PRD §4.1, §8) ---
+
+    [Fact]
+    public async Task CtrlDDuplicatesTheActiveNodeAndFocusesTheDuplicate()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.OneFieldDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "d", CtrlKey = true });
+
+        cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll("div.bf-canvas-row").Count));
+        Assert.NotEqual("first-name", context.Selection.NodeId);
+        Assert.Equal(DesignerFocusIntent.NewNode, context.Selection.Intent);
+        JSInterop.VerifyFocusAsyncInvoke();
+    }
+
+    [Fact]
+    public async Task CtrlZUndoesTheMostRecentMutation()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.TwoSectionDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+        context.MoveNodeWithinSection("node-a", +1);
+        cut.WaitForAssertion(() => Assert.Equal(["node-b", "node-a", "node-c"], context.Draft.Definition.Pages[0].Sections[0].Nodes.Select(n => n.Id)));
+
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "z", CtrlKey = true });
+
+        Assert.Equal(["node-a", "node-b", "node-c"], context.Draft.Definition.Pages[0].Sections[0].Nodes.Select(n => n.Id));
+    }
+
+    [Fact]
+    public async Task CtrlShiftZRedoesTheMostRecentlyUndoneMutation()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.TwoSectionDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+        context.MoveNodeWithinSection("node-a", +1);
+        cut.WaitForAssertion(() => Assert.Equal(["node-b", "node-a", "node-c"], context.Draft.Definition.Pages[0].Sections[0].Nodes.Select(n => n.Id)));
+        context.Undo();
+        cut.WaitForAssertion(() => Assert.Equal(["node-a", "node-b", "node-c"], context.Draft.Definition.Pages[0].Sections[0].Nodes.Select(n => n.Id)));
+
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "z", CtrlKey = true, ShiftKey = true });
+
+        Assert.Equal(["node-b", "node-a", "node-c"], context.Draft.Definition.Pages[0].Sections[0].Nodes.Select(n => n.Id));
+    }
+
+    [Fact]
+    public async Task CtrlZWithNothingToUndoIsANoOp()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.TwoSectionDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "z", CtrlKey = true });
+
+        Assert.Equal(["node-a", "node-b", "node-c"], context.Draft.Definition.Pages[0].Sections[0].Nodes.Select(n => n.Id));
+    }
+
+    [Fact]
+    public async Task DeleteOfAnUnreferencedNodeDeletesDirectlyWithNoDialogAndFocusesTheNeighbour()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.ReferencedFieldDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+        // A silent (DesignerFocusIntent.None) selection move to node-unreferenced -- moving the
+        // roving cursor there via a keyboard command first (Home/End) would itself call FocusAsync
+        // once already, which VerifyFocusAsyncInvoke()'s default single-call assertion below would
+        // then double-count.
+        context.Select(DesignerSelection.ForNode("node-unreferenced", "page-1", "section-1", DesignerFocusIntent.None));
+
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "Delete" });
+
+        Assert.Empty(cut.FindAll("div.bf-delete-dialog"));
+        Assert.Null(context.Draft.Definition.FindNode("node-unreferenced"));
+        Assert.Equal(DesignerFocusIntent.Neighbour, context.Selection.Intent);
+        JSInterop.VerifyFocusAsyncInvoke();
+    }
+
+    [Fact]
+    public async Task DeleteOfAReferencedNodeOpensTheProtectionDialogInsteadOfDeleting()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.ReferencedFieldDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+        // The roving cursor defaults to the first row: node-referenced.
+
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "Delete" });
+
+        var dialog = cut.Find("div.bf-delete-dialog");
+        Assert.Equal("dialog", dialog.GetAttribute("role"));
+        Assert.NotNull(context.Draft.Definition.FindNode("node-referenced"));
+    }
+
+    [Fact]
+    public async Task ConfirmingDeleteAnywayDeletesLeavesADanglingFr03ReferenceAndFocusesTheNeighbour()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.ReferencedFieldDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "Delete" });
+
+        await cut.Find("button.bf-delete-dialog__button--danger").ClickAsync(new MouseEventArgs());
+
+        Assert.Empty(cut.FindAll("div.bf-delete-dialog"));
+        Assert.Null(context.Draft.Definition.FindNode("node-referenced"));
+        // The engine's own Neighbour intent is what carries focus to the row it fell back to --
+        // the dialog itself already took an initial FocusAsync call for its own Cancel button, and
+        // CloseDeleteDialog re-requests it again once the dialog leaves the DOM, so this test
+        // asserts the deterministic focus *intent* rather than an incidental call count.
+        Assert.Equal(DesignerFocusIntent.Neighbour, context.Selection.Intent);
+
+        var lint = FormLinter.CreateDefault().Lint(context.Draft.Definition);
+        Assert.Contains(lint, r => r.RuleId == LintRuleIds.Fr03);
+    }
+
+    [Fact]
+    public async Task CancellingTheProtectionDialogTouchesNothingAndRestoresFocusToTheOriginRow()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.ReferencedFieldDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "Delete" });
+
+        await cut.Find("div.bf-delete-dialog").KeyDownAsync(new KeyboardEventArgs { Key = "Escape" });
+
+        Assert.Empty(cut.FindAll("div.bf-delete-dialog"));
+        Assert.NotNull(context.Draft.Definition.FindNode("node-referenced"));
+
+        // Once for the dialog's own initial Cancel-button focus, again once CloseDeleteDialog
+        // re-requests focus for the (unchanged) origin row after the dialog leaves the DOM.
+        JSInterop.VerifyFocusAsyncInvoke(2);
+    }
+
+    [Fact]
+    public async Task InlineLintMarkerRendersOnlyOnTheCorrectKeyedRowForANodeWithAFinding()
+    {
+        var definition = new FormDefinition
+        {
+            Id = "form-1",
+            Name = "Two node form",
+            Pages =
+            [
+                new FormPage
+                {
+                    Id = "page-1",
+                    Sections =
+                    [
+                        new FormSection
+                        {
+                            Id = "section-1",
+                            Nodes =
+                            [
+                                new FormNode { Id = "node-a", Type = NodeType.Text, Label = "Field A" },
+                                new FormNode { Id = "node-b", Type = NodeType.Email },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        };
+        await using var context = CreateContext(definition);
+        var findings = FormLinter.CreateDefault().Lint(context.Draft.Definition);
+        var cut = Render<DesignerCanvas>(p => p
+            .Add(f => f.EditContext, context)
+            .Add(f => f.ActivePageId, "page-1")
+            .Add(f => f.LintResults, findings));
+
+        var rows = cut.FindAll("div.bf-canvas-row");
+        Assert.Empty(rows[0].QuerySelectorAll("ul.bf-inline-lint"));
+        var markerB = rows[1].QuerySelector("ul.bf-inline-lint");
+        Assert.NotNull(markerB);
+        Assert.Contains("Blocking", markerB.TextContent, StringComparison.Ordinal);
+
+        // No aria-label on the marker itself: a descendant aria-label would replace the row's
+        // own role="option" accessible name with this generic string instead of the finding's
+        // real severity+message text, silencing what a screen reader actually hears (code review
+        // fix). The severity is still conveyed by TEXT, not color alone -- the assertion above.
+        Assert.Null(markerB.GetAttribute("aria-label"));
+        Assert.Contains("This field has no label.", rows[1].TextContent, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ALintPassNamingOnlyOneNodeOnlyReRendersThatNodesOwnRow()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.TwoSectionDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+
+        var rowB = cut.FindComponents<CanvasNodeRow>().Single(r => r.Instance.Node.Id == "node-b");
+        var rowBRenderCountBefore = rowB.RenderCount;
+        var rowD = cut.FindComponents<CanvasNodeRow>().Single(r => r.Instance.Node.Id == "node-d");
+        var rowDRenderCountBefore = rowD.RenderCount;
+
+        IReadOnlyList<LintResult> findings =
+        [
+            new LintResult { RuleId = LintRuleIds.A11y06, Severity = LintSeverity.Advisory, Message = "Needs a remedy.", NodeId = "node-b" },
+        ];
+        cut.Render(p => p
+            .Add(f => f.EditContext, context)
+            .Add(f => f.ActivePageId, "page-1")
+            .Add(f => f.LintResults, findings));
+
+        Assert.True(rowB.RenderCount > rowBRenderCountBefore);
+        Assert.Equal(rowDRenderCountBefore, rowD.RenderCount);
     }
 }

@@ -52,8 +52,8 @@
     font-size: var(--bf-font-size-sm);
 }
 
-/* Empty until a later phase (PRD §8) fills it with inline lint messages -- collapses to nothing
- * rather than reserving visible space for content that is not there yet. */
+/* InlineLintMarker (PRD §8) renders nothing at all for a node with no findings -- this keeps the
+ * slot collapsed to nothing rather than reserving visible space for content that is not there. */
 .bf-canvas-row__lint:empty {
     display: none;
 }

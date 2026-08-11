@@ -3,6 +3,7 @@ using BlazeForms.Definitions;
 using BlazeForms.Designer;
 using BlazeForms.Hosting;
 using BlazeForms.Internal;
+using BlazeForms.Linting;
 using BlazeForms.Resources;
 using BlazeForms.Versioning;
 using Microsoft.AspNetCore.Components;
@@ -46,6 +47,10 @@ public partial class FormDesigner : ComponentBase, IAsyncDisposable
     private IFormDefinitionStore _store = default!;
     private DesignerEditContext? _editContext;
     private string? _activePageId;
+    private IReadOnlyList<LintResult> _lintResults = [];
+    private bool _showKeyboardHelp;
+    private bool _restoreHelpFocusOnNextRender;
+    private ElementReference _helpButtonElement;
     private bool _draftLoadAttempted;
     private bool _disposed;
     private readonly CancellationTokenSource _disposalCts = new();
@@ -120,6 +125,18 @@ public partial class FormDesigner : ComponentBase, IAsyncDisposable
             _draftLoadAttempted = true;
             await LoadDraftAsync();
         }
+
+        if (_restoreHelpFocusOnNextRender)
+        {
+            // One-shot, the same as DesignerCanvas's own _pendingFocusNodeId: CloseKeyboardHelp
+            // sets this flag and StateHasChanged's next render is the one that actually removes
+            // KeyboardHelpDialog from the DOM (the @if in FormDesigner.razor), so only THIS
+            // render -- not the one CloseKeyboardHelp itself ran on -- is safe to move focus
+            // back to the Help button on. Left unset, the dialog closing would drop focus to
+            // <body> (PRD §11).
+            _restoreHelpFocusOnNextRender = false;
+            await _helpButtonElement.FocusAsync();
+        }
     }
 
     /// <summary>
@@ -192,6 +209,42 @@ public partial class FormDesigner : ComponentBase, IAsyncDisposable
     /// The page the author just switched to.
     /// </param>
     private void OnActivePageIdChanged(string pageId) => _activePageId = pageId;
+
+    /// <summary>
+    /// Receives every lint pass's own results from the hosted <see cref="LinterDock"/>
+    /// (<see cref="LinterDock.ResultsChanged"/>) and hands them straight down to
+    /// <see cref="Canvas.DesignerCanvas.LintResults"/>, so a node's own inline findings come from
+    /// the dock's exact lint pass instead of a second one this shell would otherwise have to run
+    /// itself.
+    /// </summary>
+    /// <param name="results">
+    /// The lint pass's results.
+    /// </param>
+    private void OnLintResultsChanged(IReadOnlyList<LintResult> results)
+    {
+        _lintResults = results;
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Opens the keyboard-help dialog (PRD §4.1's "discoverable via an in-app dialog") -- the
+    /// toolbar's own Help button.
+    /// </summary>
+    private void OpenKeyboardHelp() => _showKeyboardHelp = true;
+
+    /// <summary>
+    /// Closes the keyboard-help dialog -- its own Close button or <c>Esc</c> -- and arms
+    /// <see cref="_restoreHelpFocusOnNextRender"/> so the very next render, once
+    /// <c>KeyboardHelpDialog</c> has actually left the DOM, moves real DOM focus back to the
+    /// Help button that opened it (PRD §11) rather than letting it fall to <c>&lt;body&gt;</c> --
+    /// the same "re-arm a pending-focus flag, consume it in the following render" shape
+    /// <c>DesignerCanvas.CloseMoveDialog</c>/<c>CloseDeleteDialog</c> use for their own dialogs.
+    /// </summary>
+    private void CloseKeyboardHelp()
+    {
+        _showKeyboardHelp = false;
+        _restoreHelpFocusOnNextRender = true;
+    }
 
     /// <summary>
     /// Keeps <see cref="_activePageId"/> pointed at whichever page

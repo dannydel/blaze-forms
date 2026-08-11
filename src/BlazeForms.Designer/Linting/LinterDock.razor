@@ -1,0 +1,58 @@
+<div class="bf-linter-dock" role="region" aria-label="@Localizer["LinterDockRegionLabel"].Value">
+    <button type="button"
+            class="bf-linter-dock__toggle"
+            aria-expanded="@(_isExpanded ? "true" : "false")"
+            aria-controls="@BodyId"
+            @onclick="ToggleExpanded">
+        <span class="bf-linter-dock__toggle-icon" aria-hidden="true">@(_isExpanded ? "▾" : "▸")</span>
+        @Localizer["LinterDockToggleButton", _results.Count].Value
+    </button>
+
+    @if (_isExpanded)
+    {
+        <div id="@BodyId" class="bf-linter-dock__body">
+            @if (_results.Count == 0)
+            {
+                <p class="bf-linter-dock__empty">@Localizer["LinterDockEmptyText"].Value</p>
+            }
+            else
+            {
+                <ul class="bf-linter-dock__list">
+                    @for (var index = 0; index < _results.Count; index++)
+                    {
+                        var result = _results[index];
+                        <li class="bf-linter-dock__item" @key="ResultKey(index, result)">
+                            <span class="bf-linter-dock__severity bf-linter-dock__severity--@(SeverityModifier(result))">
+                                @SeverityLabel(result)
+                            </span>
+                            <span class="bf-linter-dock__rule-id">@result.RuleId</span>
+                            <p class="bf-linter-dock__message">@result.Message</p>
+                            @if (result.Detail is not null)
+                            {
+                                <p class="bf-linter-dock__detail">@result.Detail</p>
+                            }
+                            <div class="bf-linter-dock__actions">
+                                @if (CanJumpTo(result))
+                                {
+                                    <button type="button"
+                                            class="bf-linter-dock__jump"
+                                            @onclick="() => JumpToNode(result)">
+                                        @Localizer["LinterDockJumpButton", NodeLabel(result.NodeId!)].Value
+                                    </button>
+                                }
+                                @if (CanFix(result))
+                                {
+                                    <button type="button"
+                                            class="bf-linter-dock__fix"
+                                            @onclick="() => Fix(result)">
+                                        @Localizer["LinterDockFixButton"].Value
+                                    </button>
+                                }
+                            </div>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    }
+</div>
