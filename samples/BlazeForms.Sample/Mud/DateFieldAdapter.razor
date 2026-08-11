@@ -1,0 +1,11 @@
+@inherits FormFieldBase
+<MudDatePicker Date="@MudDateValue"
+               DateChanged="SetMudDateValueAsync"
+               Label="@Node.Label"
+               HelperText="@Node.Help"
+               Disabled="@Disabled"
+               Required="@Node.Required"
+               Error="@HasError"
+               ErrorText="@Error"
+               InputId="@FieldId"
+               PickerClosed="OnBlurAsync" />

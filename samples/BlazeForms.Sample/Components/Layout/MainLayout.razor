@@ -1,4 +1,16 @@
 ﻿@inherits LayoutComponentBase
+@using MudBlazor
+
+@* MudBlazor lives only in this sample (never src/) -- see Mud/MudFieldComponentRegistry.cs. These
+   four providers are required wherever a Mud component renders. Home.razor stays static SSR while
+   /fill-mud is @rendermode InteractiveServer, and a page's render mode never propagates up to its
+   layout -- so each provider takes its own render mode here rather than depending on whichever
+   page happens to be wrapping it. Per-component render modes with the same mode share one circuit
+   per browser tab, so this still lines up with the Mud controls FillMud.razor renders. *@
+<MudThemeProvider @rendermode="InteractiveServer" />
+<MudPopoverProvider @rendermode="InteractiveServer" />
+<MudDialogProvider @rendermode="InteractiveServer" />
+<MudSnackbarProvider @rendermode="InteractiveServer" />
 
 @Body
 

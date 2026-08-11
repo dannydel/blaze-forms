@@ -8,6 +8,11 @@
 <p>This app hosts BlazeForms.Core, BlazeForms.Renderer, and BlazeForms.Designer for manual verification during development.</p>
 
 <p><a href="/fill">Fill the reference enrollment form</a></p>
+<p>
+    <a href="/fill-mud">Fill the same form with MudBlazor inputs</a> — the PRD §10 honesty test:
+    every adapted field is swapped for a MudBlazor component through
+    <code>IFieldComponentRegistry</code>, with no change to BlazeForms.Core or BlazeForms.Renderer.
+</p>
 
 @if (SubmissionSink.All.Count > 0)
 {

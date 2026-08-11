@@ -1,0 +1,53 @@
+@page "/fill-mud"
+@rendermode InteractiveServer
+@using BlazeForms.Sample.Mud
+@inject IFormDefinitionStore DefinitionStore
+@inject NavigationManager Navigation
+
+<PageTitle>Fill (MudBlazor) — BlazeForms Sample</PageTitle>
+
+@if (_version is null)
+{
+    <p>No published form is available yet.</p>
+}
+else
+{
+    <h1>@_version.Definition.Name</h1>
+    <p class="bf-sample-note">
+        The same published form as <a href="/fill">/fill</a>, rendered through
+        <code>MudFieldComponentRegistry</code> instead of the shipped default components -- the
+        PRD §10 honesty test: swapping every adapted input component takes a registry
+        registration, not a change to <code>BlazeForms.Core</code> or
+        <code>BlazeForms.Renderer</code>.
+    </p>
+    <FormRenderer Version="_version" RespondentKey="demo-respondent-mud" FieldComponents="_mudRegistry" OnSubmitted="HandleSubmittedAsync" />
+}
+
+@code {
+    private static readonly MudFieldComponentRegistry _mudRegistry = new();
+
+    private FormVersion? _version;
+
+    // Runs once during the prerendered pass and again once the circuit reconnects (ordinary
+    // @rendermode InteractiveServer behavior) -- both calls are plain reads against the in-memory
+    // store, so running twice is harmless and needs no first-render guard of its own.
+    protected override async Task OnInitializedAsync()
+    {
+        var forms = await DefinitionStore.ListFormsAsync();
+        var reference = forms.FirstOrDefault();
+
+        if (reference is not null)
+        {
+            _version = await DefinitionStore.GetLatestPublishedVersionAsync(reference.FormId);
+        }
+    }
+
+    // FormRenderer already hands the envelope to the DI-registered IFormSubmissionSink itself
+    // (PRD §9) -- this handler's only job is to send the respondent on to the read-only view of
+    // what they just submitted.
+    private Task HandleSubmittedAsync(FormSubmissionEnvelope envelope)
+    {
+        Navigation.NavigateTo($"/submission/{envelope.SubmissionId}");
+        return Task.CompletedTask;
+    }
+}

@@ -4,6 +4,7 @@ using BlazeForms.Sample.Components;
 using BlazeForms.Sample.Data;
 using BlazeForms.Sample.Services;
 using BlazeForms.Versioning;
+using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddLocalization();
+
+// MudBlazor lives only in this sample (never src/) -- it's the P1 honesty test for
+// IFieldComponentRegistry (PRD §10, §14 #4): /fill-mud swaps every adapted input component for a
+// MudBlazor one purely through registration, with zero change to Core or the renderer.
+builder.Services.AddMudServices();
 
 // BlazeForms ships no DI extension of its own (the agnosticism invariant, AGENTS.md #1) — a host
 // registers whichever IFormDefinitionStore/IFormDraftStore/IFormSubmissionSink implementations it

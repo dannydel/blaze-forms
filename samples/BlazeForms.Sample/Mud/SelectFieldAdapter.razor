@@ -1,0 +1,19 @@
+@inherits FormFieldBase
+<MudSelect T="string"
+           Value="@StringValue"
+           ValueChanged="SetStringValueAsync"
+           Clearable="true"
+           Label="@Node.Label"
+           Placeholder="@Node.Placeholder"
+           HelperText="@Node.Help"
+           Disabled="@Disabled"
+           Required="@Node.Required"
+           Error="@HasError"
+           ErrorText="@Error"
+           InputId="@FieldId"
+           OnBlur="OnBlurAsync">
+    @foreach (var option in Node.Options)
+    {
+        <MudSelectItem T="string" Value="@option.Value" @key="option.Value">@option.Label</MudSelectItem>
+    }
+</MudSelect>

@@ -1,0 +1,17 @@
+@inherits FormFieldBase
+<MudNumericField T="decimal?"
+                  Value="@DecimalValue"
+                  ValueChanged="SetDecimalValueAsync"
+                  Min="@Node.Min"
+                  Max="@Node.Max"
+                  Adornment="Adornment.Start"
+                  AdornmentText="$"
+                  Label="@Node.Label"
+                  Placeholder="@Node.Placeholder"
+                  HelperText="@Node.Help"
+                  Disabled="@Disabled"
+                  Required="@Node.Required"
+                  Error="@HasError"
+                  ErrorText="@Error"
+                  InputId="@FieldId"
+                  OnBlur="OnBlurAsync" />
