@@ -121,6 +121,42 @@ internal static class DesignerTestFixtures
     };
 
     /// <summary>
+    /// One page, one section with a single node, and a second, empty section -- exercises Phase
+    /// 5's three reorder paths landing on an identical result: appending the sole node to an
+    /// empty adjacent section is <c>Alt+→</c>'s own "end of section" choice, the
+    /// <c>Ctrl+M</c> dialog's "position 1", and a drag-and-drop onto the empty section's own
+    /// container all at once (PRD §4.1).
+    /// </summary>
+    internal static FormDefinition TwoSectionSecondEmptyDefinition(string formId) => new()
+    {
+        Id = formId,
+        Name = "Two section, second empty, form",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Title = "Details",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Title = "Transportation",
+                        Nodes = [new FormNode { Id = "node-a", Type = NodeType.Text, Label = "Field A" }],
+                    },
+                    new FormSection
+                    {
+                        Id = "section-2",
+                        Title = "Housing",
+                        Nodes = [],
+                    },
+                ],
+            },
+        ],
+    };
+
+    /// <summary>
     /// One node with no label at all -- exercises <c>CanvasNodeRow</c>'s localized
     /// "Untitled {type}" fallback.
     /// </summary>

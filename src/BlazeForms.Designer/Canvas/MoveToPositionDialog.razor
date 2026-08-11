@@ -1,0 +1,41 @@
+<div class="bf-move-dialog-backdrop">
+    <div class="bf-move-dialog"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="@TitleId"
+         @ref="_dialogElement"
+         @onkeydown="OnDialogKeyDown">
+        <h2 id="@TitleId" class="bf-move-dialog__title">@Localizer["MoveDialogTitle", NodeLabel].Value</h2>
+        <form @onsubmit="ConfirmAsync">
+            <div class="bf-move-dialog__field">
+                <label class="bf-move-dialog__label" for="@SectionSelectId">@Localizer["MoveDialogSectionLabel"].Value</label>
+                <select @ref="_firstFocusElement"
+                        id="@SectionSelectId"
+                        class="bf-move-dialog__input"
+                        @bind:get="_selectedSectionId"
+                        @bind:set="OnSectionChanged">
+                    @foreach (var section in _pageSections)
+                    {
+                        <option value="@section.Id">@SectionTitle(section)</option>
+                    }
+                </select>
+            </div>
+            <div class="bf-move-dialog__field">
+                <label class="bf-move-dialog__label" for="@PositionSelectId">@Localizer["MoveDialogPositionLabel"].Value</label>
+                <select id="@PositionSelectId"
+                        class="bf-move-dialog__input"
+                        @bind:get="_selectedPosition"
+                        @bind:set="OnPositionChanged">
+                    @for (var position = 1; position <= PositionCount; position++)
+                    {
+                        <option value="@position">@Localizer["MoveDialogPositionOption", position].Value</option>
+                    }
+                </select>
+            </div>
+            <div class="bf-move-dialog__actions">
+                <button type="submit" class="bf-move-dialog__button bf-move-dialog__button--primary">@Localizer["MoveDialogConfirmButton"].Value</button>
+                <button type="button" class="bf-move-dialog__button" @onclick="CancelAsync">@Localizer["MoveDialogCancelButton"].Value</button>
+            </div>
+        </form>
+    </div>
+</div>

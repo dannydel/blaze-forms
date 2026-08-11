@@ -1,22 +1,25 @@
 // Collocated ES module for DesignerCanvas.razor's roving-tabindex keyboard model (PRD §11).
 //
-// The genuine platform gap this module fills: suppressing the browser's own default scroll
-// action for ArrowUp/ArrowDown/Home/End, which DesignerCanvas.razor.cs's OnKeyDown already
-// handles itself (moving the roving cursor, or committing the selection on Enter). Blazor's
-// declarative @onkeydown:preventDefault modifier applies unconditionally to every keydown an
-// element receives, including Tab, and there is no way to make it conditional per key value --
-// binding it here would risk trapping Tab the moment it bubbled through alongside the four keys
-// this module actually cares about. This listener calls preventDefault() only for those four
-// keys, and only to cancel the browser's default action -- it never stops propagation, so the
-// Blazor @onkeydown handler bound to this exact same element still receives, and still handles,
-// every key exactly as before.
+// The genuine platform gap this module fills: suppressing the browser's own default action for
+// ArrowUp/ArrowDown/Home/End (scrolling) and, separately, Alt+ArrowLeft/Alt+ArrowRight (browser
+// back/forward navigation in several browsers), all of which DesignerCanvas.razor.cs's own
+// OnKeyDown/HandleAltArrow already handle themselves (moving the roving cursor, committing the
+// selection on Enter, or reordering a node -- PRD §4.1). Blazor's declarative
+// @onkeydown:preventDefault modifier applies unconditionally to every keydown an element
+// receives, including Tab, and there is no way to make it conditional per key value -- binding it
+// here would risk trapping Tab the moment it bubbled through alongside the keys this module
+// actually cares about. This listener calls preventDefault() only for those keys, and only to
+// cancel the browser's own default action -- it never stops propagation, so the Blazor
+// @onkeydown handler bound to this exact same element still receives, and still handles, every
+// key exactly as before.
 //
 // No globals: every export is a named function the component imports and calls directly.
 
 const SUPPRESSED_KEYS = new Set(["ArrowUp", "ArrowDown", "Home", "End"]);
+const ALT_SUPPRESSED_KEYS = new Set(["ArrowLeft", "ArrowRight"]);
 
 function onKeyDown(event) {
-    if (SUPPRESSED_KEYS.has(event.key)) {
+    if (SUPPRESSED_KEYS.has(event.key) || (event.altKey && ALT_SUPPRESSED_KEYS.has(event.key))) {
         event.preventDefault();
     }
 }

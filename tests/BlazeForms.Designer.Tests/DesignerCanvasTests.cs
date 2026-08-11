@@ -302,4 +302,182 @@ public sealed class DesignerCanvasTests : DesignerTestContext
 
         Assert.False(cut.Instance.HasImportedScrollSuppressionModule);
     }
+
+    // --- Phase 5: the three reorder paths (PRD §4.1) -----------------------------------------
+
+    [Fact]
+    public async Task AltArrowDownMovesTheActiveNodeLaterWithinItsOwnSectionAndFocusesIt()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.TwoSectionDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown", AltKey = true });
+
+        Assert.Equal(["node-b", "node-a", "node-c"], context.Draft.Definition.Pages[0].Sections[0].Nodes.Select(n => n.Id));
+        Assert.Equal("node-a", context.Selection.NodeId);
+        Assert.Equal(DesignerFocusIntent.Moved, context.Selection.Intent);
+        JSInterop.VerifyFocusAsyncInvoke();
+    }
+
+    [Fact]
+    public async Task AltArrowUpAtTheFirstRowIsANoOpAndAnnouncesNothing()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.TwoSectionDefinition("form-1"));
+        DesignerAnnouncement? announcement = null;
+        context.Announced += a => announcement = a;
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "ArrowUp", AltKey = true });
+
+        Assert.Equal(["node-a", "node-b", "node-c"], context.Draft.Definition.Pages[0].Sections[0].Nodes.Select(n => n.Id));
+        Assert.Null(announcement);
+        Assert.Equal(DesignerSelection.None, context.Selection);
+    }
+
+    [Fact]
+    public async Task AltArrowRightMovesTheActiveNodeToTheNextSectionsEnd()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.TwoSectionDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+
+        // node-a is the roving cursor's default (first row) -- moves from section-1 into
+        // section-2, appended after node-d.
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight", AltKey = true });
+
+        Assert.Equal(["node-b", "node-c"], context.Draft.Definition.Pages[0].Sections[0].Nodes.Select(n => n.Id));
+        Assert.Equal(["node-d", "node-a"], context.Draft.Definition.Pages[0].Sections[1].Nodes.Select(n => n.Id));
+        Assert.Equal("section-2", context.Selection.SectionId);
+        Assert.Equal(DesignerFocusIntent.Moved, context.Selection.Intent);
+        JSInterop.VerifyFocusAsyncInvoke();
+    }
+
+    [Fact]
+    public async Task AltArrowLeftOnTheFirstSectionIsANoOpAndAnnouncesNothing()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.TwoSectionDefinition("form-1"));
+        DesignerAnnouncement? announcement = null;
+        context.Announced += a => announcement = a;
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+
+        // node-a's own section (section-1) is already first on the page -- Alt+← has no earlier
+        // section to move into.
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "ArrowLeft", AltKey = true });
+
+        Assert.Equal(["node-a", "node-b", "node-c"], context.Draft.Definition.Pages[0].Sections[0].Nodes.Select(n => n.Id));
+        Assert.Null(announcement);
+    }
+
+    [Fact]
+    public async Task AltArrowRightOnTheLastSectionIsANoOpAndAnnouncesNothing()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.TwoSectionDefinition("form-1"));
+        DesignerAnnouncement? announcement = null;
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+
+        // node-d, in section-2, is the page's last section -- Alt+→ has no later section.
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "End" });
+        context.Announced += a => announcement = a;
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight", AltKey = true });
+
+        Assert.Equal(["node-d"], context.Draft.Definition.Pages[0].Sections[1].Nodes.Select(n => n.Id));
+        Assert.Null(announcement);
+    }
+
+    [Fact]
+    public async Task CtrlMOpensTheMoveToPositionDialogForTheActiveNode()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.TwoSectionDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+
+        Assert.Empty(cut.FindAll("div.bf-move-dialog"));
+
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "m", CtrlKey = true });
+
+        var dialog = cut.Find("div.bf-move-dialog");
+        Assert.Equal("dialog", dialog.GetAttribute("role"));
+        Assert.Equal("true", dialog.GetAttribute("aria-modal"));
+    }
+
+    [Fact]
+    public async Task DroppingARowOntoAnotherMovesItImmediatelyBeforeTheTarget()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.TwoSectionDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+        var rows = cut.FindAll("div.bf-canvas-row");
+
+        // Drag node-a (index 0 in section-1) and drop it onto node-c (index 2) -- lands
+        // immediately before node-c, i.e. between node-b and node-c.
+        await rows[0].DragStartAsync(new DragEventArgs());
+        await rows[2].DropAsync(new DragEventArgs());
+
+        Assert.Equal(["node-b", "node-a", "node-c"], context.Draft.Definition.Pages[0].Sections[0].Nodes.Select(n => n.Id));
+    }
+
+    [Fact]
+    public async Task DroppingARowOntoAnotherSectionsRowMovesItAcrossSections()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.TwoSectionDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+        var rows = cut.FindAll("div.bf-canvas-row");
+
+        // node-a (section-1) dropped onto node-d (section-2, its only row) -- lands before it.
+        await rows[0].DragStartAsync(new DragEventArgs());
+        await rows[3].DropAsync(new DragEventArgs());
+
+        Assert.Equal(["node-b", "node-c"], context.Draft.Definition.Pages[0].Sections[0].Nodes.Select(n => n.Id));
+        Assert.Equal(["node-a", "node-d"], context.Draft.Definition.Pages[0].Sections[1].Nodes.Select(n => n.Id));
+    }
+
+    [Fact]
+    public async Task DroppingARowOntoItselfIsANoOpAndAnnouncesNothing()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.TwoSectionDefinition("form-1"));
+        DesignerAnnouncement? announcement = null;
+        context.Announced += a => announcement = a;
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+        var rows = cut.FindAll("div.bf-canvas-row");
+
+        await rows[0].DragStartAsync(new DragEventArgs());
+        await rows[0].DropAsync(new DragEventArgs());
+
+        Assert.Equal(["node-a", "node-b", "node-c"], context.Draft.Definition.Pages[0].Sections[0].Nodes.Select(n => n.Id));
+        Assert.Null(announcement);
+    }
+
+    [Fact]
+    public async Task DroppingOnAnEmptySectionsContainerAppendsTheDraggedNodeToItsEnd()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.TwoSectionSecondEmptyDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+        var row = cut.Find("div.bf-canvas-row"); // node-a, the only row, in section-1
+        var sectionRowsWrapper = cut.FindAll("div.bf-canvas-section__rows")[1]; // section-2's, empty
+
+        await row.DragStartAsync(new DragEventArgs());
+        await sectionRowsWrapper.DropAsync(new DragEventArgs());
+
+        Assert.Empty(context.Draft.Definition.Pages[0].Sections[0].Nodes);
+        Assert.Equal(["node-a"], context.Draft.Definition.Pages[0].Sections[1].Nodes.Select(n => n.Id));
+    }
+
+    [Fact]
+    public async Task DragEndWithNoDropResetsTheDraggedNodeSoALaterUnrelatedDropIsANoOp()
+    {
+        // A drag an author cancels (Esc, or releases outside any drop target) still fires
+        // dragend, but never reaches DropOnRow or DropOnSection -- without DragEnd resetting
+        // _draggedNodeId itself, this drop on an unrelated row (standing in for a stray external
+        // drag: a file, selected text) would spuriously move node-a, the row the cancelled drag
+        // started on.
+        await using var context = CreateContext(DesignerTestFixtures.TwoSectionDefinition("form-1"));
+        DesignerAnnouncement? announcement = null;
+        context.Announced += a => announcement = a;
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+        var rows = cut.FindAll("div.bf-canvas-row");
+
+        await rows[0].DragStartAsync(new DragEventArgs()); // node-a
+        await rows[0].DragEndAsync(new DragEventArgs()); // cancelled -- no drop in between
+        await rows[2].DropAsync(new DragEventArgs()); // an unrelated later drop, on node-c
+
+        Assert.Equal(["node-a", "node-b", "node-c"], context.Draft.Definition.Pages[0].Sections[0].Nodes.Select(n => n.Id));
+        Assert.Null(announcement);
+    }
 }

@@ -2,8 +2,14 @@
      role="option"
      aria-selected="@(IsSelected ? "true" : "false")"
      tabindex="@(IsActive ? 0 : -1)"
+     draggable="true"
      @ref="_element"
-     @onclick="Activate">
+     @onclick="Activate"
+     @ondragstart="OnDragStart"
+     @ondragend="OnDragEnd"
+     @ondragover:preventDefault="true"
+     @ondrop="OnDropped"
+     @ondrop:stopPropagation="true">
     <div class="bf-canvas-row__header">
         <span class="bf-canvas-row__label">@RowLabel</span>
         <span class="bf-canvas-row__chip bf-canvas-row__chip--type">@TypeLabel</span>

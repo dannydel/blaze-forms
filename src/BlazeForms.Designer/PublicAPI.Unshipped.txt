@@ -17,12 +17,20 @@ BlazeForms.Canvas.CanvasNodeRow.Node.get -> BlazeForms.Definitions.FormNode!
 BlazeForms.Canvas.CanvasNodeRow.Node.set -> void
 BlazeForms.Canvas.CanvasNodeRow.OnActivate.get -> Microsoft.AspNetCore.Components.EventCallback
 BlazeForms.Canvas.CanvasNodeRow.OnActivate.set -> void
+BlazeForms.Canvas.CanvasNodeRow.OnDragEnd.get -> Microsoft.AspNetCore.Components.EventCallback
+BlazeForms.Canvas.CanvasNodeRow.OnDragEnd.set -> void
+BlazeForms.Canvas.CanvasNodeRow.OnDragStart.get -> Microsoft.AspNetCore.Components.EventCallback<Microsoft.AspNetCore.Components.Web.DragEventArgs!>
+BlazeForms.Canvas.CanvasNodeRow.OnDragStart.set -> void
+BlazeForms.Canvas.CanvasNodeRow.OnDropped.get -> Microsoft.AspNetCore.Components.EventCallback<Microsoft.AspNetCore.Components.Web.DragEventArgs!>
+BlazeForms.Canvas.CanvasNodeRow.OnDropped.set -> void
 BlazeForms.Canvas.CanvasNodeRow.RequestFocus.get -> bool
 BlazeForms.Canvas.CanvasNodeRow.RequestFocus.set -> void
 BlazeForms.Canvas.CanvasSection
 BlazeForms.Canvas.CanvasSection.CanvasSection() -> void
 BlazeForms.Canvas.CanvasSection.ChildContent.get -> Microsoft.AspNetCore.Components.RenderFragment?
 BlazeForms.Canvas.CanvasSection.ChildContent.set -> void
+BlazeForms.Canvas.CanvasSection.OnDropped.get -> Microsoft.AspNetCore.Components.EventCallback<Microsoft.AspNetCore.Components.Web.DragEventArgs!>
+BlazeForms.Canvas.CanvasSection.OnDropped.set -> void
 BlazeForms.Canvas.CanvasSection.Section.get -> BlazeForms.Definitions.FormSection!
 BlazeForms.Canvas.CanvasSection.Section.set -> void
 BlazeForms.Canvas.DesignerCanvas
@@ -32,6 +40,15 @@ BlazeForms.Canvas.DesignerCanvas.DesignerCanvas() -> void
 BlazeForms.Canvas.DesignerCanvas.DisposeAsync() -> System.Threading.Tasks.ValueTask
 BlazeForms.Canvas.DesignerCanvas.EditContext.get -> BlazeForms.Designer.DesignerEditContext!
 BlazeForms.Canvas.DesignerCanvas.EditContext.set -> void
+BlazeForms.Canvas.MoveToPositionDialog
+BlazeForms.Canvas.MoveToPositionDialog.DisposeAsync() -> System.Threading.Tasks.ValueTask
+BlazeForms.Canvas.MoveToPositionDialog.EditContext.get -> BlazeForms.Designer.DesignerEditContext!
+BlazeForms.Canvas.MoveToPositionDialog.EditContext.set -> void
+BlazeForms.Canvas.MoveToPositionDialog.MoveToPositionDialog() -> void
+BlazeForms.Canvas.MoveToPositionDialog.NodeId.get -> string!
+BlazeForms.Canvas.MoveToPositionDialog.NodeId.set -> void
+BlazeForms.Canvas.MoveToPositionDialog.OnClosed.get -> Microsoft.AspNetCore.Components.EventCallback
+BlazeForms.Canvas.MoveToPositionDialog.OnClosed.set -> void
 BlazeForms.Canvas.PageTabStrip
 BlazeForms.Canvas.PageTabStrip.ActivePageId.get -> string?
 BlazeForms.Canvas.PageTabStrip.ActivePageId.set -> void
@@ -126,6 +143,8 @@ override BlazeForms.Canvas.CanvasNodeRow.ShouldRender() -> bool
 override BlazeForms.Canvas.DesignerCanvas.OnAfterRender(bool firstRender) -> void
 override BlazeForms.Canvas.DesignerCanvas.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
 override BlazeForms.Canvas.DesignerCanvas.OnParametersSet() -> void
+override BlazeForms.Canvas.MoveToPositionDialog.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
+override BlazeForms.Canvas.MoveToPositionDialog.OnInitialized() -> void
 override BlazeForms.Canvas.PageTabStrip.OnParametersSet() -> void
 override BlazeForms.Designer.DesignerAnnouncement.Equals(object? obj) -> bool
 override BlazeForms.Designer.DesignerAnnouncement.GetHashCode() -> int
@@ -152,6 +171,7 @@ static BlazeForms.Designer.DesignerSelection.operator ==(BlazeForms.Designer.Des
 ~override BlazeForms.Canvas.CanvasNodeRow.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Canvas.CanvasSection.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Canvas.DesignerCanvas.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
+~override BlazeForms.Canvas.MoveToPositionDialog.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Canvas.PageTabStrip.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.FormDesigner.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Palette.FieldPalette.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void

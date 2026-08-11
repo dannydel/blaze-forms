@@ -4,7 +4,10 @@
     {
         <p class="bf-canvas-section__description">@Section.Description</p>
     }
-    <div class="bf-canvas-section__rows" role="presentation">
+    <div class="bf-canvas-section__rows"
+         role="presentation"
+         @ondragover:preventDefault="true"
+         @ondrop="OnDropped">
         @ChildContent
     </div>
 </div>
@@ -29,6 +32,17 @@
     /// </summary>
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Raised on a native <c>drop</c> landing anywhere in this section's rows wrapper that a row's
+    /// own <see cref="CanvasNodeRow.OnDropped"/> did not already claim and stop from propagating
+    /// -- an empty section, or the space below its last row. <see cref="DesignerCanvas"/> is the
+    /// only intended subscriber; it appends the dragged node to the end of <see cref="Section"/>,
+    /// the drag-and-drop path's fallback target when there is no specific row to drop before
+    /// (PRD §4.1).
+    /// </summary>
+    [Parameter]
+    public EventCallback<DragEventArgs> OnDropped { get; set; }
 
     private string SectionTitle => Section.Title ?? Localizer["UntitledSectionName"].Value;
 

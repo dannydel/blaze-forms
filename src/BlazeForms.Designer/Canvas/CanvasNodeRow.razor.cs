@@ -1,9 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
 using BlazeForms.Definitions;
+using BlazeForms.Designer;
 using BlazeForms.Internal;
 using BlazeForms.Markdown;
 using BlazeForms.Resources;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.Localization;
 
 namespace BlazeForms.Canvas;
@@ -33,6 +35,21 @@ namespace BlazeForms.Canvas;
 /// already gives a <c>tabindex</c>-bearing element means no extra
 /// <see cref="ElementReferenceExtensions.FocusAsync(ElementReference)"/> call is needed for that
 /// path — only keyboard-driven moves (<see cref="RequestFocus"/>) call it explicitly.
+/// </para>
+/// <para>
+/// <b>Drag-and-drop (PRD §4.1's third reorder path).</b> This row is <c>draggable="true"</c>
+/// and raises <see cref="OnDragStart"/>, <see cref="OnDropped"/>, and <see cref="OnDragEnd"/> for
+/// <see cref="DesignerCanvas"/> to translate into the exact same
+/// <see cref="DesignerEditContext.MoveNodeAcrossSections"/> call the keyboard paths use -- this
+/// row carries no move logic of its own, purely the three native browser events. The
+/// <c>dragover</c> default action is suppressed unconditionally (a drop target must call
+/// <c>preventDefault</c> on it or the browser never fires <c>drop</c> at all), and
+/// <see cref="OnDropped"/> stops the native <c>drop</c> event from also bubbling into
+/// <see cref="CanvasSection"/>'s own drop handler -- a drop that already landed on a specific row
+/// must never additionally trigger that section's "append to the end" fallback. Dragging is
+/// pointer sugar only; the keyboard paths (Alt+arrows, the Ctrl+M dialog) remain the accessible
+/// contract, so this row does not attempt an <c>aria-grabbed</c>-style announcement of drag state
+/// -- a deprecated ARIA 1.1 attribute with no assistive-technology benefit here.
 /// </para>
 /// <para>
 /// <b>Render discipline.</b> <see cref="ShouldRender"/> compares <see cref="Node"/> by reference
@@ -90,6 +107,37 @@ public partial class CanvasNodeRow : ComponentBase
     /// </summary>
     [Parameter, EditorRequired]
     public EventCallback OnActivate { get; set; }
+
+    /// <summary>
+    /// Raised on the native <c>dragend</c> event -- fires whether the drag ended in an actual drop
+    /// or was cancelled (<c>Esc</c>, or released outside any drop target), and always after
+    /// whichever <see cref="OnDropped"/>/<see cref="CanvasSection.OnDropped"/> call a successful
+    /// drop already made, if any. <see cref="DesignerCanvas"/> is the only intended subscriber; it
+    /// resets whichever node <see cref="OnDragStart"/> most recently recorded, so a cancelled drag
+    /// can never leak into a later, unrelated drop -- see <see cref="DesignerCanvas"/>'s own
+    /// remarks on why that reset cannot instead live inside <see cref="OnDropped"/> alone.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnDragEnd { get; set; }
+
+    /// <summary>
+    /// Raised on the native <c>dragstart</c> event -- the drag-and-drop reorder path's origin
+    /// (PRD §4.1). <see cref="DesignerCanvas"/> is the only intended subscriber; it records which
+    /// node is being dragged so a later <see cref="OnDropped"/> elsewhere on the canvas knows what
+    /// to move.
+    /// </summary>
+    [Parameter]
+    public EventCallback<DragEventArgs> OnDragStart { get; set; }
+
+    /// <summary>
+    /// Raised on the native <c>drop</c> event landing on this row -- the drag-and-drop reorder
+    /// path's destination (PRD §4.1). <see cref="DesignerCanvas"/> is the only intended
+    /// subscriber; it translates this into the same
+    /// <see cref="DesignerEditContext.MoveNodeAcrossSections"/> call the keyboard paths use,
+    /// inserting the dragged node immediately before this row.
+    /// </summary>
+    [Parameter]
+    public EventCallback<DragEventArgs> OnDropped { get; set; }
 
     private static IStringLocalizer<DesignerStrings> Localizer => DesignerLocalization.Shared;
 
