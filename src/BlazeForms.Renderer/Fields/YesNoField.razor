@@ -2,8 +2,13 @@
 <fieldset class="bf-fieldset" disabled="@Disabled">
     <legend id="@LegendElementId">@Node.Label</legend>
     @* aria-required is invalid on a fieldset's implicit "group" role, so the required state and
-       description ride a role="radiogroup" container (which supports both), named from the legend. *@
+       description ride a role="radiogroup" container (which supports both), named from the legend.
+       It also carries the field's own DOM id and tabindex="-1" so an error-summary anchor
+       (#FieldId) has somewhere to land -- the fieldset itself is never the anchor target (PRD §11,
+       WCAG 2.4.1). *@
     <div class="bf-yesno"
+         id="@FieldId"
+         tabindex="-1"
          role="radiogroup"
          aria-labelledby="@LegendElementId"
          aria-required="@RequiredAttributeValue"

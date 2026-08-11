@@ -2,13 +2,33 @@ BlazeForms._Imports
 BlazeForms._Imports._Imports() -> void
 BlazeForms._Imports.Execute() -> void
 BlazeForms.FormRenderer
+BlazeForms.FormRenderer.ConfirmationTemplate.get -> Microsoft.AspNetCore.Components.RenderFragment<BlazeForms.Hosting.FormSubmissionEnvelope!>?
+BlazeForms.FormRenderer.ConfirmationTemplate.set -> void
 BlazeForms.FormRenderer.FieldComponents.get -> BlazeForms.Hosting.IFieldComponentRegistry?
 BlazeForms.FormRenderer.FieldComponents.set -> void
 BlazeForms.FormRenderer.FormRenderer() -> void
+BlazeForms.FormRenderer.OnSubmitted.get -> Microsoft.AspNetCore.Components.EventCallback<BlazeForms.Hosting.FormSubmissionEnvelope!>
+BlazeForms.FormRenderer.OnSubmitted.set -> void
 BlazeForms.FormRenderer.RespondentKey.get -> string?
 BlazeForms.FormRenderer.RespondentKey.set -> void
 BlazeForms.FormRenderer.Version.get -> BlazeForms.Versioning.FormVersion!
 BlazeForms.FormRenderer.Version.set -> void
+BlazeForms.Components.ErrorSummary
+BlazeForms.Components.ErrorSummary.Entries.get -> System.Collections.Generic.IReadOnlyList<BlazeForms.Components.ErrorSummaryEntry>!
+BlazeForms.Components.ErrorSummary.Entries.set -> void
+BlazeForms.Components.ErrorSummary.ErrorSummary() -> void
+BlazeForms.Components.ErrorSummary.FocusAsync() -> System.Threading.Tasks.ValueTask
+BlazeForms.Components.ErrorSummary.HeadingText.get -> string!
+BlazeForms.Components.ErrorSummary.HeadingText.set -> void
+BlazeForms.Components.ErrorSummaryEntry
+BlazeForms.Components.ErrorSummaryEntry.Deconstruct(out string! FieldDomId, out string! Message) -> void
+BlazeForms.Components.ErrorSummaryEntry.Equals(BlazeForms.Components.ErrorSummaryEntry other) -> bool
+BlazeForms.Components.ErrorSummaryEntry.ErrorSummaryEntry() -> void
+BlazeForms.Components.ErrorSummaryEntry.ErrorSummaryEntry(string! FieldDomId, string! Message) -> void
+BlazeForms.Components.ErrorSummaryEntry.FieldDomId.get -> string!
+BlazeForms.Components.ErrorSummaryEntry.FieldDomId.init -> void
+BlazeForms.Components.ErrorSummaryEntry.Message.get -> string!
+BlazeForms.Components.ErrorSummaryEntry.Message.init -> void
 BlazeForms.Fields.BooleanField
 BlazeForms.Fields.BooleanField.BooleanField() -> void
 BlazeForms.Fields.CalcField
@@ -86,8 +106,12 @@ override BlazeForms.Fields.EmailField.ShouldRender() -> bool
 override BlazeForms.Fields.FormFieldBase.OnParametersSet() -> void
 virtual BlazeForms.Fields.FormFieldBase.CaptureValueSnapshot() -> void
 override BlazeForms.Fields.HeadingBlock.ShouldRender() -> bool
+override BlazeForms.Components.ErrorSummaryEntry.GetHashCode() -> int
 override BlazeForms.FormRenderer.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
+override BlazeForms.FormRenderer.OnInitialized() -> void
 override BlazeForms.FormRenderer.OnParametersSet() -> void
+static BlazeForms.Components.ErrorSummaryEntry.operator !=(BlazeForms.Components.ErrorSummaryEntry left, BlazeForms.Components.ErrorSummaryEntry right) -> bool
+static BlazeForms.Components.ErrorSummaryEntry.operator ==(BlazeForms.Components.ErrorSummaryEntry left, BlazeForms.Components.ErrorSummaryEntry right) -> bool
 override BlazeForms.Fields.NumberField.CaptureValueSnapshot() -> void
 override BlazeForms.Fields.NumberField.ShouldRender() -> bool
 override BlazeForms.Fields.ParagraphBlock.CaptureValueSnapshot() -> void
@@ -104,6 +128,9 @@ override BlazeForms.Fields.TextField.CaptureValueSnapshot() -> void
 override BlazeForms.Fields.TextField.ShouldRender() -> bool
 override BlazeForms.Fields.YesNoField.CaptureValueSnapshot() -> void
 override BlazeForms.Fields.YesNoField.ShouldRender() -> bool
+~override BlazeForms.Components.ErrorSummary.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
+~override BlazeForms.Components.ErrorSummaryEntry.Equals(object obj) -> bool
+~override BlazeForms.Components.ErrorSummaryEntry.ToString() -> string
 ~override BlazeForms.Fields.BooleanField.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Fields.CalcField.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Fields.CalloutBlock.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void

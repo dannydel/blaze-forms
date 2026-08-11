@@ -169,6 +169,16 @@
   outline-offset: var(--bf-focus-ring-offset);
 }
 
+/* A grouped field's container is the error-summary anchor target (#FieldId, PRD §11) and carries
+ * tabindex="-1" for that reason -- these three selectors give it the same visible focus ring the
+ * anchor's native fragment-navigation focus (WCAG 2.4.1) needs to satisfy WCAG 2.4.7. */
+.bf-choice-group:focus-visible,
+.bf-yesno:focus-visible,
+fieldset.bf-fieldset:focus-visible {
+  outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+  outline-offset: var(--bf-focus-ring-offset);
+}
+
 /* Date-range: two labelled date inputs sitting side by side, stacking below the collapse width. */
 .bf-daterange {
   display: flex;

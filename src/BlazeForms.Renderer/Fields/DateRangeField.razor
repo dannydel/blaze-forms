@@ -1,9 +1,12 @@
 @inherits FormFieldBase
-<fieldset class="bf-fieldset" disabled="@Disabled" aria-describedby="@BuildDescribedBy()">
+@* The fieldset carries the field's own DOM id and tabindex="-1" so an error-summary anchor
+   (#FieldId) has somewhere to land (PRD §11, WCAG 2.4.1) -- there is no single role="radiogroup"
+   container here to carry it instead, unlike RadioGroupField/YesNoField. *@
+<fieldset class="bf-fieldset" id="@FieldId" tabindex="-1" disabled="@Disabled" aria-describedby="@BuildDescribedBy()">
     <legend>@Node.Label</legend>
     <div class="bf-daterange">
         <div class="bf-daterange__part">
-            <label for="@StartFieldId">Start date</label>
+            <label for="@StartFieldId">@StartLabel</label>
             <input id="@StartFieldId"
                    type="date"
                    disabled="@Disabled"
@@ -14,7 +17,7 @@
                    @onblur="OnBlurAsync" />
         </div>
         <div class="bf-daterange__part">
-            <label for="@EndFieldId">End date</label>
+            <label for="@EndFieldId">@EndLabel</label>
             <input id="@EndFieldId"
                    type="date"
                    disabled="@Disabled"

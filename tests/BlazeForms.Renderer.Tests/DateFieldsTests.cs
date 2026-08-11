@@ -8,7 +8,7 @@ namespace BlazeForms.Renderer.Tests;
 /// Covers <see cref="DateField"/> (a single <see cref="DateOnly"/>?) and
 /// <see cref="DateRangeField"/> (a two-element ISO-date <see cref="string"/> array).
 /// </summary>
-public sealed class DateFieldsTests : BunitContext
+public sealed class DateFieldsTests : RendererTestContext
 {
     [Fact]
     public void DateFieldRendersADateInput()

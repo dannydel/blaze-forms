@@ -20,6 +20,11 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.10" />
+    <!-- Abstractions only: FieldValidator, FormRenderer, and DateRangeField all speak
+         IStringLocalizer<T> (PRD §12), but every one of them resolves it through
+         Internal/RendererLocalization.cs's own ResourceManager-backed instance, never through
+         DI — so no concrete localization provider ships here, and none is required of the host. -->
+    <PackageReference Include="Microsoft.Extensions.Localization.Abstractions" Version="10.0.10" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,7 +34,9 @@
   <ItemGroup>
     <!-- The resolver in Fields/DefaultFieldComponents.cs is internal by design (PRD §10 remarks
          there) but its registry-precedence behavior is bUnit-tested directly, not just through
-         the (later-slice) FormRenderer that calls it. -->
+         the (later-slice) FormRenderer that calls it. FormRenderer.SubmitAsync is internal for
+         the same reason: its re-entry guard is tested by calling it directly, the only way to
+         deterministically prove it without depending on DOM/render timing (see its remarks). -->
     <InternalsVisibleTo Include="BlazeForms.Renderer.Tests" />
   </ItemGroup>
 

@@ -9,7 +9,7 @@ namespace BlazeForms.Renderer.Tests;
 /// even though the renderer's own re-render regenerates the whole current step's render tree
 /// every time an answer changes.
 /// </summary>
-public sealed class FormRendererRenderDisciplineTests : BunitContext
+public sealed class FormRendererRenderDisciplineTests : RendererTestContext
 {
     [Fact]
     public void TypingInOneFieldDoesNotReRenderASiblingField()

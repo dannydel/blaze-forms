@@ -1,5 +1,18 @@
 <div class="bf-renderer">
-    @if (CurrentPage is not null)
+    @if (_isSubmitted && _submittedEnvelope is not null)
+    {
+        @if (ConfirmationTemplate is not null)
+        {
+            @ConfirmationTemplate(_submittedEnvelope)
+        }
+        else
+        {
+            <div class="bf-confirmation" role="status" tabindex="-1" @ref="_confirmationElement">
+                <p>@Localizer["DefaultConfirmationMessage"].Value</p>
+            </div>
+        }
+    }
+    else if (CurrentPage is not null)
     {
         <nav class="bf-progress" aria-label="Form progress">
             <ol class="bf-progress__list">
@@ -16,6 +29,8 @@
         </nav>
 
         <div class="bf-visually-hidden" aria-live="polite">@StepAnnouncement</div>
+
+        <ErrorSummary @ref="_errorSummary" Entries="SummaryEntries" HeadingText="@Localizer["ErrorSummaryHeading"].Value" />
 
         <section class="bf-page" aria-labelledby="@PageHeadingElementId">
             <h2 id="@PageHeadingElementId" @ref="_pageHeadingElement" tabindex="-1" class="bf-page__title">
@@ -66,11 +81,20 @@
 
         <div class="bf-step-nav">
             <button type="button" class="bf-step-nav__button" disabled="@IsFirstPage" @onclick="GoToPreviousPage">
-                Previous
+                @Localizer["PreviousButtonLabel"].Value
             </button>
-            <button type="button" class="bf-step-nav__button" disabled="@IsLastPage" @onclick="GoToNextPage">
-                Next
-            </button>
+            @if (IsLastPage)
+            {
+                <button type="button" class="bf-step-nav__button bf-step-nav__button--primary" @onclick="SubmitAsync">
+                    @Localizer["SubmitButtonLabel"].Value
+                </button>
+            }
+            else
+            {
+                <button type="button" class="bf-step-nav__button" @onclick="GoToNextPage">
+                    @Localizer["NextButtonLabel"].Value
+                </button>
+            }
         </div>
     }
 </div>

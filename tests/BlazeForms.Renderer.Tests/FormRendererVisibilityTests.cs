@@ -7,7 +7,13 @@ namespace BlazeForms.Renderer.Tests;
 /// never emitted, so toggling the field its rule depends on shows or hides it in the DOM in
 /// real time, driven through the actual field input rather than through internal state.
 /// </summary>
-public sealed class FormRendererVisibilityTests : BunitContext
+/// <remarks>
+/// Every selector here matches on an <c>id</c> <em>suffix</em> (<c>[id$='-detail']</c>) rather
+/// than an exact <c>#detail</c> id, because <see cref="FormRenderer"/> namespaces every field's
+/// DOM id to its own instance (<c>{instanceId}-{nodeId}</c>) so two renderer instances of the
+/// same definition on one page never collide — see <see cref="FormRendererFieldIdNamespacingTests"/>.
+/// </remarks>
+public sealed class FormRendererVisibilityTests : RendererTestContext
 {
     [Fact]
     public void DependentNodeIsAbsentUntilItsControllingFieldMakesItVisible()
@@ -15,11 +21,11 @@ public sealed class FormRendererVisibilityTests : BunitContext
         var version = FormRendererTestFixtures.ToPublishedVersion(FormRendererTestFixtures.ConditionalDefinition);
         var cut = Render<FormRenderer>(p => p.Add(f => f.Version, version));
 
-        Assert.Empty(cut.FindAll("#detail"));
+        Assert.Empty(cut.FindAll("[id$='-detail']"));
 
         cut.Find("input[type='checkbox']").Change(true);
 
-        Assert.NotEmpty(cut.FindAll("#detail"));
+        Assert.NotEmpty(cut.FindAll("[id$='-detail']"));
     }
 
     [Fact]
@@ -30,11 +36,11 @@ public sealed class FormRendererVisibilityTests : BunitContext
 
         var trigger = cut.Find("input[type='checkbox']");
         trigger.Change(true);
-        Assert.NotEmpty(cut.FindAll("#detail"));
+        Assert.NotEmpty(cut.FindAll("[id$='-detail']"));
 
         cut.Find("input[type='checkbox']").Change(false);
 
-        Assert.Empty(cut.FindAll("#detail"));
+        Assert.Empty(cut.FindAll("[id$='-detail']"));
     }
 
     [Fact]
@@ -55,17 +61,17 @@ public sealed class FormRendererVisibilityTests : BunitContext
 
         // expert -> years -> senior-notice: reveal the whole chain. The number field binds on
         // oninput, so drive it with Input, not Change.
-        cut.Find("#expert").Change(true);
-        cut.Find("#years").Input("20");
-        Assert.NotEmpty(cut.FindAll("#senior-notice"));
+        cut.Find("[id$='-expert']").Change(true);
+        cut.Find("[id$='-years']").Input("20");
+        Assert.NotEmpty(cut.FindAll("[id$='-senior-notice']"));
 
         // Hiding the intermediate field (years) must drop its stale answer from the visibility
         // decision, so the leaf hides too rather than lingering in the DOM / accessibility tree
         // on a value no longer reachable (PRD §6). A single-pass evaluation over unpruned answers
         // would leave senior-notice visible here.
-        cut.Find("#expert").Change(false);
+        cut.Find("[id$='-expert']").Change(false);
 
-        Assert.Empty(cut.FindAll("#years"));
-        Assert.Empty(cut.FindAll("#senior-notice"));
+        Assert.Empty(cut.FindAll("[id$='-years']"));
+        Assert.Empty(cut.FindAll("[id$='-senior-notice']"));
     }
 }

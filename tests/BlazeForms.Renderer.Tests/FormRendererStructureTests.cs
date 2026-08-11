@@ -13,7 +13,7 @@ namespace BlazeForms.Renderer.Tests;
 /// resolver, and the P1 rule that a <see cref="NodeType.Calc"/> node renders but never carries a
 /// value (PRD §4.2, §5, §10).
 /// </summary>
-public sealed class FormRendererStructureTests : BunitContext
+public sealed class FormRendererStructureTests : RendererTestContext
 {
     [SuppressMessage(
         "Performance",
@@ -81,7 +81,7 @@ public sealed class FormRendererStructureTests : BunitContext
     }
 
     [Fact]
-    public void NextButtonAdvancesAStepUnguardedAndPreviousReturns()
+    public void NextButtonAdvancesAStepWhenValidationPassesAndPreviousReturns()
     {
         var version = FormRendererTestFixtures.ToPublishedVersion(FormRendererTestFixtures.TwoStepDefinition);
         var cut = Render<FormRenderer>(p => p.Add(f => f.Version, version));
@@ -97,7 +97,7 @@ public sealed class FormRendererStructureTests : BunitContext
     }
 
     [Fact]
-    public void PreviousIsDisabledOnTheFirstStepAndNextIsDisabledOnTheLastStep()
+    public void PreviousIsDisabledOnTheFirstStepAndSubmitReplacesNextOnTheLastStep()
     {
         var version = FormRendererTestFixtures.ToPublishedVersion(FormRendererTestFixtures.TwoStepDefinition);
         var cut = Render<FormRenderer>(p => p.Add(f => f.Version, version));
@@ -105,12 +105,16 @@ public sealed class FormRendererStructureTests : BunitContext
         var buttons = cut.FindAll("button");
         Assert.True(buttons[0].HasAttribute("disabled"));
         Assert.False(buttons[1].HasAttribute("disabled"));
+        Assert.Equal("Next", buttons[1].TextContent.Trim());
 
         buttons[1].Click();
 
+        // The last step has nothing left to advance to, so it offers Submit instead of a
+        // permanently disabled Next (PRD §4.2) — validation + submission land in this phase.
         buttons = cut.FindAll("button");
         Assert.False(buttons[0].HasAttribute("disabled"));
-        Assert.True(buttons[1].HasAttribute("disabled"));
+        Assert.False(buttons[1].HasAttribute("disabled"));
+        Assert.Equal("Submit", buttons[1].TextContent.Trim());
     }
 
     [Fact]
@@ -146,7 +150,7 @@ public sealed class FormRendererStructureTests : BunitContext
 
         var cut = Render<FormRenderer>(p => p.Add(f => f.Version, version));
 
-        Assert.NotNull(cut.Find("#estimate"));
+        Assert.NotNull(cut.Find("[id$='-estimate']"));
 
         // The renderer never seeds a payload key for a calc node (PRD §5): the direct proof, at
         // the component-wiring level, is that CalcField never receives a Value parameter in the

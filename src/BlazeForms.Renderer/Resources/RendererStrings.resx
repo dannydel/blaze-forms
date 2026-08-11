@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms</value>
+  </resheader>
+
+  <!-- Required-field remedy templates, one per field family (PRD §6): each quotes the field's
+       label and states what the respondent must do, never just that the field is invalid. -->
+  <data name="RequiredText" xml:space="preserve">
+    <value>Enter a value for '{0}'.</value>
+  </data>
+  <data name="RequiredEmail" xml:space="preserve">
+    <value>Enter an email address for '{0}'.</value>
+  </data>
+  <data name="RequiredPhone" xml:space="preserve">
+    <value>Enter a phone number for '{0}'.</value>
+  </data>
+  <data name="RequiredNumber" xml:space="preserve">
+    <value>Enter a number for '{0}'.</value>
+  </data>
+  <data name="RequiredCurrency" xml:space="preserve">
+    <value>Enter an amount for '{0}'.</value>
+  </data>
+  <data name="RequiredDate" xml:space="preserve">
+    <value>Enter a date for '{0}'.</value>
+  </data>
+  <data name="RequiredDateRange" xml:space="preserve">
+    <value>Enter a start and end date for '{0}'.</value>
+  </data>
+  <data name="RequiredChoice" xml:space="preserve">
+    <value>Select an option for '{0}'.</value>
+  </data>
+  <data name="RequiredCheckboxGroup" xml:space="preserve">
+    <value>Select at least one option for '{0}'.</value>
+  </data>
+  <data name="RequiredBoolean" xml:space="preserve">
+    <value>Select '{0}' to continue.</value>
+  </data>
+
+  <!-- Format-validation remedies. Only checked once a field has an answer — an empty optional
+       field never reaches these. -->
+  <data name="InvalidEmail" xml:space="preserve">
+    <value>Enter a valid email address for '{0}'.</value>
+  </data>
+  <data name="InvalidPhone" xml:space="preserve">
+    <value>Enter a valid phone number for '{0}'.</value>
+  </data>
+
+  <!-- Min/max remedies for number and currency fields. {0} is the bound, {1} the label. -->
+  <data name="BelowMinimum" xml:space="preserve">
+    <value>Enter a value of {0} or more for '{1}'.</value>
+  </data>
+  <data name="AboveMaximum" xml:space="preserve">
+    <value>Enter a value of {0} or less for '{1}'.</value>
+  </data>
+
+  <!-- Renderer chrome. -->
+  <data name="ErrorSummaryHeading" xml:space="preserve">
+    <value>There is a problem</value>
+  </data>
+  <data name="PreviousButtonLabel" xml:space="preserve">
+    <value>Previous</value>
+  </data>
+  <data name="NextButtonLabel" xml:space="preserve">
+    <value>Next</value>
+  </data>
+  <data name="SubmitButtonLabel" xml:space="preserve">
+    <value>Submit</value>
+  </data>
+  <data name="DefaultConfirmationMessage" xml:space="preserve">
+    <value>Thank you. Your submission has been received.</value>
+  </data>
+
+  <!-- DateRangeField's two sub-labels (closes the Phase 2 localization gap). -->
+  <data name="DateRangeStartLabel" xml:space="preserve">
+    <value>Start date</value>
+  </data>
+  <data name="DateRangeEndLabel" xml:space="preserve">
+    <value>End date</value>
+  </data>
+</root>

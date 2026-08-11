@@ -137,3 +137,27 @@
     outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
     outline-offset: var(--bf-focus-ring-offset);
 }
+
+.bf-step-nav__button--primary {
+    border-color: var(--bf-color-primary);
+    background-color: var(--bf-color-primary);
+    color: var(--bf-color-primary-contrast);
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * Confirmation, shown in place of the form once a submit has passed validation (PRD §4.2).
+ * `role="status"` announces it as a polite live region without stealing focus, since the
+ * respondent's action already completed successfully.
+ * ------------------------------------------------------------------------------------------- */
+
+.bf-confirmation {
+    padding: var(--bf-space-5);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-md);
+    background-color: var(--bf-color-surface);
+}
+
+.bf-confirmation:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}
