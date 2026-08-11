@@ -11,7 +11,7 @@ else
          @onkeydown="OnKeyDown">
         @foreach (var section in ActivePage.Sections)
         {
-            <CanvasSection @key="section.Id" Section="section">
+            <CanvasSection @key="section.Id" Section="section" OnDropped="@GetSectionDropCallback(section.Id)">
                 @foreach (var node in section.Nodes)
                 {
                     <CanvasNodeRow @key="node.Id"
@@ -19,9 +19,17 @@ else
                                    IsActive="@IsRowActive(node.Id)"
                                    IsSelected="@IsRowSelected(node.Id)"
                                    RequestFocus="@IsFocusPending(node.Id)"
-                                   OnActivate="@GetActivateCallback(node.Id)" />
+                                   OnActivate="@GetActivateCallback(node.Id)"
+                                   OnDragStart="@GetDragStartCallback(node.Id)"
+                                   OnDragEnd="@GetDragEndCallback(node.Id)"
+                                   OnDropped="@GetRowDropCallback(node.Id)" />
                 }
             </CanvasSection>
         }
     </div>
+
+    @if (_showMoveDialog && _moveDialogNodeId is not null)
+    {
+        <MoveToPositionDialog EditContext="EditContext" NodeId="@_moveDialogNodeId" OnClosed="CloseMoveDialog" />
+    }
 }

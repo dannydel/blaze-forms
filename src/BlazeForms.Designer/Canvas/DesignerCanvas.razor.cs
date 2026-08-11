@@ -58,6 +58,36 @@ namespace BlazeForms.Canvas;
 /// <c>@onkeydown</c> handler on this element still receives, and still handles, every key exactly
 /// as before; the module only ever suppresses the browser's own default action underneath it.
 /// </para>
+/// <para>
+/// <b>The three reorder paths (PRD §4.1).</b> <c>Alt+↑/↓</c> (within a section),
+/// <c>Alt+←/→</c> (across sections), the <c>Ctrl+M</c> <see cref="MoveToPositionDialog"/>, and
+/// native drag-and-drop between <see cref="CanvasNodeRow"/>s all funnel into the exact same
+/// <see cref="DesignerEditContext.MoveNodeWithinSection"/> and
+/// <see cref="DesignerEditContext.MoveNodeAcrossSections"/> calls -- none of this class's own
+/// input handling ever computes a reordered node list itself, only the identifiers and indices
+/// those two methods (and the <see cref="MoveToPositionDialog"/> they hand off to) already need,
+/// which is what keeps every path's resulting <see cref="Definitions.FormDefinition"/> identical
+/// for the same logical move. <c>Alt+←/→</c>'s target index is deliberately always the end of the
+/// adjacent section (see <see cref="MoveActiveNodeAcrossAdjacentSection"/>) -- a keyboard move has
+/// no "drop position" of its own the way drag-and-drop or the dialog do, and appending is the
+/// simplest, most predictable choice among the alternatives. <c>Alt+↑/↓</c> at either end of a
+/// section, and <c>Alt+←/→</c> at either end of the page's own section list, are no-ops:
+/// <see cref="DesignerEditContext.MoveNodeWithinSection"/> already guards the former, and
+/// <see cref="MoveActiveNodeAcrossAdjacentSection"/> itself guards the latter before ever calling
+/// <see cref="DesignerEditContext.MoveNodeAcrossSections"/>, so neither ever raises a spurious
+/// announcement.
+/// </para>
+/// <para>
+/// <b>Drag cancellation.</b> <see cref="_draggedNodeId"/> is set on <c>dragstart</c> and would
+/// otherwise only be cleared by <see cref="DropOnRow"/>/<see cref="DropOnSection"/> -- but a drag
+/// an author cancels (<c>Esc</c>, or releases outside any drop target) never reaches either of
+/// those, so every <see cref="CanvasNodeRow"/> also raises <c>dragend</c>, which always fires
+/// (after any drop that did land) and resets <see cref="_draggedNodeId"/> unconditionally via
+/// <see cref="EndDrag"/>. Without it, a cancelled drag would leave that field pointing at a stale
+/// node, and a later, wholly unrelated drop (an external file, selected text) landing on a row or
+/// section would silently move it -- the exact "drop with nothing actually dragged is a silent
+/// no-op" contract <see cref="DropOnRow"/> and <see cref="DropOnSection"/> otherwise guarantee.
+/// </para>
 /// </remarks>
 public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
 {
@@ -70,6 +100,10 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
     internal const string ModulePath = "./_content/BlazeForms.Designer/Canvas/DesignerCanvas.razor.js";
 
     private readonly Dictionary<string, EventCallback> _activateCallbacks = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, EventCallback<DragEventArgs>> _dragStartCallbacks = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, EventCallback> _dragEndCallbacks = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, EventCallback<DragEventArgs>> _rowDropCallbacks = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, EventCallback<DragEventArgs>> _sectionDropCallbacks = new(StringComparer.Ordinal);
     private DesignerEditContext? _subscribedContext;
     private ElementReference _canvasElement;
     private IJSObjectReference? _module;
@@ -77,6 +111,9 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
     private string? _activeNodeId;
     private string? _pendingFocusNodeId;
     private string? _lastSyncedActivePageId;
+    private string? _draggedNodeId;
+    private bool _showMoveDialog;
+    private string? _moveDialogNodeId;
     private bool _disposed;
 
     /// <summary>
@@ -257,8 +294,170 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
         return callback;
     }
 
+    /// <summary>
+    /// Returns the same cached <see cref="EventCallback{DragEventArgs}"/> for a given node's
+    /// <c>dragstart</c> on every call, the same reason <see cref="GetActivateCallback"/> caches
+    /// its own per-node callbacks.
+    /// </summary>
+    private EventCallback<DragEventArgs> GetDragStartCallback(string nodeId)
+    {
+        if (!_dragStartCallbacks.TryGetValue(nodeId, out var callback))
+        {
+            callback = EventCallback.Factory.Create<DragEventArgs>(this, () => _draggedNodeId = nodeId);
+            _dragStartCallbacks[nodeId] = callback;
+        }
+
+        return callback;
+    }
+
+    /// <summary>
+    /// Returns the same cached <see cref="EventCallback"/> for a given node's own <c>dragend</c>
+    /// on every call, the same reason <see cref="GetActivateCallback"/> caches its own per-node
+    /// callbacks.
+    /// </summary>
+    private EventCallback GetDragEndCallback(string nodeId)
+    {
+        if (!_dragEndCallbacks.TryGetValue(nodeId, out var callback))
+        {
+            callback = EventCallback.Factory.Create(this, EndDrag);
+            _dragEndCallbacks[nodeId] = callback;
+        }
+
+        return callback;
+    }
+
+    /// <summary>
+    /// Resets <see cref="_draggedNodeId"/> whenever a drag ends -- whether it ended in a
+    /// <see cref="DropOnRow"/>/<see cref="DropOnSection"/> drop (already <see langword="null"/> by
+    /// then, so this is a harmless no-op) or was cancelled (<c>Esc</c>, or released outside any
+    /// drop target, which never calls either drop handler at all). Without this, a cancelled drag
+    /// would leave <see cref="_draggedNodeId"/> pointing at whichever node started it, so a later,
+    /// wholly unrelated drop (an external file, selected text) landing on a row or section would
+    /// silently move that stale node -- exactly the "drop with nothing actually dragged is a
+    /// silent no-op" contract <see cref="DropOnRow"/> and <see cref="DropOnSection"/> otherwise
+    /// guarantee.
+    /// </summary>
+    private void EndDrag() => _draggedNodeId = null;
+
+    /// <summary>
+    /// Returns the same cached <see cref="EventCallback{DragEventArgs}"/> for a given node's own
+    /// <c>drop</c> on every call, the same reason <see cref="GetActivateCallback"/> caches its own
+    /// per-node callbacks.
+    /// </summary>
+    private EventCallback<DragEventArgs> GetRowDropCallback(string nodeId)
+    {
+        if (!_rowDropCallbacks.TryGetValue(nodeId, out var callback))
+        {
+            callback = EventCallback.Factory.Create<DragEventArgs>(this, () => DropOnRow(nodeId));
+            _rowDropCallbacks[nodeId] = callback;
+        }
+
+        return callback;
+    }
+
+    /// <summary>
+    /// Returns the same cached <see cref="EventCallback{DragEventArgs}"/> for a given section's
+    /// own drop fallback on every call, the same reason <see cref="GetActivateCallback"/> caches
+    /// its own per-node callbacks.
+    /// </summary>
+    private EventCallback<DragEventArgs> GetSectionDropCallback(string sectionId)
+    {
+        if (!_sectionDropCallbacks.TryGetValue(sectionId, out var callback))
+        {
+            callback = EventCallback.Factory.Create<DragEventArgs>(this, () => DropOnSection(sectionId));
+            _sectionDropCallbacks[sectionId] = callback;
+        }
+
+        return callback;
+    }
+
+    /// <summary>
+    /// The drag-and-drop reorder path's row-drop destination (PRD §4.1): moves whichever node
+    /// <see cref="GetDragStartCallback"/> most recently recorded to immediately before
+    /// <paramref name="targetNodeId"/>'s row, via the exact same
+    /// <see cref="DesignerEditContext.MoveNodeAcrossSections"/> the keyboard paths call. Dropping
+    /// a node onto itself, or a drop with nothing actually dragged (dev tools, a stray browser
+    /// drag), is a silent no-op -- no move, no announcement. When the dragged node is already in
+    /// <paramref name="targetNodeId"/>'s own section and sits earlier in it, the target's index
+    /// shifts down by one the moment the dragged node leaves that section, which this method
+    /// accounts for so the dragged node actually lands immediately before the target rather than
+    /// immediately after it.
+    /// </summary>
+    private void DropOnRow(string targetNodeId)
+    {
+        var draggedNodeId = _draggedNodeId;
+        _draggedNodeId = null;
+
+        if (draggedNodeId is null || string.Equals(draggedNodeId, targetNodeId, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        var sourceLocated = DefinitionMutations.FindNodeLocation(EditContext.Draft.Definition, draggedNodeId);
+        var targetLocated = DefinitionMutations.FindNodeLocation(EditContext.Draft.Definition, targetNodeId);
+
+        if (sourceLocated is null || targetLocated is null)
+        {
+            return;
+        }
+
+        var targetSection = EditContext.Draft.Definition.Pages[targetLocated.Value.PageIndex].Sections[targetLocated.Value.SectionIndex];
+        var sameSection = sourceLocated.Value.PageIndex == targetLocated.Value.PageIndex
+            && sourceLocated.Value.SectionIndex == targetLocated.Value.SectionIndex;
+        var targetIndex = sameSection && sourceLocated.Value.NodeIndex < targetLocated.Value.NodeIndex
+            ? targetLocated.Value.NodeIndex - 1
+            : targetLocated.Value.NodeIndex;
+
+        EditContext.MoveNodeAcrossSections(draggedNodeId, targetSection.Id, targetIndex);
+    }
+
+    /// <summary>
+    /// The drag-and-drop reorder path's section-level drop fallback (PRD §4.1): appends whichever
+    /// node <see cref="GetDragStartCallback"/> most recently recorded to the end of
+    /// <paramref name="sectionId"/> -- reached only when the drop lands somewhere in that
+    /// section's rows wrapper that is not one of its own rows (an empty section, or the space
+    /// below its last row), since <see cref="CanvasNodeRow.OnDropped"/> stops its own row-level
+    /// drop from bubbling here. A no-op with nothing actually dragged, the same as
+    /// <see cref="DropOnRow"/>.
+    /// </summary>
+    private void DropOnSection(string sectionId)
+    {
+        var draggedNodeId = _draggedNodeId;
+        _draggedNodeId = null;
+
+        if (draggedNodeId is null)
+        {
+            return;
+        }
+
+        var section = EditContext.Draft.Definition.Pages
+            .SelectMany(page => page.Sections)
+            .First(candidate => string.Equals(candidate.Id, sectionId, StringComparison.Ordinal));
+
+        EditContext.MoveNodeAcrossSections(draggedNodeId, sectionId, section.Nodes.Count);
+    }
+
+    /// <summary>
+    /// Dispatches every keyboard command this canvas recognizes -- roving-cursor movement (no
+    /// modifier), the two <c>Alt+</c>-modified reorder paths (<see cref="HandleAltArrow"/>), and
+    /// <c>Ctrl+M</c>'s move-to-position dialog -- in that priority order, so an author holding
+    /// <c>Alt</c> or <c>Ctrl</c> for one of those never also falls through to the plain
+    /// roving-cursor handling below (PRD §4.1, §11).
+    /// </summary>
     private void OnKeyDown(KeyboardEventArgs e)
     {
+        if (e.CtrlKey && string.Equals(e.Key, "m", StringComparison.OrdinalIgnoreCase))
+        {
+            OpenMoveDialog();
+            return;
+        }
+
+        if (e.AltKey)
+        {
+            HandleAltArrow(e.Key);
+            return;
+        }
+
         var flatNodeIds = BuildFlatNodeIds();
 
         if (flatNodeIds.Count == 0)
@@ -287,6 +486,105 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
                 }
 
                 break;
+        }
+    }
+
+    /// <summary>
+    /// The <c>Alt+↑/↓/←/→</c> reorder paths (PRD §4.1): <c>Alt+↑/↓</c> moves the active node
+    /// earlier or later within its own section via
+    /// <see cref="DesignerEditContext.MoveNodeWithinSection"/>; <c>Alt+←/→</c> moves it to the
+    /// previous or next section on this page via <see cref="MoveActiveNodeAcrossAdjacentSection"/>.
+    /// A no-op, silently, when nothing is active yet (an empty page).
+    /// </summary>
+    private void HandleAltArrow(string key)
+    {
+        if (_activeNodeId is null)
+        {
+            return;
+        }
+
+        switch (key)
+        {
+            case "ArrowUp":
+                EditContext.MoveNodeWithinSection(_activeNodeId, -1);
+                break;
+            case "ArrowDown":
+                EditContext.MoveNodeWithinSection(_activeNodeId, +1);
+                break;
+            case "ArrowLeft":
+                MoveActiveNodeAcrossAdjacentSection(-1);
+                break;
+            case "ArrowRight":
+                MoveActiveNodeAcrossAdjacentSection(+1);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Moves the active node to the previous (<paramref name="delta"/> <c>-1</c>) or next
+    /// (<c>+1</c>) section on this page, appending it to that section's end -- the insertion
+    /// index <c>Alt+←/→</c> always uses, since a keyboard move has no drag position or dialog
+    /// selection of its own to pick a more specific one from (PRD §4.1). A no-op when the active
+    /// node's own section is already the first (<c>Alt+←</c>) or last (<c>Alt+→</c>) on the page,
+    /// which this method itself guards -- never handing <see cref="DesignerEditContext"/> an
+    /// out-of-range section to fall back to.
+    /// </summary>
+    private void MoveActiveNodeAcrossAdjacentSection(int delta)
+    {
+        if (_activeNodeId is null || ActivePage is null)
+        {
+            return;
+        }
+
+        var located = DefinitionMutations.FindNodeLocation(EditContext.Draft.Definition, _activeNodeId);
+
+        if (located is null)
+        {
+            return;
+        }
+
+        var sections = ActivePage.Sections;
+        var targetSectionIndex = located.Value.SectionIndex + delta;
+
+        if (targetSectionIndex < 0 || targetSectionIndex >= sections.Count)
+        {
+            return;
+        }
+
+        var targetSection = sections[targetSectionIndex];
+        EditContext.MoveNodeAcrossSections(_activeNodeId, targetSection.Id, targetSection.Nodes.Count);
+    }
+
+    /// <summary>
+    /// Opens the <c>Ctrl+M</c> move-to-position dialog for the active node (PRD §4.1) -- a no-op
+    /// when nothing is active yet.
+    /// </summary>
+    private void OpenMoveDialog()
+    {
+        if (_activeNodeId is null)
+        {
+            return;
+        }
+
+        _moveDialogNodeId = _activeNodeId;
+        _showMoveDialog = true;
+    }
+
+    /// <summary>
+    /// Hides the move-to-position dialog and re-requests focus for the active node's row -- the
+    /// moved row itself after a confirmed move (a move never changes <see cref="FormNode.Id"/>,
+    /// so <see cref="_activeNodeId"/> already names it, per
+    /// <see cref="OnEditContextStateChanged"/>'s own handling of the mutation's
+    /// <see cref="DesignerFocusIntent.Moved"/> selection), or the unchanged origin row after
+    /// <see cref="MoveToPositionDialog"/>'s own Esc-cancel path, where nothing moved at all.
+    /// </summary>
+    private void CloseMoveDialog()
+    {
+        _showMoveDialog = false;
+
+        if (_activeNodeId is not null)
+        {
+            _pendingFocusNodeId = _activeNodeId;
         }
     }
 

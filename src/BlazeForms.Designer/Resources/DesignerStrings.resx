@@ -250,6 +250,28 @@
     <value>Add a page to start building this form.</value>
   </data>
 
+  <!-- MoveToPositionDialog (Phase 5, PRD §4.1): the Ctrl+M "move to position" dialog. {0} in
+       MoveDialogTitle is the node's own label (or its UntitledNodeLabel fallback); {0} in
+       MoveDialogPositionOption is the one-based position number. -->
+  <data name="MoveDialogTitle" xml:space="preserve">
+    <value>Move '{0}'</value>
+  </data>
+  <data name="MoveDialogSectionLabel" xml:space="preserve">
+    <value>Section</value>
+  </data>
+  <data name="MoveDialogPositionLabel" xml:space="preserve">
+    <value>Position</value>
+  </data>
+  <data name="MoveDialogPositionOption" xml:space="preserve">
+    <value>Position {0}</value>
+  </data>
+  <data name="MoveDialogConfirmButton" xml:space="preserve">
+    <value>Move</value>
+  </data>
+  <data name="MoveDialogCancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+
   <!-- CanvasNodeRow (Phase 3, PRD §4.1): a node row's fallback label and chips. {0} in
        UntitledNodeLabel is the node's localized NodeType{Type} display name (e.g. "Untitled Text"). -->
   <data name="UntitledNodeLabel" xml:space="preserve">
