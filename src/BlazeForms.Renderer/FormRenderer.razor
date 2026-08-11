@@ -22,7 +22,7 @@
                     var isCurrentStep = pageIndex == _currentPageIndex;
                     <li class="bf-progress__step" aria-current="@(isCurrentStep ? "step" : null)" @key="page.Id">
                         <span class="bf-progress__step-number">@(pageIndex + 1)</span>
-                        <span class="bf-progress__step-title">@(page.Title ?? $"Page {pageIndex + 1}")</span>
+                        <span class="bf-progress__step-title">@PageTitleOrFallback(page, pageIndex)</span>
                     </li>
                 }
             </ol>
@@ -34,7 +34,7 @@
 
         <section class="bf-page" aria-labelledby="@PageHeadingElementId">
             <h2 id="@PageHeadingElementId" @ref="_pageHeadingElement" tabindex="-1" class="bf-page__title">
-                @CurrentPage.Title
+                @PageTitleOrFallback(CurrentPage, _currentPageIndex)
             </h2>
 
             @{ var visibleNodeIds = GetVisibleNodeIds(); }

@@ -125,6 +125,12 @@
   <data name="DefaultConfirmationMessage" xml:space="preserve">
     <value>Thank you. Your submission has been received.</value>
   </data>
+  <!-- Fallback page heading when a FormPage.Title is null, used by both the progress list and
+       the page heading itself. Mirrors SubmissionPageFallbackTitle below, kept as its own key
+       since FormRenderer and FormSubmissionView are independently usable components. -->
+  <data name="PageFallbackTitle" xml:space="preserve">
+    <value>Page {0}</value>
+  </data>
 
   <!-- DateRangeField's two sub-labels (closes the Phase 2 localization gap). -->
   <data name="DateRangeStartLabel" xml:space="preserve">

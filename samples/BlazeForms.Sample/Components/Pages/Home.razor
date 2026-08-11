@@ -1,7 +1,25 @@
-﻿@page "/"
+@page "/"
+@inject SampleSubmissionSink SubmissionSink
 
 <PageTitle>BlazeForms Sample</PageTitle>
 
 <h1>BlazeForms sample host</h1>
 
 <p>This app hosts BlazeForms.Core, BlazeForms.Renderer, and BlazeForms.Designer for manual verification during development.</p>
+
+<p><a href="/fill">Fill the reference enrollment form</a></p>
+
+@if (SubmissionSink.All.Count > 0)
+{
+    <h2>Submissions</h2>
+    <ul>
+        @foreach (var envelope in SubmissionSink.All)
+        {
+            <li>
+                <a href="@($"/submission/{envelope.SubmissionId}")">
+                    Submission @envelope.SubmissionId (v@envelope.DefinitionVersion, @envelope.SubmittedAt.ToString("u"))
+                </a>
+            </li>
+        }
+    </ul>
+}

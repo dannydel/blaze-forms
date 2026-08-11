@@ -164,7 +164,17 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     /// </summary>
     private string StepAnnouncement => CurrentPage is null
         ? ""
-        : $"Step {_currentPageIndex + 1} of {Pages.Count}: {CurrentPage.Title}";
+        : $"Step {_currentPageIndex + 1} of {Pages.Count}: {PageTitleOrFallback(CurrentPage, _currentPageIndex)}";
+
+    /// <summary>
+    /// A page's title, falling back to a localized positional placeholder ("Page 2") when the
+    /// author left <see cref="FormPage.Title"/> null — the same fallback
+    /// <see cref="FormSubmissionView"/> uses for the same case (PRD §12). Without this, an
+    /// untitled page would announce an empty step name and its progress-list entry and page
+    /// heading would both render blank.
+    /// </summary>
+    private static string PageTitleOrFallback(FormPage page, int pageIndex) =>
+        page.Title ?? Localizer["PageFallbackTitle", pageIndex + 1].Value;
 
     /// <summary>
     /// The error summary's entries, in document order, built fresh from the current answers on
