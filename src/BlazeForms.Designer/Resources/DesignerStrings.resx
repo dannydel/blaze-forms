@@ -670,4 +670,121 @@
   <data name="KeyboardHelpMoveToPositionDescription" xml:space="preserve">
     <value>Open the "move to position" dialog for the active field.</value>
   </data>
+
+  <!-- FormDesigner toolbar (Phase 8, PRD §7): the Publish and Version-history buttons that open
+       PublishDialog and VersionHistory respectively. -->
+  <data name="ToolbarPublishButton" xml:space="preserve">
+    <value>Publish</value>
+  </data>
+  <data name="ToolbarVersionHistoryButton" xml:space="preserve">
+    <value>Version history</value>
+  </data>
+
+  <!-- PublishDialog (Phase 8, PRD §7): the publish gate. Re-lints on open and again on confirm,
+       so a blocking issue introduced after open is caught before anything publishes. {0} in
+       PublishDialogJumpButton is the blocking finding's own node label; {0} in
+       PublishDialogVersionAnnouncement is the version number just published. -->
+  <data name="PublishDialogTitle" xml:space="preserve">
+    <value>Publish this form</value>
+  </data>
+  <data name="PublishDialogBlockedIntro" xml:space="preserve">
+    <value>Fix these issues before publishing:</value>
+  </data>
+  <data name="PublishDialogJumpButton" xml:space="preserve">
+    <value>Jump to '{0}'</value>
+  </data>
+  <data name="PublishDialogChangeNoteLabel" xml:space="preserve">
+    <value>What changed?</value>
+  </data>
+  <data name="PublishDialogConfirmButton" xml:space="preserve">
+    <value>Publish</value>
+  </data>
+  <data name="PublishDialogCancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="PublishDialogUnknownAuthor" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="PublishDialogVersionAnnouncement" xml:space="preserve">
+    <value>Published version {0}.</value>
+  </data>
+  <data name="PublishDialogNoteRequiredHint" xml:space="preserve">
+    <value>A change note is required to publish.</value>
+  </data>
+
+  <!-- RetireConfirmationDialog (Phase 8, PRD §7): the retire confirm. {0} in RetireDialogTitle is
+       the version number about to be retired. -->
+  <data name="RetireDialogTitle" xml:space="preserve">
+    <value>Retire version {0}?</value>
+  </data>
+  <data name="RetireDialogBody" xml:space="preserve">
+    <value>Retiring stops this version from accepting new fills. Existing submissions stay renderable, and this cannot be undone.</value>
+  </data>
+  <data name="RetireDialogConfirmButton" xml:space="preserve">
+    <value>Retire</value>
+  </data>
+  <data name="RetireDialogCancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+
+  <!-- VersionHistory (Phase 8, PRD §7): the version-history panel listing every published or
+       retired version, newest first. {0} in VersionHistoryPublishedOn/RetiredOn is a formatted
+       date. -->
+  <data name="VersionHistoryTitle" xml:space="preserve">
+    <value>Version history</value>
+  </data>
+  <data name="VersionHistoryCloseButton" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="VersionHistoryLoading" xml:space="preserve">
+    <value>Loading version history…</value>
+  </data>
+  <data name="VersionHistoryEmpty" xml:space="preserve">
+    <value>This form has no published versions yet.</value>
+  </data>
+  <data name="VersionHistoryColumnVersion" xml:space="preserve">
+    <value>Version</value>
+  </data>
+  <data name="VersionHistoryColumnStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="VersionHistoryColumnNote" xml:space="preserve">
+    <value>Change note</value>
+  </data>
+  <data name="VersionHistoryColumnAuthor" xml:space="preserve">
+    <value>Author</value>
+  </data>
+  <data name="VersionHistoryColumnDate" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="VersionHistoryColumnSubmissions" xml:space="preserve">
+    <value>Submissions</value>
+  </data>
+  <data name="VersionHistoryColumnActions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="VersionHistoryNoNote" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="VersionHistoryNoAuthor" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="VersionHistoryStatePublished" xml:space="preserve">
+    <value>Published</value>
+  </data>
+  <data name="VersionHistoryStateRetired" xml:space="preserve">
+    <value>Retired</value>
+  </data>
+  <data name="VersionHistoryRetireButton" xml:space="preserve">
+    <value>Retire</value>
+  </data>
+  <data name="VersionHistoryReviseButton" xml:space="preserve">
+    <value>Revise as draft</value>
+  </data>
+  <data name="VersionHistoryPublishedOn" xml:space="preserve">
+    <value>Published {0}</value>
+  </data>
+  <data name="VersionHistoryRetiredOn" xml:space="preserve">
+    <value>Retired {0}</value>
+  </data>
 </root>

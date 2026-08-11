@@ -1,0 +1,20 @@
+<div class="bf-retire-dialog-backdrop">
+    <div class="bf-retire-dialog"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="@TitleId"
+         aria-describedby="@BodyId"
+         @ref="_dialogElement"
+         @onkeydown="OnDialogKeyDown">
+        <h2 id="@TitleId" class="bf-retire-dialog__title">@Localizer["RetireDialogTitle", Version].Value</h2>
+        <p id="@BodyId" class="bf-retire-dialog__body">@Localizer["RetireDialogBody"].Value</p>
+        <div class="bf-retire-dialog__actions">
+            <button type="button" class="bf-retire-dialog__button bf-retire-dialog__button--danger" disabled="@_retiring" @onclick="ConfirmAsync">
+                @Localizer["RetireDialogConfirmButton"].Value
+            </button>
+            <button type="button" class="bf-retire-dialog__button" @ref="_cancelButtonElement" @onclick="CancelAsync">
+                @Localizer["RetireDialogCancelButton"].Value
+            </button>
+        </div>
+    </div>
+</div>

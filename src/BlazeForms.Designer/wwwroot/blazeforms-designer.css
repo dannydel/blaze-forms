@@ -25,4 +25,9 @@
      semantic token -- the renderer has no notion of a "selected row" for BlazeForms.Designer's
      own component CSS (DesignerCanvas.razor.css, CanvasNodeRow.razor.css) to reuse. */
   --bf-canvas-row-selected-bg: color-mix(in srgb, var(--bf-color-primary) 12%, var(--bf-color-bg));
+
+  /* Versioning (Phase 8, PRD §7): PublishDialog's own change-note textarea minimum height. A
+     wholly new token -- the renderer's spacing scale (--bf-space-1 … --bf-space-6) has nothing
+     sized for a multi-line text area, and none of its own values happen to fit. */
+  --bf-publish-note-min-height: 6rem;
 }

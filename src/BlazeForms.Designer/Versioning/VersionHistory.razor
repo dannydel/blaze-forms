@@ -1,0 +1,66 @@
+<div class="bf-version-history" role="region" aria-labelledby="@TitleId">
+    <div class="bf-version-history__header">
+        <h2 id="@TitleId" class="bf-version-history__title">@Localizer["VersionHistoryTitle"].Value</h2>
+        <button type="button" class="bf-version-history__close" @ref="_closeButtonElement" @onclick="CloseAsync">
+            @Localizer["VersionHistoryCloseButton"].Value
+        </button>
+    </div>
+
+    @if (_isLoading)
+    {
+        <p class="bf-version-history__status">@Localizer["VersionHistoryLoading"].Value</p>
+    }
+    else if (_versions.Count == 0)
+    {
+        <p class="bf-version-history__status">@Localizer["VersionHistoryEmpty"].Value</p>
+    }
+    else
+    {
+        <table class="bf-version-history__table">
+            <thead>
+                <tr>
+                    <th scope="col">@Localizer["VersionHistoryColumnVersion"].Value</th>
+                    <th scope="col">@Localizer["VersionHistoryColumnStatus"].Value</th>
+                    <th scope="col">@Localizer["VersionHistoryColumnNote"].Value</th>
+                    <th scope="col">@Localizer["VersionHistoryColumnAuthor"].Value</th>
+                    <th scope="col">@Localizer["VersionHistoryColumnDate"].Value</th>
+                    <th scope="col">@Localizer["VersionHistoryColumnSubmissions"].Value</th>
+                    <th scope="col">@Localizer["VersionHistoryColumnActions"].Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var summary in _versions)
+                {
+                    <tr @key="summary.Version">
+                        <td>@summary.Version</td>
+                        <td>
+                            <span class="bf-version-history__badge bf-version-history__badge--@(StateModifier(summary.State))">
+                                @StateLabel(summary.State)
+                            </span>
+                        </td>
+                        <td>@(summary.ChangeNote ?? Localizer["VersionHistoryNoNote"].Value)</td>
+                        <td>@(summary.Author ?? Localizer["VersionHistoryNoAuthor"].Value)</td>
+                        <td>@FormatDate(summary)</td>
+                        <td>@summary.SubmissionCount</td>
+                        <td class="bf-version-history__actions">
+                            @if (summary.State == FormLifecycleState.Published)
+                            {
+                                <button type="button" @onclick="() => OpenRetireConfirmation(summary.Version)">
+                                    @Localizer["VersionHistoryRetireButton"].Value
+                                </button>
+                            }
+                            <button type="button" disabled="@_revising" @onclick="() => ReviseAsDraftAsync(summary.Version)">
+                                @Localizer["VersionHistoryReviseButton"].Value
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@if (_retireTargetVersion is int version)
+{
+    <RetireConfirmationDialog FormId="@FormId" Store="Store" Version="version" OnClosed="CloseRetireConfirmationAsync" />
+}

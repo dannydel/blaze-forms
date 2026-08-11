@@ -12,9 +12,12 @@
 .bf-designer__toolbar {
     display: flex;
     justify-content: flex-end;
+    gap: var(--bf-space-2);
 }
 
-.bf-designer__help-button {
+.bf-designer__help-button,
+.bf-designer__version-history-button,
+.bf-designer__publish-button {
     padding-inline: var(--bf-space-3);
     padding-block: var(--bf-space-2);
     border: var(--bf-border-width) solid var(--bf-color-border);
@@ -24,7 +27,18 @@
     cursor: pointer;
 }
 
-.bf-designer__help-button:focus-visible {
+/* The publish gate lives entirely in PublishDialog itself -- this button always opens it, never
+ * disables based on the lint picture, so its own primary-color treatment signals "the main
+ * action here", not "publishing is currently allowed". */
+.bf-designer__publish-button {
+    border-color: var(--bf-color-primary);
+    background-color: var(--bf-color-primary);
+    color: var(--bf-color-primary-contrast);
+}
+
+.bf-designer__help-button:focus-visible,
+.bf-designer__version-history-button:focus-visible,
+.bf-designer__publish-button:focus-visible {
     outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
     outline-offset: var(--bf-focus-ring-offset);
 }

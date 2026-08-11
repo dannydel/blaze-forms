@@ -83,6 +83,7 @@ links both stylesheets:
 | `--bf-pane-gap` | The gap between the three docked panes. |
 | `--bf-dock-height` | The docked shell's minimum height; panes scroll independently past it. |
 | `--bf-canvas-row-selected-bg` | `DesignerCanvas`'s selected node row background — a designer-only concept the renderer's own token set has no equivalent for. |
+| `--bf-publish-note-min-height` | `PublishDialog`'s change-note textarea minimum height. |
 
 ## A worked example: mapping Bootstrap tokens
 
