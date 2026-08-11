@@ -107,6 +107,17 @@ BlazeForms.Palette.FieldPalette
 BlazeForms.Palette.FieldPalette.FieldPalette() -> void
 BlazeForms.Palette.FieldPalette.OnAddRequested.get -> Microsoft.AspNetCore.Components.EventCallback<BlazeForms.Definitions.NodeType>
 BlazeForms.Palette.FieldPalette.OnAddRequested.set -> void
+BlazeForms.Properties.OptionsEditor
+BlazeForms.Properties.OptionsEditor.OptionsChanged.get -> Microsoft.AspNetCore.Components.EventCallback<System.Collections.Generic.IReadOnlyList<BlazeForms.Definitions.FormOption!>!>
+BlazeForms.Properties.OptionsEditor.OptionsChanged.set -> void
+BlazeForms.Properties.OptionsEditor.OptionsEditor() -> void
+BlazeForms.Properties.OptionsEditor.Options.get -> System.Collections.Generic.IReadOnlyList<BlazeForms.Definitions.FormOption!>!
+BlazeForms.Properties.OptionsEditor.Options.set -> void
+BlazeForms.Properties.PropertiesPanel
+BlazeForms.Properties.PropertiesPanel.DisposeAsync() -> System.Threading.Tasks.ValueTask
+BlazeForms.Properties.PropertiesPanel.EditContext.get -> BlazeForms.Designer.DesignerEditContext!
+BlazeForms.Properties.PropertiesPanel.EditContext.set -> void
+BlazeForms.Properties.PropertiesPanel.PropertiesPanel() -> void
 override BlazeForms.AriaLiveRegion.OnParametersSet() -> void
 override BlazeForms.Canvas.CanvasNodeRow.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
 override BlazeForms.Canvas.CanvasNodeRow.OnInitialized() -> void
@@ -124,6 +135,11 @@ override BlazeForms.Designer.DesignerSelection.GetHashCode() -> int
 override BlazeForms.Designer.DesignerSelection.ToString() -> string!
 override BlazeForms.FormDesigner.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
 override BlazeForms.FormDesigner.OnInitialized() -> void
+override BlazeForms.Properties.OptionsEditor.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
+override BlazeForms.Properties.OptionsEditor.OnParametersSet() -> void
+override BlazeForms.Properties.PropertiesPanel.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
+override BlazeForms.Properties.PropertiesPanel.OnInitialized() -> void
+override BlazeForms.Properties.PropertiesPanel.OnParametersSet() -> void
 static BlazeForms.Designer.DesignerAnnouncement.operator !=(BlazeForms.Designer.DesignerAnnouncement? left, BlazeForms.Designer.DesignerAnnouncement? right) -> bool
 static BlazeForms.Designer.DesignerAnnouncement.operator ==(BlazeForms.Designer.DesignerAnnouncement? left, BlazeForms.Designer.DesignerAnnouncement? right) -> bool
 static BlazeForms.Designer.DesignerSelection.ForNode(string! nodeId, string! pageId, string! sectionId, BlazeForms.Designer.DesignerFocusIntent intent) -> BlazeForms.Designer.DesignerSelection!
@@ -139,3 +155,5 @@ static BlazeForms.Designer.DesignerSelection.operator ==(BlazeForms.Designer.Des
 ~override BlazeForms.Canvas.PageTabStrip.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.FormDesigner.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Palette.FieldPalette.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
+~override BlazeForms.Properties.OptionsEditor.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
+~override BlazeForms.Properties.PropertiesPanel.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void

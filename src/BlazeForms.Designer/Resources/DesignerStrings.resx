@@ -70,9 +70,9 @@
     <value>Properties</value>
   </data>
 
-  <!-- Phase 1 placeholder copy for the properties pane, which gains real content in a later phase. -->
+  <!-- Shown in PropertiesPanel's own body when nothing is selected (Phase 4, PRD §4.1). -->
   <data name="PropertiesPlaceholderText" xml:space="preserve">
-    <value>The properties panel is coming in a later phase. Selecting a field on the canvas will show its settings here.</value>
+    <value>Select a field on the canvas to edit its properties.</value>
   </data>
 
   <!-- Fallback name for a brand-new form that has never had a name saved (PRD §5, FormDefinition.Name). -->
@@ -281,5 +281,106 @@
   </data>
   <data name="EmptyPageText" xml:space="preserve">
     <value>This page has no sections yet.</value>
+  </data>
+
+  <!-- PropertiesPanel (Phase 4, PRD §4.1, §5, §5.1): field labels, hints, and the accessible
+       empty-label affordance every property control needs. -->
+  <data name="PropFieldIdLabel" xml:space="preserve">
+    <value>Field ID</value>
+  </data>
+  <data name="PropLabelLabel" xml:space="preserve">
+    <value>Label</value>
+  </data>
+  <data name="PropLabelRequiredWarning" xml:space="preserve">
+    <value>This field needs a label; a placeholder does not count as one.</value>
+  </data>
+  <data name="PropHelpLabel" xml:space="preserve">
+    <value>Help text</value>
+  </data>
+  <data name="PropPlaceholderLabel" xml:space="preserve">
+    <value>Placeholder</value>
+  </data>
+  <data name="PropRequiredLabel" xml:space="preserve">
+    <value>Required</value>
+  </data>
+  <data name="PropRequiredWhenVisibleLabel" xml:space="preserve">
+    <value>Required only while visible</value>
+  </data>
+  <data name="PropHalfWidthLabel" xml:space="preserve">
+    <value>Half-width</value>
+  </data>
+  <data name="PropMinLabel" xml:space="preserve">
+    <value>Minimum</value>
+  </data>
+  <data name="PropMaxLabel" xml:space="preserve">
+    <value>Maximum</value>
+  </data>
+  <data name="PropLevelLabel" xml:space="preserve">
+    <value>Heading level</value>
+  </data>
+  <data name="PropLevelOption2" xml:space="preserve">
+    <value>Level 2</value>
+  </data>
+  <data name="PropLevelOption3" xml:space="preserve">
+    <value>Level 3</value>
+  </data>
+  <data name="PropLevelOption4" xml:space="preserve">
+    <value>Level 4</value>
+  </data>
+  <data name="PropContentLabel" xml:space="preserve">
+    <value>Content</value>
+  </data>
+  <data name="PropSupportsMarkdownHint" xml:space="preserve">
+    <value>Supports Markdown</value>
+  </data>
+  <data name="PropVisibilityLabel" xml:space="preserve">
+    <value>Visibility</value>
+  </data>
+  <data name="PropVisibilityAlwaysVisible" xml:space="preserve">
+    <value>Always visible.</value>
+  </data>
+  <data name="PropVisibilityHasRule" xml:space="preserve">
+    <value>Has a visibility rule.</value>
+  </data>
+  <data name="PropVisibilityAddRuleButton" xml:space="preserve">
+    <value>Add rule</value>
+  </data>
+  <data name="PropVisibilityEditRuleButton" xml:space="preserve">
+    <value>Edit rule</value>
+  </data>
+  <data name="PropVisibilityRemoveRuleButton" xml:space="preserve">
+    <value>Remove rule</value>
+  </data>
+
+  <!-- OptionsEditor (Phase 4, PRD §4.1, §5): the choice-node options row list. Each row's
+       stable Value follows the row itself, never its position (AGENTS.md invariant #5), so
+       {0} below is always the row's current ordinal, naming the option for a screen reader
+       even when its own label is blank (a newly added row) or duplicates a sibling's. -->
+  <data name="PropOptionsLabel" xml:space="preserve">
+    <value>Options</value>
+  </data>
+  <data name="PropOptionsRowLabel" xml:space="preserve">
+    <value>Option {0} label</value>
+  </data>
+  <data name="PropOptionsMoveUpButton" xml:space="preserve">
+    <value>Move option {0} up</value>
+  </data>
+  <data name="PropOptionsMoveDownButton" xml:space="preserve">
+    <value>Move option {0} down</value>
+  </data>
+  <data name="PropOptionsRemoveButton" xml:space="preserve">
+    <value>Remove option {0}</value>
+  </data>
+  <data name="PropOptionsMoveUpText" xml:space="preserve">
+    <value>Move up</value>
+  </data>
+  <data name="PropOptionsMoveDownText" xml:space="preserve">
+    <value>Move down</value>
+  </data>
+  <data name="PropOptionsRemoveText" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="PropOptionsAddButton" xml:space="preserve">
+    <value>Add option</value>
   </data>
 </root>

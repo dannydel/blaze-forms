@@ -146,6 +146,82 @@ internal static class DesignerTestFixtures
     };
 
     /// <summary>
+    /// One numeric node with bounds set -- exercises <c>PropertiesPanel</c>'s Min/Max controls,
+    /// shown only for <see cref="NodeType.Number"/>/<see cref="NodeType.Currency"/>.
+    /// </summary>
+    internal static FormDefinition NumericNodeDefinition(string formId) => new()
+    {
+        Id = formId,
+        Name = "Numeric node form",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Nodes = [new FormNode { Id = "node-numeric", Type = NodeType.Number, Label = "Quantity", Min = 1, Max = 10 }],
+                    },
+                ],
+            },
+        ],
+    };
+
+    /// <summary>
+    /// One heading node -- exercises <c>PropertiesPanel</c>'s level select, shown only for
+    /// <see cref="NodeType.Heading"/>.
+    /// </summary>
+    internal static FormDefinition HeadingNodeDefinition(string formId) => new()
+    {
+        Id = formId,
+        Name = "Heading node form",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Nodes = [new FormNode { Id = "node-heading", Type = NodeType.Heading, Label = "Section title", Level = 3 }],
+                    },
+                ],
+            },
+        ],
+    };
+
+    /// <summary>
+    /// One paragraph node with Markdown content -- exercises <c>PropertiesPanel</c>'s Content
+    /// textarea and "Supports Markdown" marker, shown only for
+    /// <see cref="NodeType.Paragraph"/>/<see cref="NodeType.Callout"/>.
+    /// </summary>
+    internal static FormDefinition ParagraphNodeDefinition(string formId) => new()
+    {
+        Id = formId,
+        Name = "Paragraph node form",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Nodes = [new FormNode { Id = "node-paragraph", Type = NodeType.Paragraph, Content = "Some **prose**." }],
+                    },
+                ],
+            },
+        ],
+    };
+
+    /// <summary>
     /// One node carrying options whose <see cref="FormOption.Value"/>s must stay stable under
     /// <see cref="DesignerEditContext.DuplicateNode"/> (AGENTS.md invariant #5).
     /// </summary>

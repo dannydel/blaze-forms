@@ -1,0 +1,121 @@
+.bf-options-editor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-2);
+    margin-block-end: var(--bf-space-4);
+}
+
+.bf-options-editor__fieldset {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-2);
+    margin: 0;
+    padding: var(--bf-space-3);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+}
+
+.bf-options-editor__legend {
+    padding-inline: var(--bf-space-1);
+    font-size: var(--bf-font-size-sm);
+    font-weight: 600;
+}
+
+.bf-options-editor__rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-2);
+}
+
+.bf-options-editor__row {
+    display: flex;
+    align-items: center;
+    gap: var(--bf-space-2);
+}
+
+/* Visually hidden but still reachable by assistive technology -- the same clip-based pattern
+ * AriaLiveRegion.razor.css uses; each row's own input is unambiguous once seen ("Option 2" sits
+ * right next to its own text), so this label only ever needs to carry the row's ordinal for a
+ * screen reader, never a visible heading repeated once per row. */
+.bf-options-editor__row-label {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.bf-options-editor__row-input {
+    flex: 1 1 auto;
+    min-block-size: var(--bf-touch-target);
+    padding-inline: var(--bf-space-3);
+    padding-block: var(--bf-space-2);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+    background-color: var(--bf-color-bg);
+    color: var(--bf-color-text);
+    font: inherit;
+}
+
+.bf-options-editor__row-input:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}
+
+.bf-options-editor__row-actions {
+    display: flex;
+    flex-shrink: 0;
+    gap: var(--bf-space-1);
+}
+
+.bf-options-editor__icon-button {
+    min-inline-size: var(--bf-touch-target);
+    min-block-size: var(--bf-touch-target);
+    padding-inline: var(--bf-space-2);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+    background-color: var(--bf-color-bg);
+    color: var(--bf-color-text);
+    font: inherit;
+    cursor: pointer;
+}
+
+.bf-options-editor__icon-button:hover:not(:disabled) {
+    border-color: var(--bf-color-primary);
+}
+
+.bf-options-editor__icon-button:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}
+
+.bf-options-editor__icon-button:disabled {
+    color: var(--bf-color-muted);
+    cursor: default;
+}
+
+.bf-options-editor__remove-button:hover:not(:disabled) {
+    border-color: var(--bf-color-danger);
+}
+
+.bf-options-editor__add-button {
+    align-self: flex-start;
+    min-block-size: var(--bf-touch-target);
+    padding-inline: var(--bf-space-3);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+    background-color: var(--bf-color-bg);
+    color: var(--bf-color-text);
+    font: inherit;
+    cursor: pointer;
+}
+
+.bf-options-editor__add-button:hover {
+    border-color: var(--bf-color-primary);
+}
+
+.bf-options-editor__add-button:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}

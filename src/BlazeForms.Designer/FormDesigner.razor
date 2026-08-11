@@ -25,7 +25,14 @@
     <section class="bf-designer__pane bf-designer__pane--properties" role="region" aria-label="@Localizer["PaneTitleProperties"].Value">
         <h2 class="bf-designer__pane-heading">@Localizer["PaneTitleProperties"].Value</h2>
         <div class="bf-designer__pane-body">
-            <p class="bf-designer__placeholder">@Localizer["PropertiesPlaceholderText"].Value</p>
+            @if (_editContext is null)
+            {
+                <p class="bf-designer__placeholder">@Localizer["DesignerLoading"].Value</p>
+            }
+            else
+            {
+                <PropertiesPanel EditContext="_editContext" />
+            }
         </div>
     </section>
 

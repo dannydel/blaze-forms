@@ -1,0 +1,41 @@
+<div class="bf-options-editor">
+    <fieldset class="bf-options-editor__fieldset">
+        <legend class="bf-options-editor__legend">@Localizer["PropOptionsLabel"].Value</legend>
+        <div class="bf-options-editor__rows">
+            @for (var i = 0; i < _rows.Count; i++)
+            {
+                var row = _rows[i];
+                var rowNumber = i + 1;
+                var isFirst = i == 0;
+                var isLast = i == _rows.Count - 1;
+
+                <div class="bf-options-editor__row" @key="row.Value">
+                    <label class="bf-options-editor__row-label" for="@RowInputId(row)">@Localizer["PropOptionsRowLabel", rowNumber].Value</label>
+                    <input @ref="row.Input"
+                           id="@RowInputId(row)"
+                           type="text"
+                           class="bf-options-editor__row-input"
+                           value="@row.Label"
+                           @onchange="@(e => CommitLabelEditAsync(row, e))" />
+                    <div class="bf-options-editor__row-actions">
+                        <button type="button"
+                                class="bf-options-editor__icon-button"
+                                aria-label="@Localizer["PropOptionsMoveUpButton", rowNumber].Value"
+                                disabled="@isFirst"
+                                @onclick="@(() => MoveRowAsync(row, -1))">@Localizer["PropOptionsMoveUpText"].Value</button>
+                        <button type="button"
+                                class="bf-options-editor__icon-button"
+                                aria-label="@Localizer["PropOptionsMoveDownButton", rowNumber].Value"
+                                disabled="@isLast"
+                                @onclick="@(() => MoveRowAsync(row, 1))">@Localizer["PropOptionsMoveDownText"].Value</button>
+                        <button type="button"
+                                class="bf-options-editor__icon-button bf-options-editor__remove-button"
+                                aria-label="@Localizer["PropOptionsRemoveButton", rowNumber].Value"
+                                @onclick="@(() => RemoveRowAsync(row))">@Localizer["PropOptionsRemoveText"].Value</button>
+                    </div>
+                </div>
+            }
+        </div>
+        <button type="button" @ref="_addButtonElement" class="bf-options-editor__add-button" @onclick="AddRowAsync">@Localizer["PropOptionsAddButton"].Value</button>
+    </fieldset>
+</div>
