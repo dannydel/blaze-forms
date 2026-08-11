@@ -19,6 +19,7 @@ else
                                    IsActive="@IsRowActive(node.Id)"
                                    IsSelected="@IsRowSelected(node.Id)"
                                    RequestFocus="@IsFocusPending(node.Id)"
+                                   LogicSummary="@GetLogicSummary(node)"
                                    OnActivate="@GetActivateCallback(node.Id)"
                                    OnDragStart="@GetDragStartCallback(node.Id)"
                                    OnDragEnd="@GetDragEndCallback(node.Id)"

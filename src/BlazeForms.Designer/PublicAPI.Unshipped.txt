@@ -13,6 +13,8 @@ BlazeForms.Canvas.CanvasNodeRow.IsActive.get -> bool
 BlazeForms.Canvas.CanvasNodeRow.IsActive.set -> void
 BlazeForms.Canvas.CanvasNodeRow.IsSelected.get -> bool
 BlazeForms.Canvas.CanvasNodeRow.IsSelected.set -> void
+BlazeForms.Canvas.CanvasNodeRow.LogicSummary.get -> string?
+BlazeForms.Canvas.CanvasNodeRow.LogicSummary.set -> void
 BlazeForms.Canvas.CanvasNodeRow.Node.get -> BlazeForms.Definitions.FormNode!
 BlazeForms.Canvas.CanvasNodeRow.Node.set -> void
 BlazeForms.Canvas.CanvasNodeRow.OnActivate.get -> Microsoft.AspNetCore.Components.EventCallback
@@ -135,6 +137,34 @@ BlazeForms.Properties.PropertiesPanel.DisposeAsync() -> System.Threading.Tasks.V
 BlazeForms.Properties.PropertiesPanel.EditContext.get -> BlazeForms.Designer.DesignerEditContext!
 BlazeForms.Properties.PropertiesPanel.EditContext.set -> void
 BlazeForms.Properties.PropertiesPanel.PropertiesPanel() -> void
+BlazeForms.Rules.ConditionRow
+BlazeForms.Rules.ConditionRow.Condition.get -> BlazeForms.Expressions.Condition!
+BlazeForms.Rules.ConditionRow.Condition.set -> void
+BlazeForms.Rules.ConditionRow.ConditionChanged.get -> Microsoft.AspNetCore.Components.EventCallback<BlazeForms.Expressions.Condition!>
+BlazeForms.Rules.ConditionRow.ConditionChanged.set -> void
+BlazeForms.Rules.ConditionRow.ConditionRow() -> void
+BlazeForms.Rules.ConditionRow.Fields.get -> System.Collections.Generic.IReadOnlyList<BlazeForms.Definitions.FormNode!>!
+BlazeForms.Rules.ConditionRow.Fields.set -> void
+BlazeForms.Rules.ConditionRow.OnRemove.get -> Microsoft.AspNetCore.Components.EventCallback
+BlazeForms.Rules.ConditionRow.OnRemove.set -> void
+BlazeForms.Rules.ConditionRow.RequestFocus.get -> bool
+BlazeForms.Rules.ConditionRow.RequestFocus.set -> void
+BlazeForms.Rules.ConditionRow.RowNumber.get -> int
+BlazeForms.Rules.ConditionRow.RowNumber.set -> void
+BlazeForms.Rules.ValidationRuleEditor
+BlazeForms.Rules.ValidationRuleEditor.DisposeAsync() -> System.Threading.Tasks.ValueTask
+BlazeForms.Rules.ValidationRuleEditor.EditContext.get -> BlazeForms.Designer.DesignerEditContext!
+BlazeForms.Rules.ValidationRuleEditor.EditContext.set -> void
+BlazeForms.Rules.ValidationRuleEditor.ValidationRuleEditor() -> void
+BlazeForms.Rules.VisibilityRuleEditor
+BlazeForms.Rules.VisibilityRuleEditor.DisposeAsync() -> System.Threading.Tasks.ValueTask
+BlazeForms.Rules.VisibilityRuleEditor.EditContext.get -> BlazeForms.Designer.DesignerEditContext!
+BlazeForms.Rules.VisibilityRuleEditor.EditContext.set -> void
+BlazeForms.Rules.VisibilityRuleEditor.NodeId.get -> string!
+BlazeForms.Rules.VisibilityRuleEditor.NodeId.set -> void
+BlazeForms.Rules.VisibilityRuleEditor.OnClosed.get -> Microsoft.AspNetCore.Components.EventCallback
+BlazeForms.Rules.VisibilityRuleEditor.OnClosed.set -> void
+BlazeForms.Rules.VisibilityRuleEditor.VisibilityRuleEditor() -> void
 override BlazeForms.AriaLiveRegion.OnParametersSet() -> void
 override BlazeForms.Canvas.CanvasNodeRow.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
 override BlazeForms.Canvas.CanvasNodeRow.OnInitialized() -> void
@@ -159,6 +189,14 @@ override BlazeForms.Properties.OptionsEditor.OnParametersSet() -> void
 override BlazeForms.Properties.PropertiesPanel.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
 override BlazeForms.Properties.PropertiesPanel.OnInitialized() -> void
 override BlazeForms.Properties.PropertiesPanel.OnParametersSet() -> void
+override BlazeForms.Rules.ConditionRow.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
+override BlazeForms.Rules.ConditionRow.OnParametersSet() -> void
+override BlazeForms.Rules.ValidationRuleEditor.OnAfterRender(bool firstRender) -> void
+override BlazeForms.Rules.ValidationRuleEditor.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
+override BlazeForms.Rules.ValidationRuleEditor.OnParametersSet() -> void
+override BlazeForms.Rules.VisibilityRuleEditor.OnAfterRender(bool firstRender) -> void
+override BlazeForms.Rules.VisibilityRuleEditor.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
+override BlazeForms.Rules.VisibilityRuleEditor.OnInitialized() -> void
 static BlazeForms.Designer.DesignerAnnouncement.operator !=(BlazeForms.Designer.DesignerAnnouncement? left, BlazeForms.Designer.DesignerAnnouncement? right) -> bool
 static BlazeForms.Designer.DesignerAnnouncement.operator ==(BlazeForms.Designer.DesignerAnnouncement? left, BlazeForms.Designer.DesignerAnnouncement? right) -> bool
 static BlazeForms.Designer.DesignerSelection.ForNode(string! nodeId, string! pageId, string! sectionId, BlazeForms.Designer.DesignerFocusIntent intent) -> BlazeForms.Designer.DesignerSelection!
@@ -177,3 +215,6 @@ static BlazeForms.Designer.DesignerSelection.operator ==(BlazeForms.Designer.Des
 ~override BlazeForms.Palette.FieldPalette.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Properties.OptionsEditor.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Properties.PropertiesPanel.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
+~override BlazeForms.Rules.ConditionRow.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
+~override BlazeForms.Rules.ValidationRuleEditor.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
+~override BlazeForms.Rules.VisibilityRuleEditor.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void

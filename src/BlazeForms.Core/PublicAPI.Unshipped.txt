@@ -140,6 +140,21 @@ BlazeForms.Expressions.ConditionOperator.IsNot = 1 -> BlazeForms.Expressions.Con
 BlazeForms.Expressions.ConditionOperator.IsNotBlank = 5 -> BlazeForms.Expressions.ConditionOperator
 BlazeForms.Expressions.ConditionOperator.IsTrue = 2 -> BlazeForms.Expressions.ConditionOperator
 BlazeForms.Expressions.ConditionOperator.LessThan = 7 -> BlazeForms.Expressions.ConditionOperator
+BlazeForms.Expressions.ExpressionDependencyAnalysis
+BlazeForms.Expressions.ReferenceKind
+BlazeForms.Expressions.ReferenceKind.ValidationExpression = 2 -> BlazeForms.Expressions.ReferenceKind
+BlazeForms.Expressions.ReferenceKind.ValidationTarget = 1 -> BlazeForms.Expressions.ReferenceKind
+BlazeForms.Expressions.ReferenceKind.Visibility = 0 -> BlazeForms.Expressions.ReferenceKind
+BlazeForms.Expressions.ReferenceSite
+BlazeForms.Expressions.ReferenceSite.<Clone>$() -> BlazeForms.Expressions.ReferenceSite!
+BlazeForms.Expressions.ReferenceSite.Equals(BlazeForms.Expressions.ReferenceSite? other) -> bool
+BlazeForms.Expressions.ReferenceSite.Kind.get -> BlazeForms.Expressions.ReferenceKind
+BlazeForms.Expressions.ReferenceSite.Kind.init -> void
+BlazeForms.Expressions.ReferenceSite.ReferenceSite() -> void
+BlazeForms.Expressions.ReferenceSite.ReferencingNodeId.get -> string?
+BlazeForms.Expressions.ReferenceSite.ReferencingNodeId.init -> void
+BlazeForms.Expressions.ReferenceSite.ReferencingRule.get -> BlazeForms.Expressions.ValidationRule?
+BlazeForms.Expressions.ReferenceSite.ReferencingRule.init -> void
 BlazeForms.Expressions.ValidationRule
 BlazeForms.Expressions.ValidationRule.<Clone>$() -> BlazeForms.Expressions.ValidationRule!
 BlazeForms.Expressions.ValidationRule.Equals(BlazeForms.Expressions.ValidationRule? other) -> bool
@@ -359,6 +374,9 @@ override BlazeForms.Expressions.Condition.ToString() -> string!
 override BlazeForms.Expressions.ConditionGroup.Equals(object? obj) -> bool
 override BlazeForms.Expressions.ConditionGroup.GetHashCode() -> int
 override BlazeForms.Expressions.ConditionGroup.ToString() -> string!
+override BlazeForms.Expressions.ReferenceSite.Equals(object? obj) -> bool
+override BlazeForms.Expressions.ReferenceSite.GetHashCode() -> int
+override BlazeForms.Expressions.ReferenceSite.ToString() -> string!
 override BlazeForms.Expressions.ValidationRule.Equals(object? obj) -> bool
 override BlazeForms.Expressions.ValidationRule.GetHashCode() -> int
 override BlazeForms.Expressions.ValidationRule.ToString() -> string!
@@ -419,6 +437,10 @@ static BlazeForms.Expressions.ConditionEvaluator.Evaluate(BlazeForms.Expressions
 static BlazeForms.Expressions.ConditionEvaluator.Evaluate(BlazeForms.Expressions.ConditionGroup! group, System.Collections.Generic.IReadOnlyDictionary<string!, object?>! values) -> bool
 static BlazeForms.Expressions.ConditionGroup.operator !=(BlazeForms.Expressions.ConditionGroup? left, BlazeForms.Expressions.ConditionGroup? right) -> bool
 static BlazeForms.Expressions.ConditionGroup.operator ==(BlazeForms.Expressions.ConditionGroup? left, BlazeForms.Expressions.ConditionGroup? right) -> bool
+static BlazeForms.Expressions.ExpressionDependencyAnalysis.ReferencesTo(BlazeForms.Definitions.FormDefinition! definition, string! nodeId) -> System.Collections.Generic.IReadOnlyList<BlazeForms.Expressions.ReferenceSite!>!
+static BlazeForms.Expressions.ExpressionDependencyAnalysis.WouldCreateCycle(BlazeForms.Definitions.FormDefinition! definition, string! nodeId, BlazeForms.Expressions.ConditionGroup! candidateVisibleWhen, out System.Collections.Generic.IReadOnlyList<string!>! cyclePath) -> bool
+static BlazeForms.Expressions.ReferenceSite.operator !=(BlazeForms.Expressions.ReferenceSite? left, BlazeForms.Expressions.ReferenceSite? right) -> bool
+static BlazeForms.Expressions.ReferenceSite.operator ==(BlazeForms.Expressions.ReferenceSite? left, BlazeForms.Expressions.ReferenceSite? right) -> bool
 static BlazeForms.Expressions.ValidationRule.operator !=(BlazeForms.Expressions.ValidationRule? left, BlazeForms.Expressions.ValidationRule? right) -> bool
 static BlazeForms.Expressions.ValidationRule.operator ==(BlazeForms.Expressions.ValidationRule? left, BlazeForms.Expressions.ValidationRule? right) -> bool
 static BlazeForms.Expressions.VisibilityEvaluator.FilterToVisible(BlazeForms.Definitions.FormDefinition! definition, System.Collections.Generic.IReadOnlyDictionary<string!, object?>! values) -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>!
