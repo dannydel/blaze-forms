@@ -14,6 +14,15 @@ BlazeForms.FormRenderer.RespondentKey.get -> string?
 BlazeForms.FormRenderer.RespondentKey.set -> void
 BlazeForms.FormRenderer.Version.get -> BlazeForms.Versioning.FormVersion!
 BlazeForms.FormRenderer.Version.set -> void
+BlazeForms.FormSubmissionView
+BlazeForms.FormSubmissionView.DisposeAsync() -> System.Threading.Tasks.ValueTask
+BlazeForms.FormSubmissionView.Envelope.get -> BlazeForms.Hosting.FormSubmissionEnvelope!
+BlazeForms.FormSubmissionView.Envelope.set -> void
+BlazeForms.FormSubmissionView.FormSubmissionView() -> void
+BlazeForms.FormSubmissionView.LatestPublishedVersion.get -> int?
+BlazeForms.FormSubmissionView.LatestPublishedVersion.set -> void
+BlazeForms.FormSubmissionView.Version.get -> BlazeForms.Versioning.FormVersion!
+BlazeForms.FormSubmissionView.Version.set -> void
 BlazeForms.Components.ErrorSummary
 BlazeForms.Components.ErrorSummary.Entries.get -> System.Collections.Generic.IReadOnlyList<BlazeForms.Components.ErrorSummaryEntry>!
 BlazeForms.Components.ErrorSummary.Entries.set -> void
@@ -111,6 +120,7 @@ override BlazeForms.Components.ErrorSummaryEntry.GetHashCode() -> int
 override BlazeForms.FormRenderer.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
 override BlazeForms.FormRenderer.OnInitialized() -> void
 override BlazeForms.FormRenderer.OnParametersSet() -> void
+override BlazeForms.FormSubmissionView.OnParametersSet() -> void
 static BlazeForms.Components.ErrorSummaryEntry.operator !=(BlazeForms.Components.ErrorSummaryEntry left, BlazeForms.Components.ErrorSummaryEntry right) -> bool
 static BlazeForms.Components.ErrorSummaryEntry.operator ==(BlazeForms.Components.ErrorSummaryEntry left, BlazeForms.Components.ErrorSummaryEntry right) -> bool
 override BlazeForms.Fields.NumberField.CaptureValueSnapshot() -> void
@@ -142,6 +152,7 @@ override BlazeForms.Fields.YesNoField.ShouldRender() -> bool
 ~override BlazeForms.Fields.DividerBlock.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Fields.EmailField.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.FormRenderer.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
+~override BlazeForms.FormSubmissionView.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Fields.HeadingBlock.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Fields.NumberField.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Fields.ParagraphBlock.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void

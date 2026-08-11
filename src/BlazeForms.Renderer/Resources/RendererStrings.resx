@@ -133,4 +133,34 @@
   <data name="DateRangeEndLabel" xml:space="preserve">
     <value>End date</value>
   </data>
+
+  <!-- FormSubmissionView chrome (PRD §4.3). -->
+  <data name="SubmissionNotApplicable" xml:space="preserve">
+    <value>Not applicable — hidden by logic at fill time</value>
+  </data>
+  <data name="SubmissionEmptyValue" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="SubmissionBooleanYes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="SubmissionBooleanNo" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="SubmissionExportButtonLabel" xml:space="preserve">
+    <value>Download JSON</value>
+  </data>
+  <data name="SubmissionSupersededHeading" xml:space="preserve">
+    <value>This submission is out of date</value>
+  </data>
+  <data name="SubmissionSupersededBody" xml:space="preserve">
+    <value>A newer version of this form (v{0}) has been published since this submission was captured against v{1}.</value>
+  </data>
+  <!-- Fallback page heading when a captured FormPage.Title is null, the same positional
+       fallback FormRenderer's own progress list uses, but localized here since this is new
+       code (FormRenderer's copy predates RendererLocalization.Shared adoption for this string
+       and is out of this fix's scope). -->
+  <data name="SubmissionPageFallbackTitle" xml:space="preserve">
+    <value>Page {0}</value>
+  </data>
 </root>
