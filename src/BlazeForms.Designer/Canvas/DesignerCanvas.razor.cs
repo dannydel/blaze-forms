@@ -280,6 +280,17 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
     private bool IsFocusPending(string nodeId) => string.Equals(_pendingFocusNodeId, nodeId, StringComparison.Ordinal);
 
     /// <summary>
+    /// The plain-language description of <paramref name="node"/>'s own
+    /// <see cref="FormNode.VisibleWhen"/> for its own row's logic-summary chip -- resolved here,
+    /// from the full <see cref="EditContext"/>'s definition, rather than inside
+    /// <see cref="CanvasNodeRow"/> itself, so that leaf row never needs more than its own node to
+    /// render (PRD §4.1). <see langword="null"/> when the node carries no rule at all, matching
+    /// <see cref="CanvasNodeRow"/>'s own chip gate.
+    /// </summary>
+    private string? GetLogicSummary(FormNode node) =>
+        node.VisibleWhen is null ? null : VisibilitySummaryFormatter.Format(node, EditContext.Draft.Definition);
+
+    /// <summary>
     /// Returns the same cached <see cref="EventCallback"/> for a given node on every call, the
     /// same reason <c>FormRenderer.GetValueChangedCallback</c> caches its own per-node callbacks.
     /// </summary>

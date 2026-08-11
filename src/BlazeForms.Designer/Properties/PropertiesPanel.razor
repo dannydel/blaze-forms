@@ -1,6 +1,10 @@
+@using BlazeForms.Designer.Internal
 @if (SelectedNode is null)
 {
-    <p class="bf-props__empty">@Localizer["PropertiesPlaceholderText"].Value</p>
+    <div class="bf-props__empty">
+        <p class="bf-props__empty-text">@Localizer["PropertiesPlaceholderText"].Value</p>
+        <ValidationRuleEditor EditContext="EditContext" />
+    </div>
 }
 else
 {
@@ -144,19 +148,24 @@ else
         <div class="bf-props__field bf-props__visibility">
             <span class="bf-props__label" id="@IdFor(node, "visibility-label")">@Localizer["PropVisibilityLabel"].Value</span>
             <p aria-labelledby="@IdFor(node, "visibility-label")" class="bf-props__visibility-summary">
-                @(node.VisibleWhen is null ? Localizer["PropVisibilityAlwaysVisible"].Value : Localizer["PropVisibilityHasRule"].Value)
+                @(node.VisibleWhen is null ? Localizer["PropVisibilityAlwaysVisible"].Value : VisibilitySummaryFormatter.Format(node, EditContext.Draft.Definition))
             </p>
             <div class="bf-props__visibility-actions">
                 @if (node.VisibleWhen is null)
                 {
-                    <button type="button" class="bf-props__button" @onclick="OnVisibilityRuleButtonClicked">@Localizer["PropVisibilityAddRuleButton"].Value</button>
+                    <button type="button" @ref="_visibilityActionElement" class="bf-props__button" @onclick="@(() => OpenVisibilityRuleEditor(node.Id))">@Localizer["PropVisibilityAddRuleButton"].Value</button>
                 }
                 else
                 {
-                    <button type="button" class="bf-props__button" @onclick="OnVisibilityRuleButtonClicked">@Localizer["PropVisibilityEditRuleButton"].Value</button>
-                    <button type="button" class="bf-props__button" @onclick="OnVisibilityRuleButtonClicked">@Localizer["PropVisibilityRemoveRuleButton"].Value</button>
+                    <button type="button" @ref="_visibilityActionElement" class="bf-props__button" @onclick="@(() => OpenVisibilityRuleEditor(node.Id))">@Localizer["PropVisibilityEditRuleButton"].Value</button>
+                    <button type="button" class="bf-props__button" @onclick="@(() => RemoveVisibilityRule(node))">@Localizer["PropVisibilityRemoveRuleButton"].Value</button>
                 }
             </div>
         </div>
     </div>
+
+    @if (_visibilityRuleEditorNodeId is not null)
+    {
+        <VisibilityRuleEditor EditContext="EditContext" NodeId="@_visibilityRuleEditorNodeId" OnClosed="CloseVisibilityRuleEditor" />
+    }
 }

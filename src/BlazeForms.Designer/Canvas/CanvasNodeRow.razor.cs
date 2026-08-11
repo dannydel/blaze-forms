@@ -65,6 +65,7 @@ public partial class CanvasNodeRow : ComponentBase
     private FormNode? _previousNode;
     private bool _previousIsActive;
     private bool _previousIsSelected;
+    private string? _previousLogicSummary;
     private bool _focusOnNextRender;
 
     /// <summary>
@@ -100,6 +101,17 @@ public partial class CanvasNodeRow : ComponentBase
     /// </summary>
     [Parameter]
     public bool RequestFocus { get; set; }
+
+    /// <summary>
+    /// The plain-language description of <see cref="Node"/>'s own <see cref="FormNode.VisibleWhen"/>
+    /// (e.g. "Shown when Status is 'Active'."), resolved by <see cref="DesignerCanvas"/> from the
+    /// whole definition it already has in scope -- this row shows whatever it is given verbatim,
+    /// never resolving another node's label itself. <see langword="null"/> falls back to the
+    /// generic <c>RowVisibilityRuleChip</c> text, which a test that renders this row in isolation
+    /// (with no reason to exercise the real summary) relies on.
+    /// </summary>
+    [Parameter]
+    public string? LogicSummary { get; set; }
 
     /// <summary>
     /// Raised when this row is clicked. <see cref="DesignerCanvas"/> is the only intended
@@ -164,6 +176,7 @@ public partial class CanvasNodeRow : ComponentBase
         _previousNode = Node;
         _previousIsActive = IsActive;
         _previousIsSelected = IsSelected;
+        _previousLogicSummary = LogicSummary;
     }
 
     /// <inheritdoc/>
@@ -172,10 +185,12 @@ public partial class CanvasNodeRow : ComponentBase
         var changed = !ReferenceEquals(_previousNode, Node)
             || _previousIsActive != IsActive
             || _previousIsSelected != IsSelected
+            || !string.Equals(_previousLogicSummary, LogicSummary, StringComparison.Ordinal)
             || RequestFocus;
         _previousNode = Node;
         _previousIsActive = IsActive;
         _previousIsSelected = IsSelected;
+        _previousLogicSummary = LogicSummary;
         return changed;
     }
 

@@ -1,0 +1,89 @@
+<section class="bf-validation-rules" aria-labelledby="@HeadingId">
+    <h2 id="@HeadingId" class="bf-validation-rules__heading">@Localizer["ValidationRuleEditorHeading"].Value</h2>
+
+    @if (Rules.Count == 0)
+    {
+        <p class="bf-validation-rules__empty">@Localizer["ValidationRuleEmptyText"].Value</p>
+    }
+    else
+    {
+        @for (var i = 0; i < Rules.Count; i++)
+        {
+            var index = i;
+            var rule = Rules[index];
+            var rowNumber = index + 1;
+            var refs = RuleRefsFor(index);
+
+            <div class="bf-validation-rules__rule" @key="index">
+                <div class="bf-validation-rules__field">
+                    <label class="bf-validation-rules__label" for="@TargetId(index)">@Localizer["ValidationRuleTargetLabel", rowNumber].Value</label>
+                    <select @ref="refs.TargetSelect"
+                            id="@TargetId(index)"
+                            class="bf-validation-rules__input"
+                            @bind:get="rule.Target"
+                            @bind:set="@(value => CommitTargetAsync(index, value))">
+                        @foreach (var field in InputFields)
+                        {
+                            <option value="@field.Id">@FieldLabel(field)</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="bf-validation-rules__field">
+                    <label class="bf-validation-rules__label" for="@MessageId(index)">
+                        @Localizer["ValidationRuleMessageLabel", rowNumber].Value
+                        <span class="bf-validation-rules__hint">@Localizer["ValidationRuleMessageHint"].Value</span>
+                    </label>
+                    <textarea id="@MessageId(index)"
+                              class="bf-validation-rules__input bf-validation-rules__input--textarea"
+                              @bind:get="rule.Message"
+                              @bind:set="@(value => CommitMessageAsync(index, value))" />
+                </div>
+
+                <fieldset class="bf-validation-rules__join">
+                    <legend class="bf-validation-rules__legend">@Localizer["RuleJoinLabel"].Value</legend>
+                    <label class="bf-validation-rules__radio">
+                        <input type="radio"
+                               name="@JoinGroupName(index)"
+                               value="all"
+                               checked="@(rule.Expression.Join == ConditionJoin.All)"
+                               @onchange="@(() => CommitJoin(index, ConditionJoin.All))" />
+                        @Localizer["RuleJoinAllOption"].Value
+                    </label>
+                    <label class="bf-validation-rules__radio">
+                        <input type="radio"
+                               name="@JoinGroupName(index)"
+                               value="any"
+                               checked="@(rule.Expression.Join == ConditionJoin.Any)"
+                               @onchange="@(() => CommitJoin(index, ConditionJoin.Any))" />
+                        @Localizer["RuleJoinAnyOption"].Value
+                    </label>
+                </fieldset>
+
+                <div class="bf-validation-rules__rows">
+                    @for (var c = 0; c < rule.Expression.Conditions.Count; c++)
+                    {
+                        var conditionIndex = c;
+                        <ConditionRow @key="conditionIndex"
+                                      Condition="rule.Expression.Conditions[conditionIndex]"
+                                      Fields="InputFields"
+                                      RowNumber="conditionIndex + 1"
+                                      ConditionChanged="@(condition => CommitCondition(index, conditionIndex, condition))"
+                                      OnRemove="@(() => RemoveCondition(index, conditionIndex))"
+                                      RequestFocus="@(_focusConditionCoordinate is { } focus && focus.RuleIndex == index && focus.ConditionIndex == conditionIndex)" />
+                    }
+                </div>
+
+                <div class="bf-validation-rules__rule-actions">
+                    <button type="button" @ref="refs.AddConditionButton" class="bf-validation-rules__button" @onclick="@(() => AddCondition(index))">@Localizer["RuleAddConditionButton"].Value</button>
+                    <button type="button"
+                            class="bf-validation-rules__button bf-validation-rules__remove-button"
+                            aria-label="@Localizer["ValidationRuleRemoveButton", rowNumber].Value"
+                            @onclick="@(() => RemoveRule(index))">@Localizer["ValidationRuleRemoveText"].Value</button>
+                </div>
+            </div>
+        }
+    }
+
+    <button type="button" @ref="_addRuleButtonElement" class="bf-validation-rules__add-button" @onclick="AddRule">@Localizer["ValidationRuleAddButton"].Value</button>
+</section>

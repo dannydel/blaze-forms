@@ -31,14 +31,37 @@ public sealed class PropertiesPanelTests : DesignerTestContext
         context.Select(DesignerSelection.ForNode(nodeId, pageId, sectionId, DesignerFocusIntent.None));
 
     [Fact]
-    public async Task NoSelectionShowsTheAccessibleEmptyState()
+    public async Task NoSelectionShowsTheAccessibleEmptyStateWithTheFormValidationRuleEditor()
     {
         await using var context = CreateContext(DesignerTestFixtures.OneFieldDefinition("form-1"));
         var cut = Render<PropertiesPanel>(p => p.Add(f => f.EditContext, context));
 
         Assert.Equal(DesignerSelection.None, context.Selection);
-        Assert.NotEmpty(cut.Find("p.bf-props__empty").TextContent);
+        Assert.NotEmpty(cut.Find("p.bf-props__empty-text").TextContent);
         Assert.Empty(cut.FindAll("div.bf-props"));
+        Assert.NotEmpty(cut.FindAll("section.bf-validation-rules"));
+    }
+
+    [Fact]
+    public async Task NoSelectionAddingAValidationRuleWritesItThroughSetValidationRules()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.TwoSectionDefinition("form-1"));
+        var cut = Render<PropertiesPanel>(p => p.Add(f => f.EditContext, context));
+
+        await cut.Find("button.bf-validation-rules__add-button").ClickAsync(new MouseEventArgs());
+
+        Assert.Single(context.Draft.Definition.ValidationRules);
+    }
+
+    [Fact]
+    public async Task SelectingANodeShowsThePropertyEditorNotTheFormValidationRuleEditor()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.OneFieldDefinition("form-1"));
+        Select(context, "first-name");
+        var cut = Render<PropertiesPanel>(p => p.Add(f => f.EditContext, context));
+
+        Assert.NotEmpty(cut.FindAll("div.bf-props"));
+        Assert.Empty(cut.FindAll("section.bf-validation-rules"));
     }
 
     [Fact]
@@ -286,27 +309,57 @@ public sealed class PropertiesPanelTests : DesignerTestContext
     }
 
     [Fact]
-    public async Task VisibilityShowsHasARuleWithEditAndRemoveButtonsWhenARuleExists()
+    public async Task VisibilityShowsTheRichSummaryWithEditAndRemoveButtonsWhenARuleExists()
     {
         await using var context = CreateContext(DesignerTestFixtures.RichNodeDefinition("form-1"));
         Select(context, "node-rich");
         var cut = Render<PropertiesPanel>(p => p.Add(f => f.EditContext, context));
 
-        Assert.Contains("Has a visibility rule", cut.Find("p.bf-props__visibility-summary").TextContent, StringComparison.Ordinal);
+        // The same rich, field-and-value-resolved summary the canvas chip shows via
+        // VisibilitySummaryFormatter -- not the old generic "Has a visibility rule." placeholder.
+        Assert.Contains("Shown when Employer name is 'x'.", cut.Find("p.bf-props__visibility-summary").TextContent, StringComparison.Ordinal);
         Assert.Equal(2, cut.FindAll("div.bf-props__visibility-actions button").Count);
     }
 
     [Fact]
-    public async Task ClickingAVisibilityRuleButtonIsANoOpStubThatNeverMutatesTheNode()
+    public async Task ClickingAddRuleOpensTheVisibilityRuleEditor()
     {
         await using var context = CreateContext(DesignerTestFixtures.OneFieldDefinition("form-1"));
         Select(context, "first-name");
         var cut = Render<PropertiesPanel>(p => p.Add(f => f.EditContext, context));
 
-        var before = context.Draft.Definition;
         await cut.Find("div.bf-props__visibility-actions button").ClickAsync(new MouseEventArgs());
 
-        Assert.Same(before, context.Draft.Definition);
+        Assert.NotEmpty(cut.FindAll("div.bf-visibility-dialog"));
+        Assert.Null(context.Draft.Definition.FindNode("first-name")!.VisibleWhen);
+    }
+
+    [Fact]
+    public async Task ClickingEditRuleOpensTheVisibilityRuleEditorForTheExistingRule()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.RichNodeDefinition("form-1"));
+        Select(context, "node-rich");
+        var cut = Render<PropertiesPanel>(p => p.Add(f => f.EditContext, context));
+
+        var editButtons = cut.FindAll("div.bf-props__visibility-actions button");
+        await editButtons[0].ClickAsync(new MouseEventArgs());
+
+        var dialog = cut.Find("div.bf-visibility-dialog");
+        Assert.Contains("node-rich", dialog.OuterHtml, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ClickingRemoveRuleClearsItDirectlyWithoutOpeningTheEditor()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.RichNodeDefinition("form-1"));
+        Select(context, "node-rich");
+        var cut = Render<PropertiesPanel>(p => p.Add(f => f.EditContext, context));
+
+        var removeButtons = cut.FindAll("div.bf-props__visibility-actions button");
+        await removeButtons[1].ClickAsync(new MouseEventArgs());
+
+        Assert.Empty(cut.FindAll("div.bf-visibility-dialog"));
+        Assert.Null(context.Draft.Definition.FindNode("node-rich")!.VisibleWhen);
     }
 
     [Fact]

@@ -287,6 +287,142 @@
     <value>Has visibility rule</value>
   </data>
 
+  <!-- VisibilitySummaryFormatter (Phase 6, PRD §4.1, §6): the logic-summary chip's and the
+       properties panel's plain-language rule descriptions. {0}/{1}/{2} in LogicSummaryWithValue
+       are the field's own label, the operator phrase, and the value (an option's label for a
+       choice field, its raw stored value otherwise); {0}/{1} in LogicSummaryNoValue omit the
+       value entirely, for the four operators that take none; {0} in LogicSummaryAllOfN/AnyOfN is
+       the condition count once a rule has more than one clause. -->
+  <data name="LogicSummaryWithValue" xml:space="preserve">
+    <value>Shown when {0} {1} '{2}'.</value>
+  </data>
+  <data name="LogicSummaryNoValue" xml:space="preserve">
+    <value>Shown when {0} {1}.</value>
+  </data>
+  <data name="LogicSummaryAllOfN" xml:space="preserve">
+    <value>Shown when all of {0} conditions.</value>
+  </data>
+  <data name="LogicSummaryAnyOfN" xml:space="preserve">
+    <value>Shown when any of {0} conditions.</value>
+  </data>
+  <data name="LogicSummaryAlwaysShown" xml:space="preserve">
+    <value>Shown.</value>
+  </data>
+  <data name="LogicSummaryNeverShown" xml:space="preserve">
+    <value>Never shown.</value>
+  </data>
+
+  <!-- ConditionRow (Phase 6, PRD §6, D8's Model A): the nine operators' plain-language phrases,
+       shared by ConditionRow's own operator select and VisibilitySummaryFormatter's rule
+       descriptions — keyed as "ConditionOperator" + the ConditionOperator enum member name, the
+       same convention NodeType{Type} already uses. -->
+  <data name="ConditionOperatorIs" xml:space="preserve">
+    <value>is</value>
+  </data>
+  <data name="ConditionOperatorIsNot" xml:space="preserve">
+    <value>is not</value>
+  </data>
+  <data name="ConditionOperatorIsTrue" xml:space="preserve">
+    <value>is true</value>
+  </data>
+  <data name="ConditionOperatorIsFalse" xml:space="preserve">
+    <value>is false</value>
+  </data>
+  <data name="ConditionOperatorIsBlank" xml:space="preserve">
+    <value>is blank</value>
+  </data>
+  <data name="ConditionOperatorIsNotBlank" xml:space="preserve">
+    <value>is not blank</value>
+  </data>
+  <data name="ConditionOperatorGreaterThan" xml:space="preserve">
+    <value>is greater than</value>
+  </data>
+  <data name="ConditionOperatorLessThan" xml:space="preserve">
+    <value>is less than</value>
+  </data>
+  <data name="ConditionOperatorContains" xml:space="preserve">
+    <value>contains</value>
+  </data>
+
+  <!-- ConditionRow's own three separately labelled controls (PRD §6, D8's Model A) — {0} in each
+       is the row's own one-based ordinal, the same "name every row's own controls by number" idiom
+       OptionsEditor's PropOptionsRowLabel already uses. -->
+  <data name="ConditionRowFieldLabel" xml:space="preserve">
+    <value>Condition {0} field</value>
+  </data>
+  <data name="ConditionRowOperatorLabel" xml:space="preserve">
+    <value>Condition {0} operator</value>
+  </data>
+  <data name="ConditionRowValueLabel" xml:space="preserve">
+    <value>Condition {0} value</value>
+  </data>
+  <data name="ConditionRowRemoveButton" xml:space="preserve">
+    <value>Remove condition {0}</value>
+  </data>
+  <data name="ConditionRowRemoveText" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+
+  <!-- Shared by VisibilityRuleEditor's and each ValidationRuleEditor rule's own All/Any toggle
+       and "add condition" button (PRD §6, D8's Model A). -->
+  <data name="RuleJoinLabel" xml:space="preserve">
+    <value>Match</value>
+  </data>
+  <data name="RuleJoinAllOption" xml:space="preserve">
+    <value>All conditions</value>
+  </data>
+  <data name="RuleJoinAnyOption" xml:space="preserve">
+    <value>Any condition</value>
+  </data>
+  <data name="RuleAddConditionButton" xml:space="preserve">
+    <value>Add condition</value>
+  </data>
+
+  <!-- VisibilityRuleEditor (Phase 6, PRD §4.1, §6): the focus-trapped dialog that edits a node's
+       own VisibleWhen. {0} in VisibilityRuleEditorTitle is the node's own label (or its
+       UntitledNodeLabel fallback); {0} in VisibilityRuleCycleRejected is the named cycle path,
+       already arrow-joined into one string. -->
+  <data name="VisibilityRuleEditorTitle" xml:space="preserve">
+    <value>Edit visibility rule for '{0}'</value>
+  </data>
+  <data name="VisibilityRuleApplyButton" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="VisibilityRuleCancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="VisibilityRuleCycleRejected" xml:space="preserve">
+    <value>This rule would create a cycle: {0}. Choose a different field.</value>
+  </data>
+
+  <!-- ValidationRuleEditor (Phase 6, PRD §4.1, §6): the form-wide cross-field validation rule
+       list. {0} in ValidationRuleTargetLabel/MessageLabel/RemoveButton is the rule's own one-based
+       ordinal among ValidationRules. -->
+  <data name="ValidationRuleEditorHeading" xml:space="preserve">
+    <value>Validation rules</value>
+  </data>
+  <data name="ValidationRuleEmptyText" xml:space="preserve">
+    <value>No validation rules yet.</value>
+  </data>
+  <data name="ValidationRuleTargetLabel" xml:space="preserve">
+    <value>Rule {0} target field</value>
+  </data>
+  <data name="ValidationRuleMessageLabel" xml:space="preserve">
+    <value>Rule {0} message</value>
+  </data>
+  <data name="ValidationRuleMessageHint" xml:space="preserve">
+    <value>State the fix, not just the problem (e.g. "Enter a value for 'Email'.").</value>
+  </data>
+  <data name="ValidationRuleAddButton" xml:space="preserve">
+    <value>Add rule</value>
+  </data>
+  <data name="ValidationRuleRemoveButton" xml:space="preserve">
+    <value>Remove rule {0}</value>
+  </data>
+  <data name="ValidationRuleRemoveText" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+
   <!-- PageTabStrip (Phase 3, PRD §4.1): the page tablist and its add-page/add-section/empty-page
        affordances. -->
   <data name="PageTabStripLabel" xml:space="preserve">
@@ -360,9 +496,6 @@
   </data>
   <data name="PropVisibilityAlwaysVisible" xml:space="preserve">
     <value>Always visible.</value>
-  </data>
-  <data name="PropVisibilityHasRule" xml:space="preserve">
-    <value>Has a visibility rule.</value>
   </data>
   <data name="PropVisibilityAddRuleButton" xml:space="preserve">
     <value>Add rule</value>

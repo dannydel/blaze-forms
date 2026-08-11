@@ -2,8 +2,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using BlazeForms.Definitions;
 using BlazeForms.Designer;
+using BlazeForms.Designer.Internal;
 using BlazeForms.Internal;
 using BlazeForms.Resources;
+using BlazeForms.Rules;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Localization;
 
@@ -61,7 +63,10 @@ public partial class PropertiesPanel : ComponentBase, IAsyncDisposable
     private DesignerEditContext? _subscribedContext;
     private string? _lastFocusedNodeId;
     private bool _focusLabelOnNextRender;
+    private bool _focusVisibilityActionOnNextRender;
     private ElementReference _labelElement;
+    private ElementReference _visibilityActionElement;
+    private string? _visibilityRuleEditorNodeId;
     private bool _disposed;
 
     /// <summary>
@@ -117,6 +122,12 @@ public partial class PropertiesPanel : ComponentBase, IAsyncDisposable
         {
             _focusLabelOnNextRender = false;
             await _labelElement.FocusAsync();
+        }
+
+        if (_focusVisibilityActionOnNextRender)
+        {
+            _focusVisibilityActionOnNextRender = false;
+            await _visibilityActionElement.FocusAsync();
         }
     }
 
@@ -229,17 +240,32 @@ public partial class PropertiesPanel : ComponentBase, IAsyncDisposable
         EditContext.UpdateNode(node with { Options = options });
 
     /// <summary>
-    /// The Phase 4 stub for the visibility-rule summary's add/edit/remove buttons — every one of
-    /// them wires here rather than to a real rule editor, which is Phase 6's own scope (PRD §6).
-    /// Deliberately does nothing: this panel neither owns a rule editor UI to open nor should it
-    /// reach into <see cref="DesignerEditContext.UpdateNode"/> to clear or replace
-    /// <see cref="FormNode.VisibleWhen"/> on its own, since a real remove is expected to gain the
-    /// same reference-aware warning <see cref="DesignerEditContext.DeleteNode"/> gives a node
-    /// delete once Phase 6 lands.
+    /// Opens <see cref="VisibilityRuleEditor"/> for <paramref name="nodeId"/> -- the Add and Edit
+    /// rule buttons' shared path (PRD §4.1, §6). A fresh instance mounts for every open, the same
+    /// "a fresh instance every open" pattern <c>MoveToPositionDialog</c>'s own remarks explain, so
+    /// its own working state always starts from whatever rule (or absence of one) is current when
+    /// the button is pressed.
     /// </summary>
-    private static void OnVisibilityRuleButtonClicked()
+    private void OpenVisibilityRuleEditor(string nodeId) => _visibilityRuleEditorNodeId = nodeId;
+
+    /// <summary>
+    /// Closes <see cref="VisibilityRuleEditor"/> -- after a successful apply or a cancel -- and
+    /// re-requests focus for whichever visibility action button now renders (Add once the rule was
+    /// cleared or never existed, Edit once one does), mirroring
+    /// <c>Canvas.DesignerCanvas.CloseMoveDialog</c>'s own post-close focus return.
+    /// </summary>
+    private void CloseVisibilityRuleEditor()
     {
+        _visibilityRuleEditorNodeId = null;
+        _focusVisibilityActionOnNextRender = true;
     }
+
+    /// <summary>
+    /// Clears a node's own visibility rule directly -- the Remove button's path. Never opens
+    /// <see cref="VisibilityRuleEditor"/>: removing a rule can never introduce the cycle that
+    /// dialog's own Apply step guards against, so there is nothing here for it to gate.
+    /// </summary>
+    private void RemoveVisibilityRule(FormNode node) => EditContext.UpdateNode(node with { VisibleWhen = null });
 
     private static string? NormalizeToNull(object? value)
     {

@@ -23,7 +23,7 @@
         }
         @if (Node.VisibleWhen is not null)
         {
-            <span class="bf-canvas-row__chip bf-canvas-row__chip--logic">@Localizer["RowVisibilityRuleChip"].Value</span>
+            <span class="bf-canvas-row__chip bf-canvas-row__chip--logic">@(LogicSummary ?? Localizer["RowVisibilityRuleChip"].Value)</span>
         }
     </div>
     @if (HasHelp)

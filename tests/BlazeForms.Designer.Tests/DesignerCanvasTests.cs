@@ -1,5 +1,6 @@
 using BlazeForms.Canvas;
 using BlazeForms.Definitions;
+using BlazeForms.Expressions;
 using BlazeForms.Hosting;
 using BlazeForms.Hosting.InMemory;
 using BlazeForms.Versioning;
@@ -52,7 +53,7 @@ public sealed class DesignerCanvasTests : DesignerTestContext
             .ToArray();
         Assert.Contains("Required", chipTexts);
         Assert.Contains("Half width", chipTexts);
-        Assert.Contains("Has visibility rule", chipTexts);
+        Assert.Contains("Shown when Employer name is 'x'.", chipTexts);
     }
 
     [Fact]
@@ -61,12 +62,36 @@ public sealed class DesignerCanvasTests : DesignerTestContext
         await using var context = CreateContext(DesignerTestFixtures.OneFieldDefinition("form-1"));
         var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
 
+        Assert.Empty(cut.Find("div.bf-canvas-row").QuerySelectorAll("span.bf-canvas-row__chip--logic"));
         var chipTexts = cut.Find("div.bf-canvas-row").QuerySelectorAll("span.bf-canvas-row__chip")
             .Select(c => c.TextContent)
             .ToArray();
-        Assert.DoesNotContain("Has visibility rule", chipTexts);
         Assert.DoesNotContain("Required", chipTexts);
         Assert.DoesNotContain("Half width", chipTexts);
+    }
+
+    [Fact]
+    public async Task LogicSummaryChipDescribesAMultiConditionRuleByCountAndJoin()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.TwoSectionDefinition("form-1"));
+        context.UpdateNode(context.Draft.Definition.FindNode("node-b")! with
+        {
+            VisibleWhen = new ConditionGroup
+            {
+                Join = ConditionJoin.Any,
+                Conditions =
+                [
+                    new Condition { Field = "node-a", Operator = ConditionOperator.IsNotBlank },
+                    new Condition { Field = "node-c", Operator = ConditionOperator.IsNotBlank },
+                ],
+            },
+        });
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+
+        var chipTexts = cut.FindAll("div.bf-canvas-row")[1].QuerySelectorAll("span.bf-canvas-row__chip")
+            .Select(c => c.TextContent)
+            .ToArray();
+        Assert.Contains("Shown when any of 2 conditions.", chipTexts);
     }
 
     [Fact]

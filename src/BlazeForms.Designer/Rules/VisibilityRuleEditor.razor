@@ -1,0 +1,59 @@
+<div class="bf-visibility-dialog-backdrop">
+    <div class="bf-visibility-dialog"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="@TitleId"
+         @ref="_dialogElement"
+         @onkeydown="OnDialogKeyDown">
+        <h2 id="@TitleId" class="bf-visibility-dialog__title">@Localizer["VisibilityRuleEditorTitle", NodeLabel].Value</h2>
+
+        @if (_cyclePath is { Count: > 0 } cyclePath)
+        {
+            <div role="alert" tabindex="-1" @ref="_alertElement" class="bf-visibility-dialog__alert">
+                @Localizer["VisibilityRuleCycleRejected", CyclePathText(cyclePath)].Value
+            </div>
+        }
+
+        <fieldset class="bf-visibility-dialog__join">
+            <legend class="bf-visibility-dialog__legend">@Localizer["RuleJoinLabel"].Value</legend>
+            <label class="bf-visibility-dialog__radio">
+                <input @ref="_firstFocusElement"
+                       type="radio"
+                       name="@JoinGroupName"
+                       value="all"
+                       checked="@(_join == ConditionJoin.All)"
+                       @onchange="@(() => _join = ConditionJoin.All)" />
+                @Localizer["RuleJoinAllOption"].Value
+            </label>
+            <label class="bf-visibility-dialog__radio">
+                <input type="radio"
+                       name="@JoinGroupName"
+                       value="any"
+                       checked="@(_join == ConditionJoin.Any)"
+                       @onchange="@(() => _join = ConditionJoin.Any)" />
+                @Localizer["RuleJoinAnyOption"].Value
+            </label>
+        </fieldset>
+
+        <div class="bf-visibility-dialog__rows">
+            @for (var i = 0; i < _conditions.Count; i++)
+            {
+                var index = i;
+                <ConditionRow @key="index"
+                              Condition="_conditions[index]"
+                              Fields="_fields"
+                              RowNumber="index + 1"
+                              ConditionChanged="@(c => UpdateCondition(index, c))"
+                              OnRemove="@(() => RemoveCondition(index))"
+                              RequestFocus="@(_focusConditionIndex == index)" />
+            }
+        </div>
+
+        <button type="button" @ref="_addButtonElement" class="bf-visibility-dialog__add-button" @onclick="AddCondition">@Localizer["RuleAddConditionButton"].Value</button>
+
+        <div class="bf-visibility-dialog__actions">
+            <button type="button" class="bf-visibility-dialog__button bf-visibility-dialog__button--primary" @onclick="ApplyAsync">@Localizer["VisibilityRuleApplyButton"].Value</button>
+            <button type="button" class="bf-visibility-dialog__button" @onclick="CancelAsync">@Localizer["VisibilityRuleCancelButton"].Value</button>
+        </div>
+    </div>
+</div>

@@ -1,27 +1,35 @@
-.bf-props {
+.bf-validation-rules {
     display: flex;
     flex-direction: column;
     gap: var(--bf-space-4);
 }
 
-.bf-props__empty {
-    display: flex;
-    flex-direction: column;
-    gap: var(--bf-space-4);
+.bf-validation-rules__heading {
+    margin: 0;
+    font-size: var(--bf-font-size-lg);
 }
 
-.bf-props__empty-text {
+.bf-validation-rules__empty {
     margin: 0;
     color: var(--bf-color-muted);
 }
 
-.bf-props__field {
+.bf-validation-rules__rule {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-3);
+    padding: var(--bf-space-4);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-md);
+}
+
+.bf-validation-rules__field {
     display: flex;
     flex-direction: column;
     gap: var(--bf-space-1);
 }
 
-.bf-props__label {
+.bf-validation-rules__label {
     display: flex;
     align-items: center;
     gap: var(--bf-space-2);
@@ -29,7 +37,7 @@
     font-weight: 600;
 }
 
-.bf-props__markdown-hint {
+.bf-validation-rules__hint {
     padding-inline: var(--bf-space-2);
     padding-block: 0;
     border-radius: var(--bf-radius-sm);
@@ -37,10 +45,9 @@
     color: var(--bf-color-muted);
     font-size: var(--bf-font-size-sm);
     font-weight: 400;
-    text-transform: none;
 }
 
-.bf-props__input {
+.bf-validation-rules__input {
     min-block-size: var(--bf-touch-target);
     padding-inline: var(--bf-space-3);
     padding-block: var(--bf-space-2);
@@ -51,61 +58,53 @@
     font: inherit;
 }
 
-.bf-props__input--textarea {
+.bf-validation-rules__input--textarea {
     min-block-size: calc(var(--bf-touch-target) * 2);
     resize: vertical;
 }
 
-/* The field ID display is a genuinely non-editable control (AGENTS.md invariant #5) -- styled
- * distinctly so it never reads as an ordinary, author-editable input. */
-.bf-props__input--readonly {
-    background-color: var(--bf-color-surface);
-    color: var(--bf-color-muted);
-    cursor: default;
-}
-
-.bf-props__input:focus-visible {
+.bf-validation-rules__input:focus-visible {
     outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
     outline-offset: var(--bf-focus-ring-offset);
 }
 
-.bf-props__warning {
+.bf-validation-rules__join {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--bf-space-4);
     margin: 0;
-    color: var(--bf-color-danger);
-    font-size: var(--bf-font-size-sm);
+    padding: var(--bf-space-3);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
 }
 
-.bf-props__checkbox-row {
+.bf-validation-rules__legend {
+    padding-inline: var(--bf-space-1);
+    font-size: var(--bf-font-size-sm);
+    font-weight: 600;
+}
+
+.bf-validation-rules__radio {
     display: flex;
     align-items: center;
     gap: var(--bf-space-2);
     min-block-size: var(--bf-touch-target);
 }
 
-.bf-props__checkbox-row input[type="checkbox"] {
-    inline-size: var(--bf-space-5);
-    block-size: var(--bf-space-5);
-    accent-color: var(--bf-color-primary);
-    flex-shrink: 0;
-}
-
-.bf-props__checkbox-row input:focus-visible {
-    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
-    outline-offset: var(--bf-focus-ring-offset);
-}
-
-.bf-props__visibility-summary {
-    margin: 0;
-    color: var(--bf-color-muted);
-    font-size: var(--bf-font-size-sm);
-}
-
-.bf-props__visibility-actions {
+.bf-validation-rules__rows {
     display: flex;
+    flex-direction: column;
     gap: var(--bf-space-2);
 }
 
-.bf-props__button {
+.bf-validation-rules__rule-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--bf-space-2);
+}
+
+.bf-validation-rules__button {
     min-block-size: var(--bf-touch-target);
     padding-inline: var(--bf-space-3);
     border: var(--bf-border-width) solid var(--bf-color-border);
@@ -116,11 +115,36 @@
     cursor: pointer;
 }
 
-.bf-props__button:hover {
+.bf-validation-rules__button:hover {
     border-color: var(--bf-color-primary);
 }
 
-.bf-props__button:focus-visible {
+.bf-validation-rules__button:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}
+
+.bf-validation-rules__remove-button:hover {
+    border-color: var(--bf-color-danger);
+}
+
+.bf-validation-rules__add-button {
+    align-self: flex-start;
+    min-block-size: var(--bf-touch-target);
+    padding-inline: var(--bf-space-3);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+    background-color: var(--bf-color-bg);
+    color: var(--bf-color-text);
+    font: inherit;
+    cursor: pointer;
+}
+
+.bf-validation-rules__add-button:hover {
+    border-color: var(--bf-color-primary);
+}
+
+.bf-validation-rules__add-button:focus-visible {
     outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
     outline-offset: var(--bf-focus-ring-offset);
 }
