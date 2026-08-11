@@ -1,4 +1,5 @@
 using BlazeForms.Definitions;
+using BlazeForms.Expressions;
 
 namespace BlazeForms.Designer.Tests;
 
@@ -69,6 +70,75 @@ internal static class DesignerTestFixtures
                         Id = "section-2",
                         Title = "Housing",
                         Nodes = [new FormNode { Id = "node-d", Type = NodeType.Text, Label = "Field D" }],
+                    },
+                ],
+            },
+        ],
+    };
+
+    /// <summary>
+    /// One page, one section, one node exercising every optional flag <c>CanvasNodeRow</c> shows
+    /// a chip or rendered content for: required, half-width, a visibility rule, and Markdown
+    /// help containing a disallowed <c>javascript:</c> link that must not survive
+    /// <c>SafeMarkdown</c> sanitization (AGENTS.md invariant #6).
+    /// </summary>
+    internal static FormDefinition RichNodeDefinition(string formId) => new()
+    {
+        Id = formId,
+        Name = "Rich node form",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Title = "Details",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Title = "Your details",
+                        Nodes =
+                        [
+                            new FormNode
+                            {
+                                Id = "node-rich",
+                                Type = NodeType.Text,
+                                Label = "Employer name",
+                                Required = true,
+                                Half = true,
+                                Help = "**Bold** help with an unsafe [link](javascript:alert(1)).",
+                                VisibleWhen = new ConditionGroup
+                                {
+                                    Conditions = [new Condition { Field = "node-rich", Operator = ConditionOperator.Is, Value = "x" }],
+                                },
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    };
+
+    /// <summary>
+    /// One node with no label at all -- exercises <c>CanvasNodeRow</c>'s localized
+    /// "Untitled {type}" fallback.
+    /// </summary>
+    internal static FormDefinition UntitledNodeDefinition(string formId) => new()
+    {
+        Id = formId,
+        Name = "Untitled node form",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Nodes = [new FormNode { Id = "node-untitled", Type = NodeType.Email }],
                     },
                 ],
             },

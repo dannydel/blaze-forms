@@ -235,6 +235,26 @@ public sealed class DesignerEditContextTests
     }
 
     [Fact]
+    public async Task SelectMovesTheSelectionWithoutTouchingTheDraftTheUndoStackOrAnnouncing()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.TwoSectionDefinition("form-1"));
+        var definitionBefore = context.Draft.Definition;
+        var announced = false;
+        var stateChanged = false;
+        context.Announced += _ => announced = true;
+        context.StateChanged += () => stateChanged = true;
+
+        context.Select(DesignerSelection.ForNode("node-b", "page-1", "section-1", DesignerFocusIntent.None));
+
+        Assert.Equal("node-b", context.Selection.NodeId);
+        Assert.Same(definitionBefore, context.Draft.Definition);
+        Assert.False(context.IsDirty);
+        Assert.False(context.CanUndo);
+        Assert.False(announced);
+        Assert.True(stateChanged);
+    }
+
+    [Fact]
     public async Task ExactlyOneAnnouncementAndOneStateChangedFirePerMutation()
     {
         await using var context = CreateContext(DesignerTestFixtures.OneFieldDefinition("form-1"));

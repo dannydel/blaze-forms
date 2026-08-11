@@ -16,7 +16,8 @@
             else
             {
                 <p class="bf-designer__draft-name">@_editContext.Draft.Definition.Name</p>
-                <p class="bf-designer__placeholder">@Localizer["CanvasPlaceholderText"].Value</p>
+                <PageTabStrip EditContext="_editContext" ActivePageId="@_activePageId" ActivePageIdChanged="OnActivePageIdChanged" />
+                <DesignerCanvas EditContext="_editContext" ActivePageId="@_activePageId" />
             }
         </div>
     </section>

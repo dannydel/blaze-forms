@@ -384,6 +384,28 @@ public sealed class DesignerEditContext : IAsyncDisposable
     }
 
     /// <summary>
+    /// Moves the current selection without touching <see cref="Draft"/> -- the canvas's
+    /// click-to-select and Enter-to-select paths (PRD §4.1, §11). Unlike every mutation method
+    /// above, this never pushes an undo entry, never queues an autosave, and never raises
+    /// <see cref="Announced"/>: moving which row is selected is not a document edit an author
+    /// would want to reverse with Ctrl+Z, and speaking every selection change aloud would drown
+    /// out the aria-live region for the structural changes that actually matter. Arrow-key
+    /// roving-focus movement with no selection commit is deliberately not this method's
+    /// concern -- a canvas is free to move real DOM focus among its own rows entirely locally,
+    /// calling this only once an author actually commits to a row (a click, or Enter).
+    /// </summary>
+    /// <param name="selection">
+    /// The new selection.
+    /// </param>
+    public void Select(DesignerSelection selection)
+    {
+        ArgumentNullException.ThrowIfNull(selection);
+
+        Selection = selection;
+        StateChanged?.Invoke();
+    }
+
+    /// <summary>
     /// Reverts the most recent mutation still on the undo stack, restoring both the definition it
     /// replaced and the selection that was current at the time (PRD §4.1). A no-op when
     /// <see cref="CanUndo"/> is <see langword="false"/>.
