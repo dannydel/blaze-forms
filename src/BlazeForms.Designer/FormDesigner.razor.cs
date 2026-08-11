@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using BlazeForms.Definitions;
+using BlazeForms.Designer;
 using BlazeForms.Hosting;
 using BlazeForms.Internal;
 using BlazeForms.Resources;
@@ -11,9 +12,10 @@ namespace BlazeForms;
 
 /// <summary>
 /// The designer shell: a three-pane docked layout — field palette, canvas, and properties panel
-/// (PRD §4.1, D9 — docked is the only P1 layout). This phase renders the pane structure only;
-/// canvas editing, the properties panel's field-specific controls, undo/redo, the linter dock,
-/// and the publish dialog all land in later phases.
+/// (PRD §4.1, D9 — docked is the only P1 layout). This phase wires up the mutation engine
+/// (<see cref="DesignerEditContext"/>) and its aria-live announcer; the canvas's own editing UI,
+/// the properties panel's field-specific controls, the linter dock, and the publish dialog all
+/// land in later phases.
 /// </summary>
 /// <remarks>
 /// <see cref="OnInitialized"/> resolves the host's <see cref="IFormDefinitionStore"/> only — no
@@ -26,8 +28,10 @@ namespace BlazeForms;
 /// version when one exists, or from scratch otherwise — and never saves it: PRD §7's "edits
 /// accumulate on a new draft" means a draft is persisted on the first edit, not on mere open, so
 /// opening the designer on an already-published form must never flip that form's library status to
-/// "draft in progress" as a side effect of viewing it. Persisting the in-memory draft on first
-/// mutation lands with autosave in a later phase.
+/// "draft in progress" as a side effect of viewing it. That loaded (or created) draft becomes the
+/// one <see cref="DesignerEditContext"/> this designer instance owns for its whole lifetime;
+/// <see cref="_editContext"/>'s own autosave scheduler is what actually persists it, on the first
+/// mutation that context ever makes, not on this load.
 /// <para>
 /// The store itself is required, unlike <see cref="FormRenderer"/>'s optional submission sink and
 /// draft store (PRD §9) — a designer with nowhere to persist its edits is not a usable designer, so
@@ -38,8 +42,7 @@ namespace BlazeForms;
 public partial class FormDesigner : ComponentBase, IAsyncDisposable
 {
     private IFormDefinitionStore _store = default!;
-    private FormVersion? _draft;
-    private readonly string _liveMessage = string.Empty;
+    private DesignerEditContext? _editContext;
     private bool _draftLoadAttempted;
     private bool _disposed;
     private readonly CancellationTokenSource _disposalCts = new();
@@ -155,9 +158,40 @@ public partial class FormDesigner : ComponentBase, IAsyncDisposable
             return;
         }
 
-        _draft = draft;
+        _editContext = new DesignerEditContext(draft, _store, _disposalCts.Token);
+        _editContext.StateChanged += OnEditContextStateChanged;
+        _editContext.AutosaveFailed += OnEditContextAutosaveFailed;
         StateHasChanged();
     }
+
+    /// <summary>
+    /// Re-renders the shell whenever <see cref="_editContext"/> reports a mutation. Dispatched
+    /// through <see cref="ComponentBase.InvokeAsync(Action)"/> for the same reason
+    /// <see cref="Palette.FieldPalette.OnAddRequested"/>'s eventual canvas handler will need to —
+    /// <see cref="DesignerEditContext.StateChanged"/> is a plain <see cref="Action"/>, not a
+    /// Blazor <see cref="EventCallback"/>, so nothing already guarantees this runs on the
+    /// renderer's synchronization context.
+    /// </summary>
+    private void OnEditContextStateChanged() => InvokeAsync(StateHasChanged);
+
+    /// <summary>
+    /// Turns a raised <see cref="DesignerEditContext.AutosaveFailed"/> into the one thing an
+    /// author actually needs right now: a polite aria-live announcement that their edit is still
+    /// safe to keep making, just not yet written to the store (PRD §7, §11). Deliberately raises
+    /// through <see cref="DesignerEditContext.Announce"/> rather than anything that blocks
+    /// editing or surfaces the exception itself — there is nothing an author can do about e.g. a
+    /// transient host outage, and a richer retry affordance is a later phase's concern. Dispatched
+    /// through <see cref="ComponentBase.InvokeAsync(Action)"/> for the same reason
+    /// <see cref="OnEditContextStateChanged"/> is — <see cref="DesignerEditContext.AutosaveFailed"/>
+    /// is a plain <see cref="Action{T}"/>, not a Blazor <see cref="EventCallback"/>.
+    /// </summary>
+    /// <param name="exception">
+    /// The store failure that was just observed. Unused beyond having fired at all — this phase
+    /// shows the same plain-language message regardless of cause, and logging it is a host
+    /// concern, not this component's.
+    /// </param>
+    private void OnEditContextAutosaveFailed(Exception exception) =>
+        InvokeAsync(() => _editContext!.Announce(Localizer["AutosaveFailed"].Value));
 
     /// <summary>
     /// Builds the in-memory draft <see cref="LoadDraftAsync"/> falls back to on a store miss —
@@ -177,10 +211,13 @@ public partial class FormDesigner : ComponentBase, IAsyncDisposable
     }
 
     /// <summary>
-    /// Cancels any in-flight draft load via <see cref="_disposalCts"/> and disposes it, mirroring
-    /// <see cref="FormRenderer.DisposeAsync"/>. <see cref="FormDesigner"/> owns no JS module and
-    /// no timer this phase — the cancellation source is the only thing here that needs a
-    /// deterministic teardown.
+    /// Cancels any in-flight draft load via <see cref="_disposalCts"/> and disposes it, then
+    /// unsubscribes from and disposes <see cref="_editContext"/> — the one
+    /// <see cref="DesignerEditContext"/> this designer instance owns for its whole lifetime, so
+    /// its pending autosave (if any) gets the same deterministic teardown
+    /// <see cref="FormRenderer.DisposeAsync"/> gives its own draft I/O. Safe to call more than
+    /// once, and safe even when the draft load never completed (<see cref="_editContext"/> is
+    /// simply still <see langword="null"/> in that case).
     /// </summary>
     [SuppressMessage(
         "Reliability",
@@ -196,6 +233,23 @@ public partial class FormDesigner : ComponentBase, IAsyncDisposable
         _disposed = true;
         await _disposalCts.CancelAsync();
         _disposalCts.Dispose();
+
+        if (_editContext is not null)
+        {
+            _editContext.StateChanged -= OnEditContextStateChanged;
+            _editContext.AutosaveFailed -= OnEditContextAutosaveFailed;
+            await _editContext.DisposeAsync();
+        }
+
         GC.SuppressFinalize(this);
     }
+
+    /// <summary>
+    /// The mutation engine this designer instance owns, once its draft has finished loading.
+    /// <see langword="internal"/>, not <see langword="private"/>, purely so
+    /// <c>FormDesignerTests</c> can assert the ownership and disposal contract directly, the same
+    /// reason <c>FormRenderer.SubmitAsync</c> is <see langword="internal"/> rather than
+    /// <see langword="private"/>.
+    /// </summary>
+    internal DesignerEditContext? EditContext => _editContext;
 }

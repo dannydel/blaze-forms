@@ -9,13 +9,13 @@
     <section class="bf-designer__pane bf-designer__pane--canvas" role="region" aria-label="@Localizer["PaneTitleCanvas"].Value">
         <h2 class="bf-designer__pane-heading">@Localizer["PaneTitleCanvas"].Value</h2>
         <div class="bf-designer__pane-body">
-            @if (_draft is null)
+            @if (_editContext is null)
             {
                 <p class="bf-designer__placeholder">@Localizer["DesignerLoading"].Value</p>
             }
             else
             {
-                <p class="bf-designer__draft-name">@_draft.Definition.Name</p>
+                <p class="bf-designer__draft-name">@_editContext.Draft.Definition.Name</p>
                 <p class="bf-designer__placeholder">@Localizer["CanvasPlaceholderText"].Value</p>
             }
         </div>
@@ -28,5 +28,8 @@
         </div>
     </section>
 
-    <div class="bf-visually-hidden" aria-live="polite">@_liveMessage</div>
+    @if (_editContext is not null)
+    {
+        <AriaLiveRegion EditContext="_editContext" />
+    }
 </div>
