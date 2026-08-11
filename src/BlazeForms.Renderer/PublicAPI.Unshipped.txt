@@ -4,6 +4,7 @@ BlazeForms._Imports.Execute() -> void
 BlazeForms.FormRenderer
 BlazeForms.FormRenderer.ConfirmationTemplate.get -> Microsoft.AspNetCore.Components.RenderFragment<BlazeForms.Hosting.FormSubmissionEnvelope!>?
 BlazeForms.FormRenderer.ConfirmationTemplate.set -> void
+BlazeForms.FormRenderer.DisposeAsync() -> System.Threading.Tasks.ValueTask
 BlazeForms.FormRenderer.FieldComponents.get -> BlazeForms.Hosting.IFieldComponentRegistry?
 BlazeForms.FormRenderer.FieldComponents.set -> void
 BlazeForms.FormRenderer.FormRenderer() -> void

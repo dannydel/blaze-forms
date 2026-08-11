@@ -26,10 +26,12 @@ namespace BlazeForms;
 /// <see cref="OnSubmitted"/> and, when the host registered one, its <c>IFormSubmissionSink</c>.
 /// </summary>
 /// <remarks>
-/// Fill drafts (<c>IFormDraftStore</c>) are a later slice — nothing here persists an in-progress
-/// fill across a page reload.
+/// Fill drafts (<c>IFormDraftStore</c>, PRD §4.2, §9, D13) autosave on field blur and on every
+/// page change, and resume once, after interactivity, when the host both registers a store and
+/// supplies a non-<see langword="null"/> <see cref="RespondentKey"/> — an anonymous fill never
+/// touches the store at all.
 /// </remarks>
-public partial class FormRenderer : ComponentBase
+public partial class FormRenderer : ComponentBase, IAsyncDisposable
 {
     private readonly string _instanceId = "bf-renderer-" + Guid.NewGuid().ToString("n");
     private readonly Dictionary<string, object?> _values = new(StringComparer.Ordinal);
@@ -49,6 +51,9 @@ public partial class FormRenderer : ComponentBase
     private DateTimeOffset _startedAt;
     private bool _isSubmitted;
     private FormSubmissionEnvelope? _submittedEnvelope;
+    private bool _draftLoadAttempted;
+    private bool _disposed;
+    private readonly CancellationTokenSource _disposalCts = new();
 
     /// <summary>
     /// The host's optional submission sink, resolved once in <see cref="OnInitialized"/> from
@@ -58,6 +63,14 @@ public partial class FormRenderer : ComponentBase
     /// on either integration point without the other silently going unfired (PRD §9).
     /// </summary>
     private IFormSubmissionSink? _sink;
+
+    /// <summary>
+    /// The host's optional fill-draft store, resolved once in <see cref="OnInitialized"/> the
+    /// same way as <see cref="_sink"/> — through <see cref="ServiceProvider"/> directly, never
+    /// <c>[Inject]</c>, because it is genuinely optional (PRD §4.2, §9). <see langword="null"/>
+    /// turns drafts off entirely: no load, no autosave, no delete.
+    /// </summary>
+    private IFormDraftStore? _draftStore;
 
     /// <summary>
     /// The published version to fill. The renderer holds this for the whole fill and never
@@ -120,6 +133,17 @@ public partial class FormRenderer : ComponentBase
     [Inject]
     private IServiceProvider ServiceProvider { get; set; } = default!;
 
+    /// <summary>
+    /// This fill's draft key, or <see langword="null"/> when <see cref="RespondentKey"/> is
+    /// unset — an anonymous fill has nothing to key a draft by, so it is never persisted
+    /// (PRD §4.2, §9). Always built from <see cref="Version"/>, which the renderer never swaps
+    /// mid-fill, so <see cref="FormDraftKey.DefinitionVersion"/> stays pinned to the version this
+    /// fill started on even if a newer one publishes meanwhile (PRD D13).
+    /// </summary>
+    private FormDraftKey? DraftKey => RespondentKey is null
+        ? null
+        : new FormDraftKey(Version.FormId, Version.Version, RespondentKey);
+
     private FormDefinition Definition => Version.Definition;
 
     private IReadOnlyList<FormPage> Pages => Definition.Pages;
@@ -181,6 +205,7 @@ public partial class FormRenderer : ComponentBase
         _startedAt = DateTimeOffset.UtcNow;
         _fieldValidator = new FieldValidator(Localizer);
         _sink = ServiceProvider.GetService(typeof(IFormSubmissionSink)) as IFormSubmissionSink;
+        _draftStore = ServiceProvider.GetService(typeof(IFormDraftStore)) as IFormDraftStore;
     }
 
     /// <inheritdoc />
@@ -201,6 +226,19 @@ public partial class FormRenderer : ComponentBase
         Justification = "A Blazor lifecycle method must resume on the renderer's synchronization context, not a captured-context-free one, so it can safely schedule the next render.")]
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (firstRender && !_draftLoadAttempted)
+        {
+            // Loading here rather than in OnInitializedAsync is what keeps this prerender-safe:
+            // OnInitializedAsync runs twice under a prerender-then-resume host (once on the
+            // server-rendered pass, again once the circuit reconnects), which would load the
+            // draft twice and, worse, would run before there is any interactive circuit to
+            // eventually persist back to. The explicit flag is a second, belt-and-suspenders
+            // guard against ever awaiting LoadAsync more than once, on top of firstRender itself
+            // only ever being true for the very first call (PRD §4.2).
+            _draftLoadAttempted = true;
+            await LoadDraftAsync();
+        }
+
         if (_focusPageHeadingOnNextRender)
         {
             _focusPageHeadingOnNextRender = false;
@@ -234,16 +272,25 @@ public partial class FormRenderer : ComponentBase
     /// <summary>
     /// Moves to the previous step, unguarded — nothing blocks moving backward. Moves focus to
     /// the new step's heading once it has rendered, so the step change is announced to
-    /// assistive technology at the same moment the visible content changes.
+    /// assistive technology at the same moment the visible content changes. Autosaves the draft
+    /// afterward (PRD §4.2, §9), same as <see cref="GoToNextPage"/>.
     /// </summary>
-    private void GoToPreviousPage() => GoToPage(_currentPageIndex - 1, focusHeading: true);
+    [SuppressMessage(
+        "Reliability",
+        "CA2007:Consider calling ConfigureAwait on the awaited task",
+        Justification = "A Blazor event handler must resume on the renderer's synchronization context so it can safely schedule the next render.")]
+    private async Task GoToPreviousPage() => await GoToPage(_currentPageIndex - 1, focusHeading: true);
 
     /// <summary>
     /// Validates the current page's visible input nodes and, only if every one passes, moves to
-    /// the next step (PRD §4.2). A failure renders the error summary and moves focus to it
-    /// instead of advancing.
+    /// the next step and autosaves the draft (PRD §4.2, §9). A failure renders the error summary
+    /// and moves focus to it instead of advancing, and never touches the draft.
     /// </summary>
-    private void GoToNextPage()
+    [SuppressMessage(
+        "Reliability",
+        "CA2007:Consider calling ConfigureAwait on the awaited task",
+        Justification = "A Blazor event handler must resume on the renderer's synchronization context so it can safely schedule the next render.")]
+    private async Task GoToNextPage()
     {
         if (_currentPageIndex + 1 >= Pages.Count)
         {
@@ -257,7 +304,7 @@ public partial class FormRenderer : ComponentBase
             return;
         }
 
-        GoToPage(_currentPageIndex + 1, focusHeading: true);
+        await GoToPage(_currentPageIndex + 1, focusHeading: true);
     }
 
     /// <summary>
@@ -296,7 +343,7 @@ public partial class FormRenderer : ComponentBase
         if (!ValidateWholeForm())
         {
             _showSummary = true;
-            NavigateToFirstOffendingPage();
+            await NavigateToFirstOffendingPage();
             _focusSummaryOnNextRender = true;
             return;
         }
@@ -312,9 +359,23 @@ public partial class FormRenderer : ComponentBase
         {
             await _sink.SubmitAsync(envelope);
         }
+
+        // A completed fill leaves no resumable draft behind (PRD §4.2, §9) -- only when a store
+        // and a respondent key both exist; DeleteDraftAsync is itself a no-op otherwise, same as
+        // every other draft operation here.
+        await DeleteDraftAsync();
     }
 
-    private void GoToPage(int pageIndex, bool focusHeading, bool resetSummary = true)
+    /// <summary>
+    /// Moves to <paramref name="pageIndex"/>, same bounds/no-op rules as before, then autosaves
+    /// the draft (PRD §4.2, §9) so a page change — forward, backward, or the error-navigation
+    /// path a failed submit takes — never leaves the store holding a stale page index.
+    /// </summary>
+    [SuppressMessage(
+        "Reliability",
+        "CA2007:Consider calling ConfigureAwait on the awaited task",
+        Justification = "A Blazor event handler must resume on the renderer's synchronization context so it can safely schedule the next render.")]
+    private async Task GoToPage(int pageIndex, bool focusHeading, bool resetSummary = true)
     {
         if (pageIndex < 0 || pageIndex >= Pages.Count || pageIndex == _currentPageIndex)
         {
@@ -332,6 +393,8 @@ public partial class FormRenderer : ComponentBase
         {
             _focusPageHeadingOnNextRender = true;
         }
+
+        await PersistDraftAsync();
     }
 
     /// <summary>
@@ -427,7 +490,11 @@ public partial class FormRenderer : ComponentBase
         }
     }
 
-    private void NavigateToFirstOffendingPage()
+    [SuppressMessage(
+        "Reliability",
+        "CA2007:Consider calling ConfigureAwait on the awaited task",
+        Justification = "A Blazor event handler must resume on the renderer's synchronization context so it can safely schedule the next render.")]
+    private async Task NavigateToFirstOffendingPage()
     {
         var firstOffendingNodeId = Definition.EnumerateNodes()
             .Select(node => node.Id)
@@ -445,7 +512,7 @@ public partial class FormRenderer : ComponentBase
             // page heading must not also compete for focus (focusHeading: false) — and the
             // summary the caller just asked to show must survive this navigation
             // (resetSummary: false), unlike the ordinary Previous/Next path.
-            GoToPage(pageIndex, focusHeading: false, resetSummary: false);
+            await GoToPage(pageIndex, focusHeading: false, resetSummary: false);
         }
     }
 
@@ -468,9 +535,14 @@ public partial class FormRenderer : ComponentBase
     /// <summary>
     /// Handles the blur of one field's control: validates that field alone and marks it
     /// validated, so its error (if any) becomes visible from this point on even though the
-    /// respondent has not yet advanced the page or submitted (PRD §4.2).
+    /// respondent has not yet advanced the page or submitted (PRD §4.2). Autosaves the draft
+    /// afterward (PRD §9).
     /// </summary>
-    private void HandleBlur(string nodeId)
+    [SuppressMessage(
+        "Reliability",
+        "CA2007:Consider calling ConfigureAwait on the awaited task",
+        Justification = "A Blazor event handler must resume on the renderer's synchronization context so it can safely schedule the next render.")]
+    private async Task HandleBlur(string nodeId)
     {
         var node = Definition.FindNode(nodeId);
 
@@ -481,6 +553,101 @@ public partial class FormRenderer : ComponentBase
 
         _validatedNodeIds.Add(nodeId);
         ApplyFieldValidation(node);
+
+        await PersistDraftAsync();
+    }
+
+    /// <summary>
+    /// Resumes a returning respondent's in-progress fill, once, after interactivity — see the
+    /// call site in <see cref="OnAfterRenderAsync"/> for why. A miss (nothing to resume, no
+    /// store registered, or an anonymous fill) leaves every field exactly as it started.
+    /// </summary>
+    [SuppressMessage(
+        "Reliability",
+        "CA2007:Consider calling ConfigureAwait on the awaited task",
+        Justification = "Called only from OnAfterRenderAsync, which must itself resume on the renderer's synchronization context so the StateHasChanged() this method calls on a hit is safe to schedule.")]
+    private async Task LoadDraftAsync()
+    {
+        if (_draftStore is null || DraftKey is not { } key)
+        {
+            return;
+        }
+
+        var draft = await _draftStore.LoadAsync(key, _disposalCts.Token);
+
+        // The component may have been disposed while a real (async, over-the-wire) store was
+        // mid-load. Bail before touching state or calling StateHasChanged on a torn-down renderer;
+        // the in-memory store completes synchronously so this only ever bites a real host store.
+        if (draft is null || _disposed || _disposalCts.IsCancellationRequested)
+        {
+            return;
+        }
+
+        foreach (var pair in FormValues.FromJsonValues(draft.Values))
+        {
+            _values[pair.Key] = pair.Value;
+        }
+
+        // Pinned to the version the fill started on (PRD D13) means the page shape cannot
+        // actually have changed since the draft was saved, but the clamp is defensive rather
+        // than load-bearing on that guarantee.
+        var lastPageIndex = Math.Max(0, Pages.Count - 1);
+        _currentPageIndex = Math.Clamp(draft.CurrentPageIndex, 0, lastPageIndex);
+
+        // The eventual submission envelope must report when the respondent originally started
+        // the fill, not when they resumed it.
+        _startedAt = draft.StartedAt;
+
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Autosaves the in-progress fill, keyed by <see cref="DraftKey"/>, whenever a store is
+    /// registered and the fill is not anonymous (PRD §4.2, §9). Persists the raw, unfiltered
+    /// answers — including an answer to a field currently hidden by logic — so resuming restores
+    /// exactly what the respondent typed; only the eventual submission envelope filters a hidden
+    /// answer out (<see cref="BuildSubmissionEnvelope"/>).
+    /// </summary>
+    [SuppressMessage(
+        "Reliability",
+        "CA2007:Consider calling ConfigureAwait on the awaited task",
+        Justification = "Called only from Blazor event handlers that must resume on the renderer's synchronization context to safely schedule the next render.")]
+    private async Task PersistDraftAsync()
+    {
+        if (_draftStore is null || DraftKey is not { } key)
+        {
+            return;
+        }
+
+        var draft = new FormDraft
+        {
+            Key = key,
+            StartedAt = _startedAt,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            Values = FormValues.ToJsonValues(_values),
+            CurrentPageIndex = _currentPageIndex,
+        };
+
+        await _draftStore.SaveAsync(draft, _disposalCts.Token);
+    }
+
+    /// <summary>
+    /// Discards the draft once a fill completes (PRD §4.2, §9), so a submitted fill leaves no
+    /// resumable draft behind. A no-op under the same conditions <see cref="PersistDraftAsync"/>
+    /// and <see cref="LoadDraftAsync"/> are.
+    /// </summary>
+    [SuppressMessage(
+        "Reliability",
+        "CA2007:Consider calling ConfigureAwait on the awaited task",
+        Justification = "Called only from SubmitAsync, which must resume on the renderer's synchronization context to safely schedule the next render.")]
+    private async Task DeleteDraftAsync()
+    {
+        if (_draftStore is null || DraftKey is not { } key)
+        {
+            return;
+        }
+
+        await _draftStore.DeleteAsync(key, _disposalCts.Token);
     }
 
     /// <summary>
@@ -592,4 +759,26 @@ public partial class FormRenderer : ComponentBase
     }
 
     private void SetValue(string nodeId, object? value) => _values[nodeId] = value;
+
+    /// <summary>
+    /// Cancels any in-flight draft load/save/delete via <see cref="_disposalCts"/> and disposes
+    /// it. <see cref="FormRenderer"/> owns no JS module and no timer this phase — the
+    /// cancellation source is the only thing here that needs a deterministic teardown.
+    /// </summary>
+    [SuppressMessage(
+        "Reliability",
+        "CA2007:Consider calling ConfigureAwait on the awaited task",
+        Justification = "Blazor disposes a component on its own renderer's synchronization context, same as every other lifecycle method in this file.")]
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+        await _disposalCts.CancelAsync();
+        _disposalCts.Dispose();
+        GC.SuppressFinalize(this);
+    }
 }
