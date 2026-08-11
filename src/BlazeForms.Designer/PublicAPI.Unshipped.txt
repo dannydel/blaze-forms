@@ -1,3 +1,21 @@
-BlazeForms.Designer._Imports
-BlazeForms.Designer._Imports._Imports() -> void
-BlazeForms.Designer._Imports.Execute() -> void
+#nullable enable
+BlazeForms._Imports
+BlazeForms._Imports._Imports() -> void
+BlazeForms._Imports.Execute() -> void
+BlazeForms.FormDesigner
+BlazeForms.FormDesigner.DisposeAsync() -> System.Threading.Tasks.ValueTask
+BlazeForms.FormDesigner.FormDesigner() -> void
+BlazeForms.FormDesigner.FormId.get -> string!
+BlazeForms.FormDesigner.FormId.set -> void
+BlazeForms.FormDesigner.OnClosed.get -> Microsoft.AspNetCore.Components.EventCallback
+BlazeForms.FormDesigner.OnClosed.set -> void
+BlazeForms.FormDesigner.OnPublished.get -> Microsoft.AspNetCore.Components.EventCallback<BlazeForms.Versioning.FormVersion!>
+BlazeForms.FormDesigner.OnPublished.set -> void
+BlazeForms.Palette.FieldPalette
+BlazeForms.Palette.FieldPalette.FieldPalette() -> void
+BlazeForms.Palette.FieldPalette.OnAddRequested.get -> Microsoft.AspNetCore.Components.EventCallback<BlazeForms.Definitions.NodeType>
+BlazeForms.Palette.FieldPalette.OnAddRequested.set -> void
+override BlazeForms.FormDesigner.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
+override BlazeForms.FormDesigner.OnInitialized() -> void
+~override BlazeForms.FormDesigner.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
+~override BlazeForms.Palette.FieldPalette.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void

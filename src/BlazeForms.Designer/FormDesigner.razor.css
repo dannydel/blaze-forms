@@ -1,0 +1,57 @@
+/* Three-pane docked layout (PRD §4.1, D9 -- docked is the only P1 layout). The three column
+ * widths/gap and the shell's minimum height are the designer's own new tokens
+ * (docs/theming.md); every other value here is one BlazeForms.Renderer's blazeforms.css already
+ * declares, since FormDesigner depends on the renderer and a host that links this component
+ * links that stylesheet too (PRD §9). */
+.bf-designer {
+    display: grid;
+    grid-template-columns: var(--bf-palette-width) minmax(0, 1fr) var(--bf-properties-width);
+    gap: var(--bf-pane-gap);
+    min-block-size: var(--bf-dock-height);
+    font-family: var(--bf-font-sans);
+    color: var(--bf-color-text);
+}
+
+.bf-designer__pane {
+    display: flex;
+    flex-direction: column;
+    min-block-size: 0;
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-md);
+    background-color: var(--bf-color-bg);
+}
+
+.bf-designer__pane-heading {
+    margin: 0;
+    padding: var(--bf-space-3) var(--bf-space-4);
+    border-block-end: var(--bf-border-width) solid var(--bf-color-border);
+    font-size: var(--bf-font-size-base);
+    font-weight: 600;
+}
+
+.bf-designer__pane-body {
+    flex: 1 1 auto;
+    padding: var(--bf-space-4);
+    overflow-y: auto;
+}
+
+.bf-designer__draft-name {
+    margin-block: 0 var(--bf-space-2);
+    font-weight: 600;
+}
+
+.bf-designer__placeholder {
+    color: var(--bf-color-muted);
+}
+
+/* Visually hidden but still reachable by assistive technology -- the classic clip-based pattern,
+ * mirroring FormRenderer.razor.css's own copy. Silent this phase: Phase 2 starts populating
+ * @_liveMessage with mutation announcements (PRD §4.1, §11). */
+.bf-visually-hidden {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
