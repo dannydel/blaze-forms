@@ -16,11 +16,22 @@ else
         Your progress autosaves as you fill this in — leave and come back and you will resume
         where you left off.
     </p>
-    <FormRenderer Version="_version" RespondentKey="demo-respondent" OnSubmitted="HandleSubmittedAsync" />
+    <FormRenderer Version="_version" RespondentKey="@RespondentKey" OnSubmitted="HandleSubmittedAsync" />
 }
 
 @code {
     private FormVersion? _version;
+
+    /// <summary>
+    /// Overrides the shared demo respondent key via <c>?respondent=</c> so independent fills never
+    /// share one autosaved draft — the Playwright + axe CI gate (AGENTS.md invariant #4) drives
+    /// several fills against this same page and needs each one isolated from the others. Absent
+    /// the query string, every visitor still gets today's shared "demo-respondent" resume behavior.
+    /// </summary>
+    [SupplyParameterFromQuery(Name = "respondent")]
+    private string? RespondentKeyOverride { get; set; }
+
+    private string RespondentKey => RespondentKeyOverride ?? "demo-respondent";
 
     // Runs once during the prerendered pass and again once the circuit reconnects (ordinary
     // @rendermode InteractiveServer behavior) — both calls are plain reads against the in-memory
