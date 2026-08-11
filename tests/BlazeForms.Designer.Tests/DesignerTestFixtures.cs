@@ -294,4 +294,117 @@ internal static class DesignerTestFixtures
             },
         ],
     };
+
+    /// <summary>
+    /// Two pages: the first has one labelled field (so <c>DesignerCanvas</c> has a normal
+    /// starting page), the second has one unlabelled email field -- an A11Y-01 blocking finding
+    /// that anchors to a node on a page other than the one initially active, exercising
+    /// <c>LinterDock</c>'s jump-to-node action switching pages as well as selection (Phase 7,
+    /// PRD §8).
+    /// </summary>
+    internal static FormDefinition TwoPageBlockingIssueDefinition(string formId) => new()
+    {
+        Id = formId,
+        Name = "Two page form",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Title = "First page",
+                Sections = [new FormSection { Id = "section-1", Nodes = [new FormNode { Id = "node-a", Type = NodeType.Text, Label = "Field A" }] }],
+            },
+            new FormPage
+            {
+                Id = "page-2",
+                Title = "Second page",
+                Sections = [new FormSection { Id = "section-2", Nodes = [new FormNode { Id = "node-b", Type = NodeType.Email }] }],
+            },
+        ],
+    };
+
+    /// <summary>
+    /// Two headings on one page, the second skipping from level 2 straight to level 4 -- the
+    /// A11Y-08 advisory finding <c>LinterDock</c>'s one-click fix repairs (Phase 7, PRD §8).
+    /// </summary>
+    internal static FormDefinition HeadingSkipDefinition(string formId) => new()
+    {
+        Id = formId,
+        Name = "Heading skip form",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Nodes =
+                        [
+                            new FormNode { Id = "node-h1", Type = NodeType.Heading, Label = "Intro", Level = 2 },
+                            new FormNode { Id = "node-h2", Type = NodeType.Heading, Label = "Skips a rung", Level = 4 },
+                        ],
+                    },
+                ],
+            },
+        ],
+    };
+
+    /// <summary>
+    /// Three fields: <c>node-referenced</c> is named by another node's own
+    /// <see cref="FormNode.VisibleWhen"/> (<c>node-dependent</c>'s) and by a single validation
+    /// rule twice over -- once as its own <see cref="ValidationRule.Target"/>, once inside the
+    /// rule's own <see cref="ValidationRule.Expression"/> -- so deleting it exercises every
+    /// <see cref="Expressions.ReferenceKind"/> at once (Phase 7, PRD §4.1's delete-protection
+    /// warning). <c>node-unreferenced</c> carries no reference at all, for the "deletes directly,
+    /// no dialog" case.
+    /// </summary>
+    internal static FormDefinition ReferencedFieldDefinition(string formId) => new()
+    {
+        Id = formId,
+        Name = "Referenced field form",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Nodes =
+                        [
+                            new FormNode { Id = "node-referenced", Type = NodeType.Text, Label = "Referenced field" },
+                            new FormNode
+                            {
+                                Id = "node-dependent",
+                                Type = NodeType.Text,
+                                Label = "Dependent field",
+                                VisibleWhen = new ConditionGroup
+                                {
+                                    Conditions = [new Condition { Field = "node-referenced", Operator = ConditionOperator.IsNotBlank }],
+                                },
+                            },
+                            new FormNode { Id = "node-unreferenced", Type = NodeType.Text, Label = "Unreferenced field" },
+                        ],
+                    },
+                ],
+            },
+        ],
+        ValidationRules =
+        [
+            new ValidationRule
+            {
+                Target = "node-referenced",
+                Message = "Enter a value for 'Referenced field'.",
+                Expression = new ConditionGroup
+                {
+                    Conditions = [new Condition { Field = "node-referenced", Operator = ConditionOperator.IsBlank }],
+                },
+            },
+        ],
+    };
 }

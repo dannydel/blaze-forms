@@ -20,6 +20,7 @@ else
                                    IsSelected="@IsRowSelected(node.Id)"
                                    RequestFocus="@IsFocusPending(node.Id)"
                                    LogicSummary="@GetLogicSummary(node)"
+                                   LintFindings="@GetFindingsForNode(node.Id)"
                                    OnActivate="@GetActivateCallback(node.Id)"
                                    OnDragStart="@GetDragStartCallback(node.Id)"
                                    OnDragEnd="@GetDragEndCallback(node.Id)"
@@ -32,5 +33,10 @@ else
     @if (_showMoveDialog && _moveDialogNodeId is not null)
     {
         <MoveToPositionDialog EditContext="EditContext" NodeId="@_moveDialogNodeId" OnClosed="CloseMoveDialog" />
+    }
+
+    @if (_showDeleteDialog && _deleteDialogNodeId is not null)
+    {
+        <DeleteProtectionDialog EditContext="EditContext" NodeId="@_deleteDialogNodeId" OnClosed="CloseDeleteDialog" />
     }
 }

@@ -1,0 +1,37 @@
+<div class="bf-keyboard-help-backdrop">
+    <div class="bf-keyboard-help"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="@TitleId"
+         @ref="_dialogElement"
+         @onkeydown="OnDialogKeyDown">
+        <h2 id="@TitleId" class="bf-keyboard-help__title">@Localizer["KeyboardHelpTitle"].Value</h2>
+        <dl class="bf-keyboard-help__list">
+            <dt>@Localizer["KeyboardHelpTabKey"].Value</dt>
+            <dd>@Localizer["KeyboardHelpTabDescription"].Value</dd>
+            <dt>@Localizer["KeyboardHelpArrowsKey"].Value</dt>
+            <dd>@Localizer["KeyboardHelpArrowsDescription"].Value</dd>
+            <dt>@Localizer["KeyboardHelpEnterKey"].Value</dt>
+            <dd>@Localizer["KeyboardHelpEnterDescription"].Value</dd>
+            <dt>@Localizer["KeyboardHelpDuplicateKey"].Value</dt>
+            <dd>@Localizer["KeyboardHelpDuplicateDescription"].Value</dd>
+            <dt>@Localizer["KeyboardHelpDeleteKey"].Value</dt>
+            <dd>@Localizer["KeyboardHelpDeleteDescription"].Value</dd>
+            <dt>@Localizer["KeyboardHelpUndoKey"].Value</dt>
+            <dd>@Localizer["KeyboardHelpUndoDescription"].Value</dd>
+            <dt>@Localizer["KeyboardHelpRedoKey"].Value</dt>
+            <dd>@Localizer["KeyboardHelpRedoDescription"].Value</dd>
+            <dt>@Localizer["KeyboardHelpReorderWithinKey"].Value</dt>
+            <dd>@Localizer["KeyboardHelpReorderWithinDescription"].Value</dd>
+            <dt>@Localizer["KeyboardHelpReorderAcrossKey"].Value</dt>
+            <dd>@Localizer["KeyboardHelpReorderAcrossDescription"].Value</dd>
+            <dt>@Localizer["KeyboardHelpMoveToPositionKey"].Value</dt>
+            <dd>@Localizer["KeyboardHelpMoveToPositionDescription"].Value</dd>
+        </dl>
+        <div class="bf-keyboard-help__actions">
+            <button type="button" class="bf-keyboard-help__button" @ref="_closeButtonElement" @onclick="CloseAsync">
+                @Localizer["KeyboardHelpCloseButton"].Value
+            </button>
+        </div>
+    </div>
+</div>

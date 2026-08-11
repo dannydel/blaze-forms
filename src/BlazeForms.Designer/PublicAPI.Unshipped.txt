@@ -13,6 +13,8 @@ BlazeForms.Canvas.CanvasNodeRow.IsActive.get -> bool
 BlazeForms.Canvas.CanvasNodeRow.IsActive.set -> void
 BlazeForms.Canvas.CanvasNodeRow.IsSelected.get -> bool
 BlazeForms.Canvas.CanvasNodeRow.IsSelected.set -> void
+BlazeForms.Canvas.CanvasNodeRow.LintFindings.get -> System.Collections.Generic.IReadOnlyList<BlazeForms.Linting.LintResult!>!
+BlazeForms.Canvas.CanvasNodeRow.LintFindings.set -> void
 BlazeForms.Canvas.CanvasNodeRow.LogicSummary.get -> string?
 BlazeForms.Canvas.CanvasNodeRow.LogicSummary.set -> void
 BlazeForms.Canvas.CanvasNodeRow.Node.get -> BlazeForms.Definitions.FormNode!
@@ -42,6 +44,8 @@ BlazeForms.Canvas.DesignerCanvas.DesignerCanvas() -> void
 BlazeForms.Canvas.DesignerCanvas.DisposeAsync() -> System.Threading.Tasks.ValueTask
 BlazeForms.Canvas.DesignerCanvas.EditContext.get -> BlazeForms.Designer.DesignerEditContext!
 BlazeForms.Canvas.DesignerCanvas.EditContext.set -> void
+BlazeForms.Canvas.DesignerCanvas.LintResults.get -> System.Collections.Generic.IReadOnlyList<BlazeForms.Linting.LintResult!>!
+BlazeForms.Canvas.DesignerCanvas.LintResults.set -> void
 BlazeForms.Canvas.MoveToPositionDialog
 BlazeForms.Canvas.MoveToPositionDialog.DisposeAsync() -> System.Threading.Tasks.ValueTask
 BlazeForms.Canvas.MoveToPositionDialog.EditContext.get -> BlazeForms.Designer.DesignerEditContext!
@@ -60,6 +64,15 @@ BlazeForms.Canvas.PageTabStrip.DisposeAsync() -> System.Threading.Tasks.ValueTas
 BlazeForms.Canvas.PageTabStrip.EditContext.get -> BlazeForms.Designer.DesignerEditContext!
 BlazeForms.Canvas.PageTabStrip.EditContext.set -> void
 BlazeForms.Canvas.PageTabStrip.PageTabStrip() -> void
+BlazeForms.Delete.DeleteProtectionDialog
+BlazeForms.Delete.DeleteProtectionDialog.DeleteProtectionDialog() -> void
+BlazeForms.Delete.DeleteProtectionDialog.DisposeAsync() -> System.Threading.Tasks.ValueTask
+BlazeForms.Delete.DeleteProtectionDialog.EditContext.get -> BlazeForms.Designer.DesignerEditContext!
+BlazeForms.Delete.DeleteProtectionDialog.EditContext.set -> void
+BlazeForms.Delete.DeleteProtectionDialog.NodeId.get -> string!
+BlazeForms.Delete.DeleteProtectionDialog.NodeId.set -> void
+BlazeForms.Delete.DeleteProtectionDialog.OnClosed.get -> Microsoft.AspNetCore.Components.EventCallback
+BlazeForms.Delete.DeleteProtectionDialog.OnClosed.set -> void
 BlazeForms.Designer.AriaLivePoliteness
 BlazeForms.Designer.AriaLivePoliteness.Assertive = 1 -> BlazeForms.Designer.AriaLivePoliteness
 BlazeForms.Designer.AriaLivePoliteness.Polite = 0 -> BlazeForms.Designer.AriaLivePoliteness
@@ -96,6 +109,7 @@ BlazeForms.Designer.DesignerEditContext.StateChanged -> System.Action?
 BlazeForms.Designer.DesignerEditContext.Undo() -> void
 BlazeForms.Designer.DesignerEditContext.UpdateNode(BlazeForms.Definitions.FormNode! updated) -> void
 BlazeForms.Designer.DesignerFocusIntent
+BlazeForms.Designer.DesignerFocusIntent.JumpedTo = 5 -> BlazeForms.Designer.DesignerFocusIntent
 BlazeForms.Designer.DesignerFocusIntent.Moved = 3 -> BlazeForms.Designer.DesignerFocusIntent
 BlazeForms.Designer.DesignerFocusIntent.Neighbour = 2 -> BlazeForms.Designer.DesignerFocusIntent
 BlazeForms.Designer.DesignerFocusIntent.NewNode = 1 -> BlazeForms.Designer.DesignerFocusIntent
@@ -122,6 +136,22 @@ BlazeForms.FormDesigner.OnClosed.get -> Microsoft.AspNetCore.Components.EventCal
 BlazeForms.FormDesigner.OnClosed.set -> void
 BlazeForms.FormDesigner.OnPublished.get -> Microsoft.AspNetCore.Components.EventCallback<BlazeForms.Versioning.FormVersion!>
 BlazeForms.FormDesigner.OnPublished.set -> void
+BlazeForms.KeyboardHelpDialog
+BlazeForms.KeyboardHelpDialog.DisposeAsync() -> System.Threading.Tasks.ValueTask
+BlazeForms.KeyboardHelpDialog.KeyboardHelpDialog() -> void
+BlazeForms.KeyboardHelpDialog.OnClosed.get -> Microsoft.AspNetCore.Components.EventCallback
+BlazeForms.KeyboardHelpDialog.OnClosed.set -> void
+BlazeForms.Linting.InlineLintMarker
+BlazeForms.Linting.InlineLintMarker.Findings.get -> System.Collections.Generic.IReadOnlyList<BlazeForms.Linting.LintResult!>!
+BlazeForms.Linting.InlineLintMarker.Findings.set -> void
+BlazeForms.Linting.InlineLintMarker.InlineLintMarker() -> void
+BlazeForms.Linting.LinterDock
+BlazeForms.Linting.LinterDock.DisposeAsync() -> System.Threading.Tasks.ValueTask
+BlazeForms.Linting.LinterDock.EditContext.get -> BlazeForms.Designer.DesignerEditContext!
+BlazeForms.Linting.LinterDock.EditContext.set -> void
+BlazeForms.Linting.LinterDock.LinterDock() -> void
+BlazeForms.Linting.LinterDock.ResultsChanged.get -> Microsoft.AspNetCore.Components.EventCallback<System.Collections.Generic.IReadOnlyList<BlazeForms.Linting.LintResult!>!>
+BlazeForms.Linting.LinterDock.ResultsChanged.set -> void
 BlazeForms.Palette.FieldPalette
 BlazeForms.Palette.FieldPalette.FieldPalette() -> void
 BlazeForms.Palette.FieldPalette.OnAddRequested.get -> Microsoft.AspNetCore.Components.EventCallback<BlazeForms.Definitions.NodeType>
@@ -176,6 +206,8 @@ override BlazeForms.Canvas.DesignerCanvas.OnParametersSet() -> void
 override BlazeForms.Canvas.MoveToPositionDialog.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
 override BlazeForms.Canvas.MoveToPositionDialog.OnInitialized() -> void
 override BlazeForms.Canvas.PageTabStrip.OnParametersSet() -> void
+override BlazeForms.Delete.DeleteProtectionDialog.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
+override BlazeForms.Delete.DeleteProtectionDialog.OnInitialized() -> void
 override BlazeForms.Designer.DesignerAnnouncement.Equals(object? obj) -> bool
 override BlazeForms.Designer.DesignerAnnouncement.GetHashCode() -> int
 override BlazeForms.Designer.DesignerAnnouncement.ToString() -> string!
@@ -184,6 +216,9 @@ override BlazeForms.Designer.DesignerSelection.GetHashCode() -> int
 override BlazeForms.Designer.DesignerSelection.ToString() -> string!
 override BlazeForms.FormDesigner.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
 override BlazeForms.FormDesigner.OnInitialized() -> void
+override BlazeForms.KeyboardHelpDialog.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
+override BlazeForms.Linting.LinterDock.OnInitialized() -> void
+override BlazeForms.Linting.LinterDock.OnParametersSet() -> void
 override BlazeForms.Properties.OptionsEditor.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
 override BlazeForms.Properties.OptionsEditor.OnParametersSet() -> void
 override BlazeForms.Properties.PropertiesPanel.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
@@ -211,7 +246,11 @@ static BlazeForms.Designer.DesignerSelection.operator ==(BlazeForms.Designer.Des
 ~override BlazeForms.Canvas.DesignerCanvas.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Canvas.MoveToPositionDialog.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Canvas.PageTabStrip.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
+~override BlazeForms.Delete.DeleteProtectionDialog.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.FormDesigner.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
+~override BlazeForms.KeyboardHelpDialog.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
+~override BlazeForms.Linting.InlineLintMarker.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
+~override BlazeForms.Linting.LinterDock.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Palette.FieldPalette.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Properties.OptionsEditor.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Properties.PropertiesPanel.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void

@@ -1,6 +1,7 @@
 using BlazeForms.Definitions;
 using BlazeForms.Hosting;
 using BlazeForms.Hosting.InMemory;
+using BlazeForms.Linting;
 using BlazeForms.Palette;
 using BlazeForms.Versioning;
 using Bunit;
@@ -29,7 +30,10 @@ public sealed class FormDesignerTests : DesignerTestContext
 
         var cut = Render<FormDesigner>(p => p.Add(f => f.FormId, formId));
 
-        var regions = cut.FindAll("[role='region']");
+        // Scoped to the three docked panes specifically -- the linter dock (Phase 7, PRD §8) is
+        // its own labelled role="region" too, below the panes, so a bare "every region on the
+        // page" query would no longer land on exactly three.
+        var regions = cut.FindAll("section.bf-designer__pane[role='region']");
         Assert.Equal(3, regions.Count);
         Assert.Equal("Field palette", regions[0].GetAttribute("aria-label"));
         Assert.Equal("Canvas", regions[1].GetAttribute("aria-label"));
@@ -275,6 +279,96 @@ public sealed class FormDesignerTests : DesignerTestContext
 
         cut.WaitForAssertion(() => Assert.Single(editContext.Draft.Definition.Pages[0].Sections));
         Assert.Single(editContext.Draft.Definition.Pages[0].Sections[0].Nodes);
+    }
+
+    // --- Phase 7: the linter dock, keyboard-help dialog, and their shell wiring (PRD §4.1, §8) ---
+
+    [Fact]
+    public async Task TheLinterDockIsMountedBelowThePanesAsItsOwnLabelledRegion()
+    {
+        var store = new InMemoryFormDefinitionStore();
+        const string formId = "form-1";
+        await store.SaveDraftAsync(FormLifecycle.CreateDraft(DesignerTestFixtures.OneFieldDefinition(formId)));
+        Services.AddSingleton<IFormDefinitionStore>(store);
+
+        var cut = Render<FormDesigner>(p => p.Add(f => f.FormId, formId));
+
+        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("div.bf-linter-dock")));
+        var dockRegion = cut.Find("div.bf-linter-dock");
+        Assert.Equal("region", dockRegion.GetAttribute("role"));
+        Assert.Equal("Linter", dockRegion.GetAttribute("aria-label"));
+    }
+
+    [Fact]
+    public async Task HelpButtonOpensTheKeyboardHelpDialogAndEscClosesRestoringFocusToTheHelpButton()
+    {
+        var store = new InMemoryFormDefinitionStore();
+        const string formId = "form-1";
+        await store.SaveDraftAsync(FormLifecycle.CreateDraft(DesignerTestFixtures.OneFieldDefinition(formId)));
+        Services.AddSingleton<IFormDefinitionStore>(store);
+        var cut = Render<FormDesigner>(p => p.Add(f => f.FormId, formId));
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Instance.EditContext));
+
+        await cut.Find("button.bf-designer__help-button").ClickAsync(new MouseEventArgs());
+        Assert.NotEmpty(cut.FindAll("div.bf-keyboard-help"));
+
+        await cut.Find("div.bf-keyboard-help").KeyDownAsync(new KeyboardEventArgs { Key = "Escape" });
+        Assert.Empty(cut.FindAll("div.bf-keyboard-help"));
+
+        // Once for the dialog's own initial Close-button focus (KeyboardHelpDialog's own
+        // OnAfterRenderAsync), again once CloseKeyboardHelp's _restoreHelpFocusOnNextRender flag
+        // is consumed on the render after the dialog has actually left the DOM -- proving Esc
+        // never drops focus to <body> (PRD §11), the same "count both the dialog's own initial
+        // focus and the trigger's restore" shape DesignerCanvasTests' delete-dialog cancel test
+        // uses for itself.
+        JSInterop.VerifyFocusAsyncInvoke(2);
+    }
+
+    [Fact]
+    public async Task HelpButtonOpensTheKeyboardHelpDialogAndItsCloseButtonRestoresFocusToTheHelpButton()
+    {
+        var store = new InMemoryFormDefinitionStore();
+        const string formId = "form-1";
+        await store.SaveDraftAsync(FormLifecycle.CreateDraft(DesignerTestFixtures.OneFieldDefinition(formId)));
+        Services.AddSingleton<IFormDefinitionStore>(store);
+        var cut = Render<FormDesigner>(p => p.Add(f => f.FormId, formId));
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Instance.EditContext));
+
+        await cut.Find("button.bf-designer__help-button").ClickAsync(new MouseEventArgs());
+        Assert.NotEmpty(cut.FindAll("div.bf-keyboard-help"));
+
+        await cut.Find("button.bf-keyboard-help__button").ClickAsync(new MouseEventArgs());
+        Assert.Empty(cut.FindAll("div.bf-keyboard-help"));
+
+        // Same count as the Esc path above -- the dialog's own Close button routes through the
+        // exact same CloseKeyboardHelp as Esc does, so both paths restore focus identically.
+        JSInterop.VerifyFocusAsyncInvoke(2);
+    }
+
+    [Fact]
+    public async Task JumpToNodeThroughTheFullShellSwitchesTheActivePageAndFocusesTheRow()
+    {
+        var store = new InMemoryFormDefinitionStore();
+        const string formId = "form-1";
+        await store.SaveDraftAsync(FormLifecycle.CreateDraft(DesignerTestFixtures.TwoPageBlockingIssueDefinition(formId)));
+        Services.AddSingleton<IFormDefinitionStore>(store);
+        var cut = Render<FormDesigner>(p => p.Add(f => f.FormId, formId));
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Instance.EditContext));
+
+        // The dock's own debounced lint pass (Phase 7) is what hands DesignerCanvas the finding
+        // on page-2's unlabelled field -- wait for its jump button to actually show up rather
+        // than guessing at the debounce interval.
+        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("button.bf-linter-dock__jump")));
+
+        await cut.Find("button.bf-linter-dock__jump").ClickAsync(new MouseEventArgs());
+
+        cut.WaitForAssertion(() =>
+        {
+            var secondPageTab = cut.FindAll("button.bf-page-tabs__tab").Single(b => b.TextContent == "Second page");
+            Assert.Equal("page", secondPageTab.GetAttribute("aria-current"));
+        });
+        Assert.NotEmpty(cut.FindAll("div.bf-canvas-row"));
+        JSInterop.VerifyFocusAsyncInvoke();
     }
 
     private static AngleSharp.Dom.IElement FindPaletteButton(IRenderedComponent<FormDesigner> cut, string label) =>

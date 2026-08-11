@@ -1,8 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
 using BlazeForms.Definitions;
+using BlazeForms.Delete;
 using BlazeForms.Designer;
 using BlazeForms.Designer.Internal;
+using BlazeForms.Expressions;
 using BlazeForms.Internal;
+using BlazeForms.Linting;
 using BlazeForms.Resources;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -50,13 +53,19 @@ namespace BlazeForms.Canvas;
 /// alongside ↑/↓/Home/End/Enter. That still leaves <c>ArrowUp</c>/<c>ArrowDown</c>/<c>Home</c>/
 /// <c>End</c> free to also trigger the browser's own default scroll action on top of
 /// <see cref="ElementReferenceExtensions.FocusAsync(ElementReference)"/>'s own scroll-into-view --
-/// a visible double-jump -- so the collocated <c>DesignerCanvas.razor.js</c> module attaches a
+/// a visible double-jump -- and <c>Ctrl+D</c>/<c>Ctrl+Z</c>/<c>Ctrl+Shift+Z</c> free to trigger a
+/// browser's own bookmark-this-page or document-level undo/redo shortcut instead of this canvas's
+/// own duplicate/undo/redo -- so the collocated <c>DesignerCanvas.razor.js</c> module attaches a
 /// second, genuinely JS-side <c>keydown</c> listener to this same root element that calls only
-/// <c>preventDefault()</c> for those four keys (never <c>Tab</c>, never anything else, and never
-/// <c>stopPropagation()</c>) -- the one platform gap Blazor's own event model cannot close, since
-/// <c>preventDefault</c> must run before <c>OnKeyDown</c>'s dispatch, not after. The Blazor
-/// <c>@onkeydown</c> handler on this element still receives, and still handles, every key exactly
-/// as before; the module only ever suppresses the browser's own default action underneath it.
+/// <c>preventDefault()</c> for those seven keys/combinations (never <c>Tab</c>, never anything
+/// else, and never <c>stopPropagation()</c>) -- the one platform gap Blazor's own event model
+/// cannot close, since <c>preventDefault</c> must run before <c>OnKeyDown</c>'s dispatch, not
+/// after. The Blazor <c>@onkeydown</c> handler on this element still receives, and still handles,
+/// every key exactly as before; the module only ever suppresses the browser's own default action
+/// underneath it, and only ever on this canvas's own root element -- a text input elsewhere in the
+/// shell (e.g. the properties panel) never has this module attached to it at all, so
+/// <c>Ctrl+Z</c> there keeps its ordinary text-editing meaning. <c>Delete</c> has no browser
+/// default worth suppressing, so it needs no entry in the module at all.
 /// </para>
 /// <para>
 /// <b>The three reorder paths (PRD §4.1).</b> <c>Alt+↑/↓</c> (within a section),
@@ -114,6 +123,10 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
     private string? _draggedNodeId;
     private bool _showMoveDialog;
     private string? _moveDialogNodeId;
+    private bool _showDeleteDialog;
+    private string? _deleteDialogNodeId;
+    private IReadOnlyList<LintResult>? _lastSyncedLintResults;
+    private Dictionary<string, IReadOnlyList<LintResult>> _findingsByNode = new(StringComparer.Ordinal);
     private bool _disposed;
 
     /// <summary>
@@ -130,6 +143,16 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
     /// </summary>
     [Parameter]
     public string? ActivePageId { get; set; }
+
+    /// <summary>
+    /// The most recent lint pass's results (PRD §8), computed by whichever <c>LinterDock</c> a
+    /// host mounts alongside this canvas and handed down through it -- this canvas never runs the
+    /// linter itself, only groups these by <see cref="LintResult.NodeId"/> to give each row its
+    /// own findings via <see cref="GetFindingsForNode"/>. Defaults to empty so a designer with no
+    /// dock mounted (or a test with no reason to exercise lint findings) needs no explicit value.
+    /// </summary>
+    [Parameter]
+    public IReadOnlyList<LintResult> LintResults { get; set; } = [];
 
     /// <summary>
     /// Used only to import <see cref="ModulePath"/>'s scroll-suppression module -- see this
@@ -159,11 +182,28 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
             _subscribedContext = EditContext;
         }
 
-        if (!string.Equals(_lastSyncedActivePageId, ActivePageId, StringComparison.Ordinal))
+        var pageChanged = !string.Equals(_lastSyncedActivePageId, ActivePageId, StringComparison.Ordinal);
+
+        if (pageChanged)
         {
             _lastSyncedActivePageId = ActivePageId;
-            var flatNodeIds = BuildFlatNodeIds();
-            _activeNodeId = flatNodeIds.Count > 0 ? flatNodeIds[0] : null;
+            SyncActiveNodeForPageChange();
+        }
+
+        var lintResultsChanged = !ReferenceEquals(_lastSyncedLintResults, LintResults);
+
+        if (lintResultsChanged)
+        {
+            _lastSyncedLintResults = LintResults;
+        }
+
+        // A page switch needs the same regroup as a fresh lint pass: GetFindingsForNode's cache
+        // is keyed by the flat node list BuildFlatNodeIds returns for whichever page is active,
+        // so switching pages without also rebuilding it would leave the new page's own rows
+        // reading stale (or entirely missing) findings until the next lint pass happens to tick.
+        if (pageChanged || lintResultsChanged)
+        {
+            RebuildFindingsByNode();
         }
     }
 
@@ -289,6 +329,45 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
     /// </summary>
     private string? GetLogicSummary(FormNode node) =>
         node.VisibleWhen is null ? null : VisibilitySummaryFormatter.Format(node, EditContext.Draft.Definition);
+
+    /// <summary>
+    /// This node's own current lint findings, from the last <see cref="RebuildFindingsByNode"/>
+    /// pass -- always the exact same list instance as the previous render's for a node whose own
+    /// findings did not change, which is what lets <see cref="CanvasNodeRow.ShouldRender"/> skip
+    /// re-rendering every row a lint pass did not actually touch (PRD §8's render-discipline
+    /// requirement).
+    /// </summary>
+    private IReadOnlyList<LintResult> GetFindingsForNode(string nodeId) =>
+        _findingsByNode.TryGetValue(nodeId, out var findings) ? findings : [];
+
+    /// <summary>
+    /// Regroups <see cref="LintResults"/> by <see cref="LintResult.NodeId"/> whenever that
+    /// parameter's own reference changes, reusing a node's previous findings list instance when
+    /// its content is unchanged (a <see cref="LintResult"/> is a record, so a fresh lint pass over
+    /// an unrelated part of the form still compares equal here) -- so <see cref="GetFindingsForNode"/>
+    /// only ever hands a row a new list when that row's own findings actually differ from what it
+    /// already had.
+    /// </summary>
+    private void RebuildFindingsByNode()
+    {
+        var grouped = LintResults
+            .Where(result => result.NodeId is not null)
+            .GroupBy(result => result.NodeId!, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => (IReadOnlyList<LintResult>)[.. group], StringComparer.Ordinal);
+
+        var next = new Dictionary<string, IReadOnlyList<LintResult>>(StringComparer.Ordinal);
+
+        foreach (var nodeId in BuildFlatNodeIds())
+        {
+            var findings = grouped.TryGetValue(nodeId, out var nodeFindings) ? nodeFindings : [];
+
+            next[nodeId] = _findingsByNode.TryGetValue(nodeId, out var previous) && previous.SequenceEqual(findings)
+                ? previous
+                : findings;
+        }
+
+        _findingsByNode = next;
+    }
 
     /// <summary>
     /// Returns the same cached <see cref="EventCallback"/> for a given node on every call, the
@@ -449,17 +528,49 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
     }
 
     /// <summary>
-    /// Dispatches every keyboard command this canvas recognizes -- roving-cursor movement (no
-    /// modifier), the two <c>Alt+</c>-modified reorder paths (<see cref="HandleAltArrow"/>), and
-    /// <c>Ctrl+M</c>'s move-to-position dialog -- in that priority order, so an author holding
-    /// <c>Alt</c> or <c>Ctrl</c> for one of those never also falls through to the plain
-    /// roving-cursor handling below (PRD §4.1, §11).
+    /// Dispatches every keyboard command this canvas recognizes -- <c>Ctrl+M</c>'s move-to-position
+    /// dialog, <c>Ctrl+Shift+Z</c>/<c>Ctrl+Z</c> redo/undo (checked in that order, since
+    /// <c>Ctrl+Z</c> alone is a strict subset of <c>Ctrl+Shift+Z</c>'s own key combination),
+    /// <c>Ctrl+D</c> duplicate, the two <c>Alt+</c>-modified reorder paths
+    /// (<see cref="HandleAltArrow"/>), and finally plain roving-cursor movement plus
+    /// <c>Delete</c> -- in that priority order, so an author holding <c>Alt</c> or <c>Ctrl</c> for
+    /// one of those never also falls through to the unmodified handling below (PRD §4.1, §11).
     /// </summary>
     private void OnKeyDown(KeyboardEventArgs e)
     {
         if (e.CtrlKey && string.Equals(e.Key, "m", StringComparison.OrdinalIgnoreCase))
         {
             OpenMoveDialog();
+            return;
+        }
+
+        if (e.CtrlKey && e.ShiftKey && string.Equals(e.Key, "z", StringComparison.OrdinalIgnoreCase))
+        {
+            if (EditContext.CanRedo)
+            {
+                EditContext.Redo();
+            }
+
+            return;
+        }
+
+        if (e.CtrlKey && string.Equals(e.Key, "z", StringComparison.OrdinalIgnoreCase))
+        {
+            if (EditContext.CanUndo)
+            {
+                EditContext.Undo();
+            }
+
+            return;
+        }
+
+        if (e.CtrlKey && string.Equals(e.Key, "d", StringComparison.OrdinalIgnoreCase))
+        {
+            if (_activeNodeId is not null)
+            {
+                EditContext.DuplicateNode(_activeNodeId);
+            }
+
             return;
         }
 
@@ -494,6 +605,13 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
                 if (_activeNodeId is not null)
                 {
                     Activate(_activeNodeId);
+                }
+
+                break;
+            case "Delete":
+                if (_activeNodeId is not null)
+                {
+                    RequestDelete(_activeNodeId);
                 }
 
                 break;
@@ -599,6 +717,49 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// The <c>Delete</c> key's delete-protection flow (PRD §4.1): a node with no live reference to
+    /// it (<see cref="ExpressionDependencyAnalysis.ReferencesTo"/> comes back empty) deletes
+    /// directly via <see cref="DesignerEditContext.DeleteNode"/> -- focus already falls out to the
+    /// engine's own neighbour intent, the same as every other delete path, so there is nothing
+    /// more for this method to do. A referenced node instead opens <see cref="DeleteProtectionDialog"/>,
+    /// which names every reference and only ever deletes if the author confirms "delete anyway".
+    /// </summary>
+    private void RequestDelete(string nodeId)
+    {
+        var references = ExpressionDependencyAnalysis.ReferencesTo(EditContext.Draft.Definition, nodeId);
+
+        if (references.Count == 0)
+        {
+            EditContext.DeleteNode(nodeId);
+            return;
+        }
+
+        _deleteDialogNodeId = nodeId;
+        _showDeleteDialog = true;
+    }
+
+    /// <summary>
+    /// Hides the delete-protection dialog and re-requests focus for the active node's row --
+    /// exactly the same "focus follows whatever the roving cursor now names" tail
+    /// <see cref="CloseMoveDialog"/> gives its own dialog: a confirmed "delete anyway" has already
+    /// moved <see cref="_activeNodeId"/> onto the engine's own neighbour selection by the time this
+    /// runs (<see cref="OnEditContextStateChanged"/> reacted to <see cref="DesignerEditContext.DeleteNode"/>
+    /// before <see cref="DeleteProtectionDialog"/> ever raises <c>OnClosed</c>), and a cancel never
+    /// touched <see cref="_activeNodeId"/> at all, so either way this re-request lands focus back
+    /// on the row an author now expects it on, once the dialog itself has actually left the DOM.
+    /// </summary>
+    private void CloseDeleteDialog()
+    {
+        _showDeleteDialog = false;
+        _deleteDialogNodeId = null;
+
+        if (_activeNodeId is not null)
+        {
+            _pendingFocusNodeId = _activeNodeId;
+        }
+    }
+
     private void MoveActive(List<string> flatNodeIds, int delta)
     {
         var currentIndex = _activeNodeId is null ? -1 : flatNodeIds.IndexOf(_activeNodeId);
@@ -642,12 +803,60 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
         : [.. ActivePage.Sections.SelectMany(section => section.Nodes).Select(node => node.Id)];
 
     /// <summary>
+    /// The tail of <see cref="OnParametersSet"/>'s page-changed branch: picks which node the
+    /// roving cursor lands on for the page this canvas has just switched to, and whether that move
+    /// should also carry real DOM focus with it.
+    /// </summary>
+    /// <remarks>
+    /// Prefers <see cref="DesignerEditContext.Selection"/>'s own node over the page's first one
+    /// when that selection already names a node on this exact page -- the linter dock's
+    /// jump-to-node action (PRD §8) is exactly this case: it names a page, section, and node all
+    /// at once via <see cref="DesignerEditContext.Select"/>, and <see cref="FormDesigner"/>'s own
+    /// <c>SyncActivePageFromSelection</c> is what flows the resulting new <see cref="ActivePageId"/>
+    /// down to this very method, in the SAME synchronous render pass <see cref="DesignerEditContext.Select"/>
+    /// triggered -- <see cref="EditContext"/>'s <see cref="DesignerEditContext.Selection"/> property
+    /// itself was already updated before that render even started, so reading it here needs no
+    /// waiting on <see cref="OnEditContextStateChanged"/>'s own, separately-dispatched reaction to
+    /// the same event ever to "catch up" -- a race that reaction alone cannot win when both it and
+    /// this page switch are triggered by the exact same <see cref="DesignerEditContext.StateChanged"/>
+    /// event, since which of the two sees <see cref="ActivePageId"/> already updated depends on
+    /// dispatch order this canvas has no control over. A page switch an author drives directly
+    /// (<see cref="Canvas.PageTabStrip"/>'s own tab click) carries no such selection, so this falls
+    /// back to the page's first node exactly as before.
+    /// </remarks>
+    private void SyncActiveNodeForPageChange()
+    {
+        var flatNodeIds = BuildFlatNodeIds();
+        var selection = EditContext.Selection;
+
+        if (string.Equals(selection.PageId, ActivePageId, StringComparison.Ordinal)
+            && selection.NodeId is { } selectedNodeId
+            && flatNodeIds.Contains(selectedNodeId))
+        {
+            _activeNodeId = selectedNodeId;
+
+            if (selection.Intent != DesignerFocusIntent.None)
+            {
+                _pendingFocusNodeId = selectedNodeId;
+            }
+
+            return;
+        }
+
+        _activeNodeId = flatNodeIds.Count > 0 ? flatNodeIds[0] : null;
+    }
+
+    /// <summary>
     /// Reacts to a mutation or a bare <see cref="DesignerEditContext.Select"/> call: when the new
     /// selection lands on a node on the page this canvas is showing, the roving cursor follows it,
     /// and -- only when the mutation tagged a real focus move (PRD §11) -- that row is asked to
     /// take DOM focus too. A selection that does not concern this page (a different page's node,
     /// or a page/section-only selection) never moves the cursor away from wherever the author
-    /// last left it here.
+    /// last left it here -- the cross-page case a selection like the linter dock's jump-to-node
+    /// action produces is <see cref="SyncActiveNodeForPageChange"/>'s own job instead, precisely
+    /// because <see cref="ActivePageId"/> read from inside this dispatched reaction is not
+    /// guaranteed to already reflect a page switch that same event is triggering elsewhere (see
+    /// that method's own remarks).
     /// </summary>
     private void OnEditContextStateChanged() => InvokeAsync(() =>
     {

@@ -132,4 +132,10 @@ public enum DesignerFocusIntent
     /// This selection was restored from an undo or redo snapshot.
     /// </summary>
     Restored,
+
+    /// <summary>
+    /// This selection is the destination of a jump-to-node action -- the linter dock's own way of
+    /// naming a finding's node (PRD §8), not a definition mutation of any kind.
+    /// </summary>
+    JumpedTo,
 }

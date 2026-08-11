@@ -538,4 +538,136 @@
   <data name="PropOptionsAddButton" xml:space="preserve">
     <value>Add option</value>
   </data>
+
+  <!-- LinterDock (Phase 7, PRD §8): the collapsible dock listing every lint finding. {0} in
+       LinterDockToggleButton is the current finding count; {0} in LinterDockJumpButton is the
+       finding's own node label; {0} in the two announcement templates is a count. -->
+  <data name="LinterDockRegionLabel" xml:space="preserve">
+    <value>Linter</value>
+  </data>
+  <data name="LinterDockToggleButton" xml:space="preserve">
+    <value>Linter ({0})</value>
+  </data>
+  <data name="LinterDockEmptyText" xml:space="preserve">
+    <value>No issues found.</value>
+  </data>
+  <data name="LinterDockSeverityBlocking" xml:space="preserve">
+    <value>Blocking</value>
+  </data>
+  <data name="LinterDockSeverityAdvisory" xml:space="preserve">
+    <value>Advisory</value>
+  </data>
+  <data name="LinterDockJumpButton" xml:space="preserve">
+    <value>Jump to '{0}'</value>
+  </data>
+  <data name="LinterDockFixButton" xml:space="preserve">
+    <value>Fix automatically</value>
+  </data>
+  <data name="LinterDockBlockingCountAnnouncement" xml:space="preserve">
+    <value>{0} blocking issue(s) remain.</value>
+  </data>
+  <data name="LinterDockNewFindingAnnouncement" xml:space="preserve">
+    <value>The linter now reports {0} issue(s).</value>
+  </data>
+
+  <!-- DeleteProtectionDialog (Phase 7, PRD §4.1): the delete-protection warning naming every
+       reference to a field before it is deleted. {0} in DeleteProtectionTitle is the node's own
+       label (or its UntitledNodeLabel fallback); {0} in DeleteProtectionReferenceVisibility is
+       the referencing node's own label; {0} in DeleteProtectionReferenceValidationTarget is the
+       rule's own message; {0}/{1} in DeleteProtectionReferenceValidationExpression are the rule's
+       own target field label and its message. -->
+  <data name="DeleteProtectionTitle" xml:space="preserve">
+    <value>Delete '{0}'?</value>
+  </data>
+  <data name="DeleteProtectionIntro" xml:space="preserve">
+    <value>This field is referenced by the following logic or validation rules. Deleting it anyway will leave those references dangling until you fix or remove them.</value>
+  </data>
+  <data name="DeleteProtectionConfirmButton" xml:space="preserve">
+    <value>Delete anyway</value>
+  </data>
+  <data name="DeleteProtectionCancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="DeleteProtectionReferenceVisibility" xml:space="preserve">
+    <value>The visibility rule for '{0}'.</value>
+  </data>
+  <data name="DeleteProtectionReferenceValidationTarget" xml:space="preserve">
+    <value>A validation rule reported against this field: '{0}'.</value>
+  </data>
+  <data name="DeleteProtectionReferenceValidationExpression" xml:space="preserve">
+    <value>A validation rule for '{0}' checks this field's value: '{1}'.</value>
+  </data>
+
+  <!-- KeyboardHelpDialog (Phase 7, PRD §4.1): the in-app keyboard-command reference. Each *Key
+       value is shown verbatim, so it is never actually translated even in another culture's
+       resource set; only the matching *Description explains what the combination does. -->
+  <data name="KeyboardHelpOpenButton" xml:space="preserve">
+    <value>Keyboard shortcuts</value>
+  </data>
+  <data name="KeyboardHelpTitle" xml:space="preserve">
+    <value>Keyboard shortcuts</value>
+  </data>
+  <data name="KeyboardHelpCloseButton" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="KeyboardHelpTabKey" xml:space="preserve">
+    <value>Tab</value>
+  </data>
+  <data name="KeyboardHelpTabDescription" xml:space="preserve">
+    <value>Enter or leave the canvas.</value>
+  </data>
+  <data name="KeyboardHelpArrowsKey" xml:space="preserve">
+    <value>↑ / ↓</value>
+  </data>
+  <data name="KeyboardHelpArrowsDescription" xml:space="preserve">
+    <value>Move the roving cursor between fields.</value>
+  </data>
+  <data name="KeyboardHelpEnterKey" xml:space="preserve">
+    <value>Enter</value>
+  </data>
+  <data name="KeyboardHelpEnterDescription" xml:space="preserve">
+    <value>Select the active field and open its properties.</value>
+  </data>
+  <data name="KeyboardHelpDuplicateKey" xml:space="preserve">
+    <value>Ctrl+D</value>
+  </data>
+  <data name="KeyboardHelpDuplicateDescription" xml:space="preserve">
+    <value>Duplicate the active field.</value>
+  </data>
+  <data name="KeyboardHelpDeleteKey" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="KeyboardHelpDeleteDescription" xml:space="preserve">
+    <value>Delete the active field. Warns first if logic or validation references it.</value>
+  </data>
+  <data name="KeyboardHelpUndoKey" xml:space="preserve">
+    <value>Ctrl+Z</value>
+  </data>
+  <data name="KeyboardHelpUndoDescription" xml:space="preserve">
+    <value>Undo the most recent change.</value>
+  </data>
+  <data name="KeyboardHelpRedoKey" xml:space="preserve">
+    <value>Ctrl+Shift+Z</value>
+  </data>
+  <data name="KeyboardHelpRedoDescription" xml:space="preserve">
+    <value>Redo the most recently undone change.</value>
+  </data>
+  <data name="KeyboardHelpReorderWithinKey" xml:space="preserve">
+    <value>Alt+↑ / Alt+↓</value>
+  </data>
+  <data name="KeyboardHelpReorderWithinDescription" xml:space="preserve">
+    <value>Move the active field up or down within its section.</value>
+  </data>
+  <data name="KeyboardHelpReorderAcrossKey" xml:space="preserve">
+    <value>Alt+← / Alt+→</value>
+  </data>
+  <data name="KeyboardHelpReorderAcrossDescription" xml:space="preserve">
+    <value>Move the active field to the previous or next section.</value>
+  </data>
+  <data name="KeyboardHelpMoveToPositionKey" xml:space="preserve">
+    <value>Ctrl+M</value>
+  </data>
+  <data name="KeyboardHelpMoveToPositionDescription" xml:space="preserve">
+    <value>Open the "move to position" dialog for the active field.</value>
+  </data>
 </root>

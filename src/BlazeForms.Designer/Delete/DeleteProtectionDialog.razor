@@ -1,0 +1,25 @@
+<div class="bf-delete-dialog-backdrop">
+    <div class="bf-delete-dialog"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="@TitleId"
+         @ref="_dialogElement"
+         @onkeydown="OnDialogKeyDown">
+        <h2 id="@TitleId" class="bf-delete-dialog__title">@Localizer["DeleteProtectionTitle", _nodeLabel].Value</h2>
+        <p class="bf-delete-dialog__intro">@Localizer["DeleteProtectionIntro"].Value</p>
+        <ul class="bf-delete-dialog__list">
+            @foreach (var description in _referenceDescriptions)
+            {
+                <li @key="description">@description</li>
+            }
+        </ul>
+        <div class="bf-delete-dialog__actions">
+            <button type="button" class="bf-delete-dialog__button bf-delete-dialog__button--danger" @onclick="DeleteAnywayAsync">
+                @Localizer["DeleteProtectionConfirmButton"].Value
+            </button>
+            <button type="button" class="bf-delete-dialog__button" @ref="_cancelButtonElement" @onclick="CancelAsync">
+                @Localizer["DeleteProtectionCancelButton"].Value
+            </button>
+        </div>
+    </div>
+</div>
