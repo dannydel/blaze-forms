@@ -5,6 +5,13 @@
         </button>
         @if (_editContext is not null)
         {
+            <button type="button"
+                    class="bf-designer__preview-button"
+                    aria-pressed="@(_isPreviewing ? "true" : "false")"
+                    @ref="_previewButtonElement"
+                    @onclick="TogglePreview">
+                @Localizer["ToolbarPreviewButton"].Value
+            </button>
             <button type="button" class="bf-designer__version-history-button" @ref="_versionHistoryButtonElement" @onclick="OpenVersionHistory">
                 @Localizer["ToolbarVersionHistoryButton"].Value
             </button>
@@ -28,6 +35,10 @@
                 @if (_editContext is null)
                 {
                     <p class="bf-designer__placeholder">@Localizer["DesignerLoading"].Value</p>
+                }
+                else if (_isPreviewing)
+                {
+                    <PreviewPane EditContext="_editContext" OnExit="ExitPreview" />
                 }
                 else
                 {

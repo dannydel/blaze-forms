@@ -57,6 +57,9 @@ public partial class FormDesigner : ComponentBase, IAsyncDisposable
     private bool _showVersionHistory;
     private bool _restoreVersionHistoryFocusOnNextRender;
     private ElementReference _versionHistoryButtonElement;
+    private bool _isPreviewing;
+    private bool _restorePreviewFocusOnNextRender;
+    private ElementReference _previewButtonElement;
     private bool _draftLoadAttempted;
     private bool _disposed;
     private readonly CancellationTokenSource _disposalCts = new();
@@ -167,6 +170,18 @@ public partial class FormDesigner : ComponentBase, IAsyncDisposable
         {
             _restoreVersionHistoryFocusOnNextRender = false;
             await _versionHistoryButtonElement.FocusAsync();
+        }
+
+        if (_restorePreviewFocusOnNextRender)
+        {
+            // Same one-shot shape as the three flags above: ExitPreview sets this and
+            // StateHasChanged's next render is the one that actually removes PreviewPane from
+            // the DOM (the @if in FormDesigner.razor), so only THIS render is safe to move focus
+            // back to the toggle button on. PreviewPane's own OnAfterRenderAsync is the mirror
+            // image of this on the way in -- it focuses its own heading the moment it mounts,
+            // without FormDesigner's help.
+            _restorePreviewFocusOnNextRender = false;
+            await _previewButtonElement.FocusAsync();
         }
     }
 
@@ -376,6 +391,41 @@ public partial class FormDesigner : ComponentBase, IAsyncDisposable
         _editContext.AutosaveFailed += OnEditContextAutosaveFailed;
         _activePageId = revisedDraft.Definition.Pages.Count > 0 ? revisedDraft.Definition.Pages[0].Id : null;
         CloseVersionHistory();
+    }
+
+    /// <summary>
+    /// The toolbar's own Preview toggle (PRD §4.1, §4.2): a single <c>aria-pressed</c> button that
+    /// both enters and leaves preview, rather than the separate open-button/dialog-close-button
+    /// pair the keyboard-help, publish, and version-history affordances each use. Entering needs no
+    /// flag of its own here -- <see cref="Preview.PreviewPane"/> moves focus to its own heading the
+    /// moment it mounts; only leaving needs <see cref="ExitPreview"/>'s one-shot restore, the same
+    /// asymmetry every one-shot-focus pair in this file has.
+    /// </summary>
+    private void TogglePreview()
+    {
+        if (_isPreviewing)
+        {
+            ExitPreview();
+        }
+        else
+        {
+            _isPreviewing = true;
+        }
+    }
+
+    /// <summary>
+    /// Leaves preview -- the toolbar toggle's own second click, or <see cref="Preview.PreviewPane"/>'s
+    /// own Exit button (<see cref="Preview.PreviewPane.OnExit"/>) -- and arms
+    /// <see cref="_restorePreviewFocusOnNextRender"/> so the very next render, once
+    /// <see cref="Preview.PreviewPane"/> has actually left the DOM, moves real DOM focus back to
+    /// the toggle button (PRD §11). Touches nothing on <see cref="_editContext"/>'s own draft --
+    /// preview never mutates it, so there is nothing to roll back on exit, only test data inside
+    /// the torn-down <see cref="Preview.PreviewPane"/> itself to discard.
+    /// </summary>
+    private void ExitPreview()
+    {
+        _isPreviewing = false;
+        _restorePreviewFocusOnNextRender = true;
     }
 
     /// <summary>

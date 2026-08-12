@@ -371,6 +371,107 @@ public sealed class FormDesignerTests : DesignerTestContext
         JSInterop.VerifyFocusAsyncInvoke();
     }
 
+    // --- Phase 9: the preview toggle and its PreviewPane wiring (PRD §4.1) ---
+
+    [Fact]
+    public async Task ThePreviewToggleIsAriaPressedAndEnteringMovesFocusToThePreviewHeading()
+    {
+        var store = new InMemoryFormDefinitionStore();
+        const string formId = "form-1";
+        await store.SaveDraftAsync(FormLifecycle.CreateDraft(DesignerTestFixtures.OneFieldDefinition(formId)));
+        Services.AddSingleton<IFormDefinitionStore>(store);
+        var cut = Render<FormDesigner>(p => p.Add(f => f.FormId, formId));
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Instance.EditContext));
+
+        var toggle = cut.Find("button.bf-designer__preview-button");
+        Assert.Equal("false", toggle.GetAttribute("aria-pressed"));
+        Assert.Empty(cut.FindAll("div.bf-preview-pane"));
+
+        await toggle.ClickAsync(new MouseEventArgs());
+
+        Assert.Equal("true", cut.Find("button.bf-designer__preview-button").GetAttribute("aria-pressed"));
+        Assert.NotEmpty(cut.FindAll("div.bf-preview-pane"));
+        // DesignerCanvas/PageTabStrip are replaced, not merely covered -- preview takes over the
+        // canvas pane's body entirely.
+        Assert.Empty(cut.FindAll("div.bf-canvas-row"));
+
+        // PreviewPane's own OnAfterRenderAsync is what moves focus to its heading on entry --
+        // FormDesigner itself arms no focus flag for entering, only for leaving.
+        JSInterop.VerifyFocusAsyncInvoke();
+    }
+
+    [Fact]
+    public async Task ExitingPreviewViaTheToggleRestoresFocusToTheToggleButton()
+    {
+        var store = new InMemoryFormDefinitionStore();
+        const string formId = "form-1";
+        await store.SaveDraftAsync(FormLifecycle.CreateDraft(DesignerTestFixtures.OneFieldDefinition(formId)));
+        Services.AddSingleton<IFormDefinitionStore>(store);
+        var cut = Render<FormDesigner>(p => p.Add(f => f.FormId, formId));
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Instance.EditContext));
+
+        await cut.Find("button.bf-designer__preview-button").ClickAsync(new MouseEventArgs());
+        Assert.NotEmpty(cut.FindAll("div.bf-preview-pane"));
+
+        await cut.Find("button.bf-designer__preview-button").ClickAsync(new MouseEventArgs());
+
+        Assert.Empty(cut.FindAll("div.bf-preview-pane"));
+        Assert.Equal("false", cut.Find("button.bf-designer__preview-button").GetAttribute("aria-pressed"));
+        // Once for PreviewPane's own initial heading focus on entry, again once ExitPreview's
+        // _restorePreviewFocusOnNextRender flag is consumed on the render after PreviewPane has
+        // actually left the DOM -- the same "count both the entry focus and the trigger's
+        // restore" shape the keyboard-help dialog's own Esc test uses for itself.
+        JSInterop.VerifyFocusAsyncInvoke(2);
+    }
+
+    [Fact]
+    public async Task ExitingPreviewViaThePanesOwnExitButtonAlsoRestoresFocusToTheToggleButton()
+    {
+        var store = new InMemoryFormDefinitionStore();
+        const string formId = "form-1";
+        await store.SaveDraftAsync(FormLifecycle.CreateDraft(DesignerTestFixtures.OneFieldDefinition(formId)));
+        Services.AddSingleton<IFormDefinitionStore>(store);
+        var cut = Render<FormDesigner>(p => p.Add(f => f.FormId, formId));
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Instance.EditContext));
+
+        await cut.Find("button.bf-designer__preview-button").ClickAsync(new MouseEventArgs());
+        Assert.NotEmpty(cut.FindAll("div.bf-preview-pane"));
+
+        await cut.Find("button.bf-preview-pane__exit-button").ClickAsync(new MouseEventArgs());
+
+        Assert.Empty(cut.FindAll("div.bf-preview-pane"));
+        Assert.Equal("false", cut.Find("button.bf-designer__preview-button").GetAttribute("aria-pressed"));
+        JSInterop.VerifyFocusAsyncInvoke(2);
+    }
+
+    [Fact]
+    public async Task ExitingAndReenteringPreviewShowsACleanFormBecauseItsTestDataIsDiscarded()
+    {
+        var store = new InMemoryFormDefinitionStore();
+        const string formId = "form-1";
+        await store.SaveDraftAsync(FormLifecycle.CreateDraft(DesignerTestFixtures.OneFieldDefinition(formId)));
+        Services.AddSingleton<IFormDefinitionStore>(store);
+        var cut = Render<FormDesigner>(p => p.Add(f => f.FormId, formId));
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Instance.EditContext));
+
+        await cut.Find("button.bf-designer__preview-button").ClickAsync(new MouseEventArgs());
+        var field = cut.Find("input[id$='-first-name']");
+        await field.InputAsync(new ChangeEventArgs { Value = "throwaway answer" });
+        Assert.Equal("throwaway answer", cut.Find("input[id$='-first-name']").GetAttribute("value"));
+
+        await cut.Find("button.bf-designer__preview-button").ClickAsync(new MouseEventArgs()); // exit
+        await cut.Find("button.bf-designer__preview-button").ClickAsync(new MouseEventArgs()); // re-enter
+
+        // A brand-new FormRenderer instance inside a brand-new PreviewPane instance -- nothing
+        // from the exited session survives (PRD §4.1's "test data is discarded on exit").
+        Assert.Equal(string.Empty, cut.Find("input[id$='-first-name']").GetAttribute("value") ?? string.Empty);
+
+        // The working draft itself was never touched by any of this.
+        var firstNameNode = cut.Instance.EditContext!.Draft.Definition.FindNode("first-name");
+        Assert.False(cut.Instance.EditContext!.IsDirty);
+        Assert.NotNull(firstNameNode);
+    }
+
     private static AngleSharp.Dom.IElement FindPaletteButton(IRenderedComponent<FormDesigner> cut, string label) =>
         cut.FindAll("span.bf-palette__item-label")
             .Single(span => span.TextContent == label)

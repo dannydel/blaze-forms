@@ -787,4 +787,20 @@
   <data name="VersionHistoryRetiredOn" xml:space="preserve">
     <value>Retired {0}</value>
   </data>
+
+  <!-- FormDesigner toolbar's Preview toggle (Phase 9, PRD §4.1) and PreviewPane itself: renders
+       the working draft through the real FormRenderer with Ephemeral set, so a preview fill has
+       zero host side effects and its test data is discarded the moment the author exits. -->
+  <data name="ToolbarPreviewButton" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="PreviewHeading" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="PreviewNote" xml:space="preserve">
+    <value>This is a live preview of your working draft. Anything you type or submit here is not saved.</value>
+  </data>
+  <data name="PreviewExitButton" xml:space="preserve">
+    <value>Exit preview</value>
+  </data>
 </root>

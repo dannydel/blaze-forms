@@ -1,0 +1,14 @@
+<div class="bf-preview-pane">
+    <div class="bf-preview-pane__header">
+        <h3 id="@HeadingId" tabindex="-1" @ref="_headingElement" class="bf-preview-pane__heading">
+            @Localizer["PreviewHeading"].Value
+        </h3>
+        <button type="button" class="bf-preview-pane__exit-button" @onclick="ExitAsync">
+            @Localizer["PreviewExitButton"].Value
+        </button>
+    </div>
+    <p class="bf-preview-pane__note">@Localizer["PreviewNote"].Value</p>
+    <div class="bf-preview-pane__body" role="region" aria-labelledby="@HeadingId">
+        <FormRenderer Version="@EditContext.Draft" Ephemeral="true" OnSubmitted="OnPreviewSubmitted" />
+    </div>
+</div>
