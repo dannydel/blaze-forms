@@ -1,0 +1,87 @@
+<div class="bf-designer">
+    <div class="bf-designer__toolbar">
+        <button type="button" class="bf-designer__help-button" @ref="_helpButtonElement" @onclick="OpenKeyboardHelp">
+            @Localizer["KeyboardHelpOpenButton"].Value
+        </button>
+        @if (_editContext is not null)
+        {
+            <button type="button"
+                    class="bf-designer__preview-button"
+                    aria-pressed="@(_isPreviewing ? "true" : "false")"
+                    @ref="_previewButtonElement"
+                    @onclick="TogglePreview">
+                @Localizer["ToolbarPreviewButton"].Value
+            </button>
+            <button type="button" class="bf-designer__version-history-button" @ref="_versionHistoryButtonElement" @onclick="OpenVersionHistory">
+                @Localizer["ToolbarVersionHistoryButton"].Value
+            </button>
+            <button type="button" class="bf-designer__publish-button" @ref="_publishButtonElement" @onclick="OpenPublishDialog">
+                @Localizer["ToolbarPublishButton"].Value
+            </button>
+        }
+    </div>
+
+    <div class="bf-designer__panes">
+        <section class="bf-designer__pane bf-designer__pane--palette" role="region" aria-label="@Localizer["PaneTitlePalette"].Value">
+            <h2 class="bf-designer__pane-heading">@Localizer["PaneTitlePalette"].Value</h2>
+            <div class="bf-designer__pane-body">
+                <FieldPalette OnAddRequested="OnPaletteAddRequested" />
+            </div>
+        </section>
+
+        <section class="bf-designer__pane bf-designer__pane--canvas" role="region" aria-label="@Localizer["PaneTitleCanvas"].Value">
+            <h2 class="bf-designer__pane-heading">@Localizer["PaneTitleCanvas"].Value</h2>
+            <div class="bf-designer__pane-body">
+                @if (_editContext is null)
+                {
+                    <p class="bf-designer__placeholder">@Localizer["DesignerLoading"].Value</p>
+                }
+                else if (_isPreviewing)
+                {
+                    <PreviewPane EditContext="_editContext" OnExit="ExitPreview" />
+                }
+                else
+                {
+                    <p class="bf-designer__draft-name">@_editContext.Draft.Definition.Name</p>
+                    <PageTabStrip EditContext="_editContext" ActivePageId="@_activePageId" ActivePageIdChanged="OnActivePageIdChanged" />
+                    <DesignerCanvas EditContext="_editContext" ActivePageId="@_activePageId" LintResults="_lintResults" />
+                }
+            </div>
+        </section>
+
+        <section class="bf-designer__pane bf-designer__pane--properties" role="region" aria-label="@Localizer["PaneTitleProperties"].Value">
+            <h2 class="bf-designer__pane-heading">@Localizer["PaneTitleProperties"].Value</h2>
+            <div class="bf-designer__pane-body">
+                @if (_editContext is null)
+                {
+                    <p class="bf-designer__placeholder">@Localizer["DesignerLoading"].Value</p>
+                }
+                else
+                {
+                    <PropertiesPanel EditContext="_editContext" />
+                }
+            </div>
+        </section>
+    </div>
+
+    @if (_editContext is not null)
+    {
+        <LinterDock EditContext="_editContext" ResultsChanged="OnLintResultsChanged" />
+        <AriaLiveRegion EditContext="_editContext" />
+    }
+
+    @if (_showKeyboardHelp)
+    {
+        <KeyboardHelpDialog OnClosed="CloseKeyboardHelp" />
+    }
+
+    @if (_showPublishDialog && _editContext is not null)
+    {
+        <PublishDialog EditContext="_editContext" Store="_store" Author="@Author" OnClosed="ClosePublishDialog" OnPublished="OnDraftPublishedAsync" />
+    }
+
+    @if (_showVersionHistory)
+    {
+        <VersionHistory FormId="@FormId" Store="_store" OnClosed="CloseVersionHistory" OnRevised="OnDraftRevisedAsync" />
+    }
+</div>

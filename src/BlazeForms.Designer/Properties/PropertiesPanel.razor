@@ -1,0 +1,171 @@
+@using BlazeForms.Designer.Internal
+@if (SelectedNode is null)
+{
+    <div class="bf-props__empty">
+        <p class="bf-props__empty-text">@Localizer["PropertiesPlaceholderText"].Value</p>
+        <ValidationRuleEditor EditContext="EditContext" />
+    </div>
+}
+else
+{
+    var node = SelectedNode;
+    var labelWarningId = IdFor(node, "label-warning");
+    var showLabelWarning = ShowEmptyLabelWarning(node);
+
+    <div class="bf-props">
+        <div class="bf-props__field">
+            <label class="bf-props__label" for="@IdFor(node, "id")">@Localizer["PropFieldIdLabel"].Value</label>
+            <input id="@IdFor(node, "id")"
+                   type="text"
+                   class="bf-props__input bf-props__input--readonly"
+                   value="@node.Id"
+                   readonly
+                   aria-readonly="true" />
+        </div>
+
+        <div class="bf-props__field">
+            <label class="bf-props__label" for="@IdFor(node, "label")">@Localizer["PropLabelLabel"].Value</label>
+            <input @ref="_labelElement"
+                   id="@IdFor(node, "label")"
+                   type="text"
+                   class="bf-props__input"
+                   value="@node.Label"
+                   aria-invalid="@(showLabelWarning ? "true" : "false")"
+                   aria-describedby="@(showLabelWarning ? labelWarningId : null)"
+                   @onchange="@(e => CommitLabel(node, e))" />
+            @if (showLabelWarning)
+            {
+                <p id="@labelWarningId" class="bf-props__warning">@Localizer["PropLabelRequiredWarning"].Value</p>
+            }
+        </div>
+
+        @if (FormSchema.IsInputNode(node.Type))
+        {
+            <div class="bf-props__field">
+                <label class="bf-props__label" for="@IdFor(node, "help")">
+                    @Localizer["PropHelpLabel"].Value
+                    <span class="bf-props__markdown-hint">@Localizer["PropSupportsMarkdownHint"].Value</span>
+                </label>
+                <textarea id="@IdFor(node, "help")"
+                          class="bf-props__input bf-props__input--textarea"
+                          @bind:get="node.Help"
+                          @bind:set="@(value => CommitHelpAsync(node, value))" />
+            </div>
+
+            <div class="bf-props__field">
+                <label class="bf-props__label" for="@IdFor(node, "placeholder")">@Localizer["PropPlaceholderLabel"].Value</label>
+                <input id="@IdFor(node, "placeholder")"
+                       type="text"
+                       class="bf-props__input"
+                       value="@node.Placeholder"
+                       @onchange="@(e => CommitPlaceholder(node, e))" />
+            </div>
+
+            <div class="bf-props__checkbox-row">
+                <input id="@IdFor(node, "required")"
+                       type="checkbox"
+                       checked="@node.Required"
+                       @onchange="@(e => CommitRequired(node, e))" />
+                <label for="@IdFor(node, "required")">@Localizer["PropRequiredLabel"].Value</label>
+            </div>
+
+            <div class="bf-props__checkbox-row">
+                <input id="@IdFor(node, "required-when-visible")"
+                       type="checkbox"
+                       checked="@node.RequiredWhenVisible"
+                       disabled="@node.Required"
+                       aria-disabled="@(node.Required ? "true" : "false")"
+                       @onchange="@(e => CommitRequiredWhenVisible(node, e))" />
+                <label for="@IdFor(node, "required-when-visible")">@Localizer["PropRequiredWhenVisibleLabel"].Value</label>
+            </div>
+
+            <div class="bf-props__checkbox-row">
+                <input id="@IdFor(node, "half")"
+                       type="checkbox"
+                       checked="@node.Half"
+                       @onchange="@(e => CommitHalf(node, e))" />
+                <label for="@IdFor(node, "half")">@Localizer["PropHalfWidthLabel"].Value</label>
+            </div>
+        }
+
+        @if (node.Type is NodeType.Number or NodeType.Currency)
+        {
+            <div class="bf-props__field">
+                <label class="bf-props__label" for="@IdFor(node, "min")">@Localizer["PropMinLabel"].Value</label>
+                <input id="@IdFor(node, "min")"
+                       type="number"
+                       inputmode="decimal"
+                       class="bf-props__input"
+                       value="@node.Min"
+                       @onchange="@(e => CommitMin(node, e))" />
+            </div>
+
+            <div class="bf-props__field">
+                <label class="bf-props__label" for="@IdFor(node, "max")">@Localizer["PropMaxLabel"].Value</label>
+                <input id="@IdFor(node, "max")"
+                       type="number"
+                       inputmode="decimal"
+                       class="bf-props__input"
+                       value="@node.Max"
+                       @onchange="@(e => CommitMax(node, e))" />
+            </div>
+        }
+
+        @if (node.Type == NodeType.Heading)
+        {
+            <div class="bf-props__field">
+                <label class="bf-props__label" for="@IdFor(node, "level")">@Localizer["PropLevelLabel"].Value</label>
+                <select id="@IdFor(node, "level")"
+                        class="bf-props__input"
+                        @bind:get="node.Level is >= 2 and <= 4 ? node.Level.Value : 2"
+                        @bind:set="@(value => CommitLevelAsync(node, value))">
+                    <option value="2">@Localizer["PropLevelOption2"].Value</option>
+                    <option value="3">@Localizer["PropLevelOption3"].Value</option>
+                    <option value="4">@Localizer["PropLevelOption4"].Value</option>
+                </select>
+            </div>
+        }
+
+        @if (node.Type is NodeType.Select or NodeType.Radio or NodeType.CheckboxGroup or NodeType.YesNo)
+        {
+            <OptionsEditor Options="@node.Options" OptionsChanged="@(options => CommitOptions(node, options))" />
+        }
+
+        @if (node.Type is NodeType.Paragraph or NodeType.Callout)
+        {
+            <div class="bf-props__field">
+                <label class="bf-props__label" for="@IdFor(node, "content")">
+                    @Localizer["PropContentLabel"].Value
+                    <span class="bf-props__markdown-hint">@Localizer["PropSupportsMarkdownHint"].Value</span>
+                </label>
+                <textarea id="@IdFor(node, "content")"
+                          class="bf-props__input bf-props__input--textarea"
+                          @bind:get="node.Content"
+                          @bind:set="@(value => CommitContentAsync(node, value))" />
+            </div>
+        }
+
+        <div class="bf-props__field bf-props__visibility">
+            <span class="bf-props__label" id="@IdFor(node, "visibility-label")">@Localizer["PropVisibilityLabel"].Value</span>
+            <p aria-labelledby="@IdFor(node, "visibility-label")" class="bf-props__visibility-summary">
+                @(node.VisibleWhen is null ? Localizer["PropVisibilityAlwaysVisible"].Value : VisibilitySummaryFormatter.Format(node, EditContext.Draft.Definition))
+            </p>
+            <div class="bf-props__visibility-actions">
+                @if (node.VisibleWhen is null)
+                {
+                    <button type="button" @ref="_visibilityActionElement" class="bf-props__button" @onclick="@(() => OpenVisibilityRuleEditor(node.Id))">@Localizer["PropVisibilityAddRuleButton"].Value</button>
+                }
+                else
+                {
+                    <button type="button" @ref="_visibilityActionElement" class="bf-props__button" @onclick="@(() => OpenVisibilityRuleEditor(node.Id))">@Localizer["PropVisibilityEditRuleButton"].Value</button>
+                    <button type="button" class="bf-props__button" @onclick="@(() => RemoveVisibilityRule(node))">@Localizer["PropVisibilityRemoveRuleButton"].Value</button>
+                }
+            </div>
+        </div>
+    </div>
+
+    @if (_visibilityRuleEditorNodeId is not null)
+    {
+        <VisibilityRuleEditor EditContext="EditContext" NodeId="@_visibilityRuleEditorNodeId" OnClosed="CloseVisibilityRuleEditor" />
+    }
+}

@@ -1,0 +1,32 @@
+<div class="bf-page-tabs">
+    <div class="bf-page-tabs__row">
+        <nav class="bf-page-tabs__list" aria-label="@Localizer["PageTabStripLabel"].Value">
+            @for (var pageIndex = 0; pageIndex < Pages.Count; pageIndex++)
+            {
+                var page = Pages[pageIndex];
+                var title = PageTitle(page, pageIndex);
+                <button type="button"
+                        class="@TabClass(page.Id)"
+                        aria-current="@(IsActiveTab(page.Id) ? "page" : null)"
+                        @key="page.Id"
+                        @onclick="() => SelectPage(page.Id)">
+                    @title
+                </button>
+            }
+        </nav>
+        <button type="button" class="bf-page-tabs__add" @onclick="AddPage">
+            @Localizer["AddPageButtonLabel"].Value
+        </button>
+    </div>
+
+    @if (ActivePage is { Sections.Count: 0 })
+    {
+        <div class="bf-page-tabs__empty">
+            <p>@Localizer["EmptyPageText"].Value</p>
+            <div class="bf-page-tabs__empty-actions">
+                <button type="button" @onclick="AddSection">@Localizer["AddSectionButtonLabel"].Value</button>
+                <button type="button" disabled aria-disabled="true">@Localizer["StartFromTemplateButtonLabel"].Value</button>
+            </div>
+        </div>
+    }
+</div>

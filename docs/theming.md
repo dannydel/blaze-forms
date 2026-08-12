@@ -62,6 +62,29 @@ outright. A host registers its own design system's component per `NodeType` — 
 subclasses. `samples/` demonstrates the honesty test for this seam with a MudBlazor adapter that
 swaps every input component without touching `BlazeForms.Core` or `BlazeForms.Renderer`.
 
+## Designer tokens
+
+`BlazeForms.Designer` adds a small set of its own `--bf-*` tokens for the three-pane docked
+layout (PRD §4.1, D9 — docked is the only P1 layout). They are new, not a restatement of the
+renderer's — `FormDesigner`'s own component CSS otherwise builds directly on the color,
+typography, spacing, radius, and focus tokens `blazeforms.css` already declares, since
+`BlazeForms.Designer` depends on `BlazeForms.Renderer` (PRD §9). A host that links `FormDesigner`
+links both stylesheets:
+
+```html
+<link rel="stylesheet" href="_content/BlazeForms.Renderer/blazeforms.css" />
+<link rel="stylesheet" href="_content/BlazeForms.Designer/blazeforms-designer.css" />
+```
+
+| Token | Purpose |
+|---|---|
+| `--bf-palette-width` | The field palette pane's fixed column width in the docked layout. |
+| `--bf-properties-width` | The properties pane's fixed column width in the docked layout. |
+| `--bf-pane-gap` | The gap between the three docked panes. |
+| `--bf-dock-height` | The docked shell's minimum height; panes scroll independently past it. |
+| `--bf-canvas-row-selected-bg` | `DesignerCanvas`'s selected node row background — a designer-only concept the renderer's own token set has no equivalent for. |
+| `--bf-publish-note-min-height` | `PublishDialog`'s change-note textarea minimum height. |
+
 ## A worked example: mapping Bootstrap tokens
 
 Bootstrap's own custom properties map onto `--bf-*` directly, proving the CSS-only restyling path

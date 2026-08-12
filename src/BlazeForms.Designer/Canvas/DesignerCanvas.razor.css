@@ -1,0 +1,18 @@
+.bf-canvas {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-4);
+}
+
+/* Visible focus ring for the canvas's own listbox root, the last-resort fallback focus target
+ * for a node-less undo/redo (PRD §11) that restores a selection anchored to no section either --
+ * the same :focus-visible treatment CanvasNodeRow.razor.css and CanvasSection.razor.css give
+ * their own focus targets, since a mouse never focuses this element. */
+.bf-canvas:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}
+
+.bf-canvas__empty {
+    color: var(--bf-color-muted);
+}

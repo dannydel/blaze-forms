@@ -1,0 +1,34 @@
+<div class="bf-canvas-row"
+     role="option"
+     aria-selected="@(IsSelected ? "true" : "false")"
+     tabindex="@(IsActive ? 0 : -1)"
+     draggable="true"
+     @ref="_element"
+     @onclick="Activate"
+     @ondragstart="OnDragStart"
+     @ondragend="OnDragEnd"
+     @ondragover:preventDefault="true"
+     @ondrop="OnDropped"
+     @ondrop:stopPropagation="true">
+    <div class="bf-canvas-row__header">
+        <span class="bf-canvas-row__label">@RowLabel</span>
+        <span class="bf-canvas-row__chip bf-canvas-row__chip--type">@TypeLabel</span>
+        @if (Node.Required)
+        {
+            <span class="bf-canvas-row__chip bf-canvas-row__chip--required">@Localizer["RowRequiredChip"].Value</span>
+        }
+        @if (Node.Half)
+        {
+            <span class="bf-canvas-row__chip bf-canvas-row__chip--half">@Localizer["RowHalfWidthChip"].Value</span>
+        }
+        @if (Node.VisibleWhen is not null)
+        {
+            <span class="bf-canvas-row__chip bf-canvas-row__chip--logic">@(LogicSummary ?? Localizer["RowVisibilityRuleChip"].Value)</span>
+        }
+    </div>
+    @if (HasHelp)
+    {
+        <div class="bf-canvas-row__help bf-prose">@HelpMarkup</div>
+    }
+    <div class="bf-canvas-row__lint"><InlineLintMarker Findings="LintFindings" /></div>
+</div>

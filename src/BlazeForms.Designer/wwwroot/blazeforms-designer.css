@@ -1,0 +1,33 @@
+/*
+ * BlazeForms designer layout tokens (PRD §4.1, §10, docs/theming.md).
+ *
+ * These four tokens are new to the designer -- the color, typography, spacing, radius, focus,
+ * and motion tokens the designer's own component CSS (the collocated `.razor.css` files under
+ * `FormDesigner.razor.css` and `Palette/FieldPalette.razor.css`) builds on are the ones
+ * BlazeForms.Renderer's `blazeforms.css` already declares (PRD §9: BlazeForms.Designer depends
+ * on BlazeForms.Renderer). A host that links FormDesigner must link both stylesheets;
+ * re-declaring the base tokens here would just create a second source of truth for the same
+ * contract.
+ *
+ * Served at `_content/BlazeForms.Designer/blazeforms-designer.css`; consumers add one <link>
+ * alongside the renderer's, the same way any Razor Class Library's static web assets are
+ * referenced.
+ */
+
+:root {
+  /* Three-pane docked layout (PRD §4.1, D9 -- docked is the only P1 layout). */
+  --bf-palette-width: 16rem;
+  --bf-properties-width: 20rem;
+  --bf-pane-gap: 1rem;
+  --bf-dock-height: 40rem;
+
+  /* Canvas (PRD §4.1, §11): the roving-focus row's selected-state background. A wholly new
+     semantic token -- the renderer has no notion of a "selected row" for BlazeForms.Designer's
+     own component CSS (DesignerCanvas.razor.css, CanvasNodeRow.razor.css) to reuse. */
+  --bf-canvas-row-selected-bg: color-mix(in srgb, var(--bf-color-primary) 12%, var(--bf-color-bg));
+
+  /* Versioning (Phase 8, PRD §7): PublishDialog's own change-note textarea minimum height. A
+     wholly new token -- the renderer's spacing scale (--bf-space-1 … --bf-space-6) has nothing
+     sized for a multi-line text area, and none of its own values happen to fit. */
+  --bf-publish-note-min-height: 6rem;
+}

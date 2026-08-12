@@ -1,0 +1,96 @@
+.bf-library {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-4);
+    color: var(--bf-color-text);
+}
+
+.bf-library__title {
+    margin: 0;
+    font-size: var(--bf-font-size-lg);
+}
+
+.bf-library__controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: var(--bf-space-4);
+}
+
+.bf-library__control {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-1);
+}
+
+.bf-library__label {
+    font-size: var(--bf-font-size-sm);
+    font-weight: 600;
+}
+
+.bf-library__search-input,
+.bf-library__select {
+    min-block-size: var(--bf-touch-target);
+    padding-inline: var(--bf-space-3);
+    padding-block: var(--bf-space-2);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+    background-color: var(--bf-color-bg);
+    color: var(--bf-color-text);
+    font: inherit;
+}
+
+.bf-library__search-input:focus-visible,
+.bf-library__select:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}
+
+/* The cards/table toggle is a two-button group, each carrying its own aria-pressed state --
+ * the same "aria-pressed toggle button" convention FormDesigner's own Preview toggle uses,
+ * grouped under role="group" so assistive tech announces the pair as one control. */
+.bf-library__view-toggle {
+    display: flex;
+    gap: var(--bf-space-2);
+}
+
+.bf-library__view-button {
+    min-block-size: var(--bf-touch-target);
+    padding-inline: var(--bf-space-3);
+    padding-block: var(--bf-space-2);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+    background-color: var(--bf-color-surface);
+    color: var(--bf-color-text);
+    font: inherit;
+    cursor: pointer;
+}
+
+.bf-library__view-button[aria-pressed="true"] {
+    border-color: var(--bf-color-primary);
+    color: var(--bf-color-primary);
+}
+
+.bf-library__view-button:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}
+
+.bf-library__result-count {
+    margin: 0;
+    color: var(--bf-color-muted);
+    font-size: var(--bf-font-size-sm);
+}
+
+.bf-library__status {
+    color: var(--bf-color-muted);
+}
+
+.bf-library__cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: var(--bf-space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}

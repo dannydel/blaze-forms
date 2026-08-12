@@ -29,7 +29,11 @@ namespace BlazeForms;
 /// Fill drafts (<c>IFormDraftStore</c>, PRD §4.2, §9, D13) autosave on field blur and on every
 /// page change, and resume once, after interactivity, when the host both registers a store and
 /// supplies a non-<see langword="null"/> <see cref="RespondentKey"/> — an anonymous fill never
-/// touches the store at all.
+/// touches the store at all. Setting <see cref="Ephemeral"/> goes further still: it turns off
+/// both optional host integrations (the draft store and the submission sink) unconditionally, so
+/// a design-time preview of an unpublished draft — <c>BlazeForms.Designer</c>'s own preview pane
+/// (PRD §4.1) — can render this exact component, with live logic and validation, over test data
+/// that never touches the host at all.
 /// </remarks>
 public partial class FormRenderer : ComponentBase, IAsyncDisposable
 {
@@ -60,7 +64,9 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     /// <see cref="ServiceProvider"/> rather than through <c>[Inject]</c> directly — see the
     /// remarks on <see cref="ServiceProvider"/> for why. Invoked alongside
     /// <see cref="OnSubmitted"/> on a successful submit, never instead of it, so a host can rely
-    /// on either integration point without the other silently going unfired (PRD §9).
+    /// on either integration point without the other silently going unfired (PRD §9). Never
+    /// resolved at all — stays <see langword="null"/> for this renderer's whole lifetime — when
+    /// <see cref="Ephemeral"/> is <see langword="true"/>.
     /// </summary>
     private IFormSubmissionSink? _sink;
 
@@ -68,7 +74,8 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     /// The host's optional fill-draft store, resolved once in <see cref="OnInitialized"/> the
     /// same way as <see cref="_sink"/> — through <see cref="ServiceProvider"/> directly, never
     /// <c>[Inject]</c>, because it is genuinely optional (PRD §4.2, §9). <see langword="null"/>
-    /// turns drafts off entirely: no load, no autosave, no delete.
+    /// turns drafts off entirely: no load, no autosave, no delete — the same outcome
+    /// <see cref="Ephemeral"/> forces unconditionally, by simply never resolving this at all.
     /// </summary>
     private IFormDraftStore? _draftStore;
 
@@ -95,6 +102,25 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     /// </summary>
     [Parameter]
     public IFieldComponentRegistry? FieldComponents { get; set; }
+
+    /// <summary>
+    /// When <see langword="true"/>, this renderer runs in a throwaway, design-time preview mode:
+    /// it never resolves the host's <see cref="IFormSubmissionSink"/> or
+    /// <see cref="IFormDraftStore"/> from <see cref="ServiceProvider"/> at all, so filling and
+    /// submitting the current draft inside a designer's preview pane has zero host side
+    /// effects — no submission ever reaches a registered sink, and no draft is ever loaded,
+    /// autosaved, or deleted, however long the preview fill runs or however many times it
+    /// submits.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="OnSubmitted"/> and <see cref="ConfirmationTemplate"/> still fire and render
+    /// exactly as they would on a real fill — a preview still needs its own confirmation once its
+    /// test data "submits" (PRD §4.1); only the two optional host integrations are skipped.
+    /// Defaults to <see langword="false"/>, so every existing host that never sets this parameter
+    /// keeps behaving exactly as it always has.
+    /// </remarks>
+    [Parameter]
+    public bool Ephemeral { get; set; }
 
     /// <summary>
     /// Raised once, with the completed submission envelope, when the respondent submits a form
@@ -214,8 +240,17 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     {
         _startedAt = DateTimeOffset.UtcNow;
         _fieldValidator = new FieldValidator(Localizer);
-        _sink = ServiceProvider.GetService(typeof(IFormSubmissionSink)) as IFormSubmissionSink;
-        _draftStore = ServiceProvider.GetService(typeof(IFormDraftStore)) as IFormDraftStore;
+
+        // An ephemeral (preview) fill never resolves either optional host integration, no matter
+        // what the host actually registered -- that is the entire point of Ephemeral. Leaving
+        // both null here is what makes every downstream sink/draft-store call site's existing
+        // null-guard (SubmitAsync, LoadDraftAsync, PersistDraftAsync, DeleteDraftAsync) a no-op
+        // for free, with no separate Ephemeral check duplicated at each of them.
+        if (!Ephemeral)
+        {
+            _sink = ServiceProvider.GetService(typeof(IFormSubmissionSink)) as IFormSubmissionSink;
+            _draftStore = ServiceProvider.GetService(typeof(IFormDraftStore)) as IFormDraftStore;
+        }
     }
 
     /// <inheritdoc />
@@ -236,7 +271,7 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
         Justification = "A Blazor lifecycle method must resume on the renderer's synchronization context, not a captured-context-free one, so it can safely schedule the next render.")]
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && !_draftLoadAttempted)
+        if (firstRender && !_draftLoadAttempted && !Ephemeral)
         {
             // Loading here rather than in OnInitializedAsync is what keeps this prerender-safe:
             // OnInitializedAsync runs twice under a prerender-then-resume host (once on the
@@ -244,7 +279,10 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
             // draft twice and, worse, would run before there is any interactive circuit to
             // eventually persist back to. The explicit flag is a second, belt-and-suspenders
             // guard against ever awaiting LoadAsync more than once, on top of firstRender itself
-            // only ever being true for the very first call (PRD §4.2).
+            // only ever being true for the very first call (PRD §4.2). The Ephemeral check is a
+            // second, belt-and-suspenders guard of its own on top of _draftStore already being
+            // null under Ephemeral (see OnInitialized) -- a preview fill never even attempts the
+            // call, rather than relying solely on LoadDraftAsync's own null-store guard.
             _draftLoadAttempted = true;
             await LoadDraftAsync();
         }

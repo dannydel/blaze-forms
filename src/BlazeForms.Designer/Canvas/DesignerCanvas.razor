@@ -1,0 +1,46 @@
+@if (ActivePage is null)
+{
+    <p class="bf-canvas__empty">@Localizer["CanvasNoPageSelectedText"].Value</p>
+}
+else
+{
+    <div class="bf-canvas"
+         role="listbox"
+         aria-label="@Localizer["CanvasRegionLabel"].Value"
+         tabindex="-1"
+         @ref="_canvasElement"
+         @onkeydown="OnKeyDown">
+        @foreach (var section in ActivePage.Sections)
+        {
+            <CanvasSection @key="section.Id"
+                           Section="section"
+                           RequestFocus="@IsSectionFocusPending(section.Id)"
+                           OnDropped="@GetSectionDropCallback(section.Id)">
+                @foreach (var node in section.Nodes)
+                {
+                    <CanvasNodeRow @key="node.Id"
+                                   Node="node"
+                                   IsActive="@IsRowActive(node.Id)"
+                                   IsSelected="@IsRowSelected(node.Id)"
+                                   RequestFocus="@IsFocusPending(node.Id)"
+                                   LogicSummary="@GetLogicSummary(node)"
+                                   LintFindings="@GetFindingsForNode(node.Id)"
+                                   OnActivate="@GetActivateCallback(node.Id)"
+                                   OnDragStart="@GetDragStartCallback(node.Id)"
+                                   OnDragEnd="@GetDragEndCallback(node.Id)"
+                                   OnDropped="@GetRowDropCallback(node.Id)" />
+                }
+            </CanvasSection>
+        }
+    </div>
+
+    @if (_showMoveDialog && _moveDialogNodeId is not null)
+    {
+        <MoveToPositionDialog EditContext="EditContext" NodeId="@_moveDialogNodeId" OnClosed="CloseMoveDialog" />
+    }
+
+    @if (_showDeleteDialog && _deleteDialogNodeId is not null)
+    {
+        <DeleteProtectionDialog EditContext="EditContext" NodeId="@_deleteDialogNodeId" OnClosed="CloseDeleteDialog" />
+    }
+}

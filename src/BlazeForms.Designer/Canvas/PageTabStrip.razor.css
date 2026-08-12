@@ -1,0 +1,85 @@
+.bf-page-tabs {
+    margin-block-end: var(--bf-space-4);
+}
+
+.bf-page-tabs__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--bf-space-2);
+    border-block-end: var(--bf-border-width) solid var(--bf-color-border);
+    padding-block-end: var(--bf-space-2);
+}
+
+.bf-page-tabs__list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--bf-space-2);
+}
+
+.bf-page-tabs__tab {
+    padding-inline: var(--bf-space-3);
+    padding-block: var(--bf-space-2);
+    border: var(--bf-border-width) solid transparent;
+    border-radius: var(--bf-radius-sm);
+    background: none;
+    color: var(--bf-color-text);
+    font: inherit;
+    cursor: pointer;
+}
+
+.bf-page-tabs__tab--active {
+    border-color: var(--bf-color-primary);
+    color: var(--bf-color-primary);
+    font-weight: 600;
+}
+
+.bf-page-tabs__tab:focus-visible,
+.bf-page-tabs__add:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}
+
+.bf-page-tabs__add {
+    padding-inline: var(--bf-space-3);
+    padding-block: var(--bf-space-2);
+    border: var(--bf-border-width) dashed var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+    background: none;
+    color: var(--bf-color-primary);
+    font: inherit;
+    cursor: pointer;
+}
+
+.bf-page-tabs__empty {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-2);
+    margin-block-start: var(--bf-space-3);
+    padding: var(--bf-space-4);
+    border: var(--bf-border-width) dashed var(--bf-color-border);
+    border-radius: var(--bf-radius-md);
+    color: var(--bf-color-muted);
+}
+
+.bf-page-tabs__empty-actions {
+    display: flex;
+    gap: var(--bf-space-2);
+}
+
+.bf-page-tabs__empty-actions button {
+    padding-inline: var(--bf-space-3);
+    padding-block: var(--bf-space-2);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+    background-color: var(--bf-color-bg);
+    color: var(--bf-color-text);
+    font: inherit;
+    cursor: pointer;
+}
+
+.bf-page-tabs__empty-actions button:disabled {
+    color: var(--bf-color-muted);
+    cursor: not-allowed;
+}

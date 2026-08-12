@@ -1,0 +1,24 @@
+<div class="bf-canvas-section" role="group" aria-labelledby="@_headingId" tabindex="-1" @ref="_element">
+    @* aria-hidden, not merely visual styling, on the title and description: the enclosing
+       role="group" is itself an owned child of DesignerCanvas's own role="listbox" (the
+       WAI-ARIA grouped-listbox pattern), and axe's aria-required-children rule walks every
+       accessible descendant of that listbox looking for disallowed roles -- a bare <h3>/<p>
+       (heading/paragraph) is not among the roles a listbox may transitively own, so leaving
+       either exposed fails the scan even though the group's own aria-labelledby already needs
+       nothing more from them. Accessible name computation from aria-labelledby reads a
+       referenced element's text regardless of its own hidden state (the same reason a
+       visually-hidden label works), so the group's own name is unaffected; only the redundant,
+       separately-navigable heading/paragraph disappears from the accessibility tree, never from
+       the visible canvas. *@
+    <h3 id="@_headingId" class="bf-canvas-section__title" aria-hidden="true">@SectionTitle</h3>
+    @if (!string.IsNullOrWhiteSpace(Section.Description))
+    {
+        <p class="bf-canvas-section__description" aria-hidden="true">@Section.Description</p>
+    }
+    <div class="bf-canvas-section__rows"
+         role="presentation"
+         @ondragover:preventDefault="true"
+         @ondrop="OnDropped">
+        @ChildContent
+    </div>
+</div>

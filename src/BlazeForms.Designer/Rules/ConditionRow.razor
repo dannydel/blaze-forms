@@ -1,0 +1,58 @@
+<div class="bf-condition-row">
+    <div class="bf-condition-row__field">
+        <label class="bf-condition-row__label" for="@FieldSelectId">@Localizer["ConditionRowFieldLabel", RowNumber].Value</label>
+        <select @ref="_fieldSelectElement"
+                id="@FieldSelectId"
+                class="bf-condition-row__input"
+                @bind:get="Condition.Field"
+                @bind:set="OnFieldChangedAsync">
+            @foreach (var field in Fields)
+            {
+                <option value="@field.Id">@FieldLabel(field)</option>
+            }
+        </select>
+    </div>
+    <div class="bf-condition-row__field">
+        <label class="bf-condition-row__label" for="@OperatorSelectId">@Localizer["ConditionRowOperatorLabel", RowNumber].Value</label>
+        <select id="@OperatorSelectId"
+                class="bf-condition-row__input"
+                @bind:get="Condition.Operator"
+                @bind:set="OnOperatorChangedAsync">
+            @foreach (var op in Operators)
+            {
+                <option value="@op">@Localizer[$"ConditionOperator{op}"].Value</option>
+            }
+        </select>
+    </div>
+    @if (!IsNoOperandOperator)
+    {
+        <div class="bf-condition-row__field">
+            <label class="bf-condition-row__label" for="@ValueControlId">@Localizer["ConditionRowValueLabel", RowNumber].Value</label>
+            @if (SelectedFieldOptions is { Count: > 0 } options)
+            {
+                <select id="@ValueControlId"
+                        class="bf-condition-row__input"
+                        @bind:get="Condition.Value"
+                        @bind:set="OnValueSelectedAsync">
+                    <option value=""></option>
+                    @foreach (var option in options)
+                    {
+                        <option value="@option.Value">@option.Label</option>
+                    }
+                </select>
+            }
+            else
+            {
+                <input id="@ValueControlId"
+                       type="text"
+                       class="bf-condition-row__input"
+                       value="@Condition.Value"
+                       @onchange="OnValueTypedAsync" />
+            }
+        </div>
+    }
+    <button type="button"
+            class="bf-condition-row__remove-button"
+            aria-label="@Localizer["ConditionRowRemoveButton", RowNumber].Value"
+            @onclick="OnRemoveAsync">@Localizer["ConditionRowRemoveText"].Value</button>
+</div>

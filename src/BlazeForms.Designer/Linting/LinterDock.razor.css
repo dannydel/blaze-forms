@@ -1,0 +1,121 @@
+.bf-linter-dock {
+    border-block-start: var(--bf-border-width) solid var(--bf-color-border);
+    background-color: var(--bf-color-bg);
+}
+
+.bf-linter-dock__toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--bf-space-2);
+    width: 100%;
+    padding: var(--bf-space-3);
+    border: none;
+    background: none;
+    color: var(--bf-color-text);
+    font-weight: 600;
+    text-align: start;
+    cursor: pointer;
+}
+
+.bf-linter-dock__toggle:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}
+
+.bf-linter-dock__toggle-icon {
+    font-size: var(--bf-font-size-sm);
+}
+
+.bf-linter-dock__body {
+    padding: 0 var(--bf-space-3) var(--bf-space-3);
+    max-height: 16rem;
+    overflow-y: auto;
+}
+
+.bf-linter-dock__empty {
+    color: var(--bf-color-muted);
+    font-size: var(--bf-font-size-sm);
+}
+
+.bf-linter-dock__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.bf-linter-dock__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-1);
+    padding: var(--bf-space-2);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+}
+
+.bf-linter-dock__severity {
+    align-self: flex-start;
+    padding-inline: var(--bf-space-2);
+    padding-block: var(--bf-space-1);
+    border-radius: var(--bf-radius-sm);
+    font-size: var(--bf-font-size-sm);
+    font-weight: 600;
+}
+
+/* Severity is always named in text (LinterDockSeverityBlocking/Advisory) -- these background
+ * colors are a supplementary cue for sighted authors, never the only signal. */
+.bf-linter-dock__severity--blocking {
+    background-color: var(--bf-color-danger);
+    color: var(--bf-color-primary-contrast);
+}
+
+.bf-linter-dock__severity--advisory {
+    background-color: var(--bf-color-surface);
+    color: var(--bf-color-muted);
+}
+
+.bf-linter-dock__rule-id {
+    color: var(--bf-color-muted);
+    font-size: var(--bf-font-size-sm);
+    font-family: monospace;
+}
+
+.bf-linter-dock__message {
+    margin: 0;
+}
+
+.bf-linter-dock__detail {
+    margin: 0;
+    color: var(--bf-color-muted);
+    font-size: var(--bf-font-size-sm);
+}
+
+.bf-linter-dock__actions {
+    display: flex;
+    gap: var(--bf-space-2);
+}
+
+.bf-linter-dock__jump,
+.bf-linter-dock__fix {
+    padding-inline: var(--bf-space-2);
+    padding-block: var(--bf-space-1);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+    background-color: var(--bf-color-surface);
+    color: var(--bf-color-text);
+    font-size: var(--bf-font-size-sm);
+    cursor: pointer;
+}
+
+.bf-linter-dock__jump:focus-visible,
+.bf-linter-dock__fix:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}
+
+.bf-linter-dock__fix {
+    border-color: var(--bf-color-primary);
+    color: var(--bf-color-primary);
+}

@@ -1,0 +1,15 @@
+@if (Findings.Count > 0)
+{
+    <ul class="bf-inline-lint">
+        @foreach (var finding in Findings)
+        {
+            <li class="bf-inline-lint__item bf-inline-lint__item--@SeverityModifier(finding)" @key="ItemKey(finding)">
+                <span class="bf-inline-lint__icon" aria-hidden="true">@SeverityIcon(finding)</span>
+                <span class="bf-inline-lint__text">
+                    <span class="bf-inline-lint__severity">@SeverityLabel(finding):</span>
+                    @finding.Message
+                </span>
+            </li>
+        }
+    </ul>
+}

@@ -1,0 +1,900 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms</value>
+  </resheader>
+
+  <!-- The three docked pane titles (PRD §4.1, D9). Also used as each pane's aria-label. -->
+  <data name="PaneTitlePalette" xml:space="preserve">
+    <value>Field palette</value>
+  </data>
+  <data name="PaneTitleCanvas" xml:space="preserve">
+    <value>Canvas</value>
+  </data>
+  <data name="PaneTitleProperties" xml:space="preserve">
+    <value>Properties</value>
+  </data>
+
+  <!-- Shown in PropertiesPanel's own body when nothing is selected (Phase 4, PRD §4.1). -->
+  <data name="PropertiesPlaceholderText" xml:space="preserve">
+    <value>Select a field on the canvas to edit its properties.</value>
+  </data>
+
+  <!-- Fallback name for a brand-new form that has never had a name saved (PRD §5, FormDefinition.Name). -->
+  <data name="UntitledFormName" xml:space="preserve">
+    <value>Untitled form</value>
+  </data>
+
+  <!-- Shown in the canvas pane while the working draft loads or in-memory-creates, deferred out of
+       OnInitializedAsync into OnAfterRenderAsync for prerender safety (see FormDesigner's remarks). -->
+  <data name="DesignerLoading" xml:space="preserve">
+    <value>Loading…</value>
+  </data>
+
+  <!-- Field palette chrome (PRD §4.1). -->
+  <data name="PaletteSearchLabel" xml:space="preserve">
+    <value>Search fields</value>
+  </data>
+  <data name="PaletteSearchPlaceholder" xml:space="preserve">
+    <value>Search fields…</value>
+  </data>
+  <data name="PalettePhaseBadgeText" xml:space="preserve">
+    <value>Phase 2</value>
+  </data>
+
+  <!-- Palette group names (PRD §5's node-type table). -->
+  <data name="PaletteGroupText" xml:space="preserve">
+    <value>Text</value>
+  </data>
+  <data name="PaletteGroupNumeric" xml:space="preserve">
+    <value>Numeric</value>
+  </data>
+  <data name="PaletteGroupDate" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="PaletteGroupChoice" xml:space="preserve">
+    <value>Choice</value>
+  </data>
+  <data name="PaletteGroupStatic" xml:space="preserve">
+    <value>Static</value>
+  </data>
+  <data name="PaletteGroupAdvanced" xml:space="preserve">
+    <value>Advanced</value>
+  </data>
+
+  <!-- Node-type display names, one per PRD §5 P1 type plus the three P2-reserved types. Keyed as
+       "NodeType" + the NodeType enum member name so FieldPalette resolves each without a
+       per-value switch. -->
+  <data name="NodeTypeText" xml:space="preserve">
+    <value>Text</value>
+  </data>
+  <data name="NodeTypeTextArea" xml:space="preserve">
+    <value>Text area</value>
+  </data>
+  <data name="NodeTypeEmail" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="NodeTypePhone" xml:space="preserve">
+    <value>Phone</value>
+  </data>
+  <data name="NodeTypeNumber" xml:space="preserve">
+    <value>Number</value>
+  </data>
+  <data name="NodeTypeCurrency" xml:space="preserve">
+    <value>Currency</value>
+  </data>
+  <data name="NodeTypeDate" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="NodeTypeDateRange" xml:space="preserve">
+    <value>Date range</value>
+  </data>
+  <data name="NodeTypeSelect" xml:space="preserve">
+    <value>Dropdown</value>
+  </data>
+  <data name="NodeTypeRadio" xml:space="preserve">
+    <value>Radio buttons</value>
+  </data>
+  <data name="NodeTypeCheckboxGroup" xml:space="preserve">
+    <value>Checkbox group</value>
+  </data>
+  <data name="NodeTypeYesNo" xml:space="preserve">
+    <value>Yes/No</value>
+  </data>
+  <data name="NodeTypeBoolean" xml:space="preserve">
+    <value>Checkbox</value>
+  </data>
+  <data name="NodeTypeHeading" xml:space="preserve">
+    <value>Heading</value>
+  </data>
+  <data name="NodeTypeParagraph" xml:space="preserve">
+    <value>Paragraph</value>
+  </data>
+  <data name="NodeTypeCallout" xml:space="preserve">
+    <value>Callout</value>
+  </data>
+  <data name="NodeTypeDivider" xml:space="preserve">
+    <value>Divider</value>
+  </data>
+  <data name="NodeTypeCalc" xml:space="preserve">
+    <value>Calculated value</value>
+  </data>
+  <data name="NodeTypeRepeating" xml:space="preserve">
+    <value>Repeating group</value>
+  </data>
+  <data name="NodeTypeFile" xml:space="preserve">
+    <value>File upload</value>
+  </data>
+  <data name="NodeTypeLookup" xml:space="preserve">
+    <value>Lookup</value>
+  </data>
+
+  <!-- Fallback page heading when a FormPage.Title is null, used when building an announcement or
+       an undo/redo description that names a page. Mirrors FormRenderer's own
+       "PageFallbackTitle" (RendererStrings.resx), kept as its own key here since
+       BlazeForms.Designer does not reference BlazeForms.Renderer's resources. -->
+  <data name="PageFallbackTitle" xml:space="preserve">
+    <value>Page {0}</value>
+  </data>
+
+  <!-- Fallback section title when a FormSection.Title is null, used the same way as
+       PageFallbackTitle above. -->
+  <data name="UntitledSectionName" xml:space="preserve">
+    <value>Untitled section</value>
+  </data>
+
+  <!-- DesignerEditContext announcement templates (PRD §4.1, §11): every structural mutation
+       raises exactly one of these, in plain language, to the aria-live region. Each one also
+       becomes that mutation's EditSnapshot.Description, reused verbatim inside
+       AnnouncementUndid/AnnouncementRedid so undoing or redoing announces what is actually being
+       reversed or reapplied. -->
+  <data name="AnnouncementNodeAdded" xml:space="preserve">
+    <value>Added {0} to '{1}'.</value>
+  </data>
+  <data name="AnnouncementNodeUpdated" xml:space="preserve">
+    <value>Updated '{0}'.</value>
+  </data>
+  <data name="AnnouncementNodeDeleted" xml:space="preserve">
+    <value>Deleted '{0}'.</value>
+  </data>
+  <data name="AnnouncementNodeDuplicated" xml:space="preserve">
+    <value>Duplicated '{0}'.</value>
+  </data>
+  <data name="AnnouncementPageAdded" xml:space="preserve">
+    <value>Added page {0}.</value>
+  </data>
+  <data name="AnnouncementSectionAdded" xml:space="preserve">
+    <value>Added a section to '{0}'.</value>
+  </data>
+  <data name="AnnouncementNodeMoved" xml:space="preserve">
+    <value>Moved to position {0} of {1} in '{2}'.</value>
+  </data>
+  <data name="AnnouncementValidationRulesUpdated" xml:space="preserve">
+    <value>Updated the form's validation rules.</value>
+  </data>
+  <data name="AnnouncementUndid" xml:space="preserve">
+    <value>Undid: {0}</value>
+  </data>
+  <data name="AnnouncementRedid" xml:space="preserve">
+    <value>Redid: {0}</value>
+  </data>
+
+  <!-- Announced when a queued autosave actually fails to persist (PRD §7, §11),
+       DesignerEditContext.AutosaveFailed's own message; the author's edit itself is unaffected,
+       this just tells them the store write has not happened yet. -->
+  <data name="AutosaveFailed" xml:space="preserve">
+    <value>Your changes could not be saved. Retrying on your next edit.</value>
+  </data>
+
+  <!-- DesignerCanvas (Phase 3, PRD §4.1, §11): the roving-focus, listbox/option-shaped canvas of
+       the current page's sections and node rows. -->
+  <data name="CanvasRegionLabel" xml:space="preserve">
+    <value>Form fields</value>
+  </data>
+  <data name="CanvasNoPageSelectedText" xml:space="preserve">
+    <value>Add a page to start building this form.</value>
+  </data>
+
+  <!-- MoveToPositionDialog (Phase 5, PRD §4.1): the Ctrl+M "move to position" dialog. {0} in
+       MoveDialogTitle is the node's own label (or its UntitledNodeLabel fallback); {0} in
+       MoveDialogPositionOption is the one-based position number. -->
+  <data name="MoveDialogTitle" xml:space="preserve">
+    <value>Move '{0}'</value>
+  </data>
+  <data name="MoveDialogSectionLabel" xml:space="preserve">
+    <value>Section</value>
+  </data>
+  <data name="MoveDialogPositionLabel" xml:space="preserve">
+    <value>Position</value>
+  </data>
+  <data name="MoveDialogPositionOption" xml:space="preserve">
+    <value>Position {0}</value>
+  </data>
+  <data name="MoveDialogConfirmButton" xml:space="preserve">
+    <value>Move</value>
+  </data>
+  <data name="MoveDialogCancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+
+  <!-- CanvasNodeRow (Phase 3, PRD §4.1): a node row's fallback label and chips. {0} in
+       UntitledNodeLabel is the node's localized NodeType{Type} display name (e.g. "Untitled Text"). -->
+  <data name="UntitledNodeLabel" xml:space="preserve">
+    <value>Untitled {0}</value>
+  </data>
+  <data name="RowRequiredChip" xml:space="preserve">
+    <value>Required</value>
+  </data>
+  <data name="RowHalfWidthChip" xml:space="preserve">
+    <value>Half width</value>
+  </data>
+  <data name="RowVisibilityRuleChip" xml:space="preserve">
+    <value>Has visibility rule</value>
+  </data>
+
+  <!-- VisibilitySummaryFormatter (Phase 6, PRD §4.1, §6): the logic-summary chip's and the
+       properties panel's plain-language rule descriptions. {0}/{1}/{2} in LogicSummaryWithValue
+       are the field's own label, the operator phrase, and the value (an option's label for a
+       choice field, its raw stored value otherwise); {0}/{1} in LogicSummaryNoValue omit the
+       value entirely, for the four operators that take none; {0} in LogicSummaryAllOfN/AnyOfN is
+       the condition count once a rule has more than one clause. -->
+  <data name="LogicSummaryWithValue" xml:space="preserve">
+    <value>Shown when {0} {1} '{2}'.</value>
+  </data>
+  <data name="LogicSummaryNoValue" xml:space="preserve">
+    <value>Shown when {0} {1}.</value>
+  </data>
+  <data name="LogicSummaryAllOfN" xml:space="preserve">
+    <value>Shown when all of {0} conditions.</value>
+  </data>
+  <data name="LogicSummaryAnyOfN" xml:space="preserve">
+    <value>Shown when any of {0} conditions.</value>
+  </data>
+  <data name="LogicSummaryAlwaysShown" xml:space="preserve">
+    <value>Shown.</value>
+  </data>
+  <data name="LogicSummaryNeverShown" xml:space="preserve">
+    <value>Never shown.</value>
+  </data>
+
+  <!-- ConditionRow (Phase 6, PRD §6, D8's Model A): the nine operators' plain-language phrases,
+       shared by ConditionRow's own operator select and VisibilitySummaryFormatter's rule
+       descriptions — keyed as "ConditionOperator" + the ConditionOperator enum member name, the
+       same convention NodeType{Type} already uses. -->
+  <data name="ConditionOperatorIs" xml:space="preserve">
+    <value>is</value>
+  </data>
+  <data name="ConditionOperatorIsNot" xml:space="preserve">
+    <value>is not</value>
+  </data>
+  <data name="ConditionOperatorIsTrue" xml:space="preserve">
+    <value>is true</value>
+  </data>
+  <data name="ConditionOperatorIsFalse" xml:space="preserve">
+    <value>is false</value>
+  </data>
+  <data name="ConditionOperatorIsBlank" xml:space="preserve">
+    <value>is blank</value>
+  </data>
+  <data name="ConditionOperatorIsNotBlank" xml:space="preserve">
+    <value>is not blank</value>
+  </data>
+  <data name="ConditionOperatorGreaterThan" xml:space="preserve">
+    <value>is greater than</value>
+  </data>
+  <data name="ConditionOperatorLessThan" xml:space="preserve">
+    <value>is less than</value>
+  </data>
+  <data name="ConditionOperatorContains" xml:space="preserve">
+    <value>contains</value>
+  </data>
+
+  <!-- ConditionRow's own three separately labelled controls (PRD §6, D8's Model A) — {0} in each
+       is the row's own one-based ordinal, the same "name every row's own controls by number" idiom
+       OptionsEditor's PropOptionsRowLabel already uses. -->
+  <data name="ConditionRowFieldLabel" xml:space="preserve">
+    <value>Condition {0} field</value>
+  </data>
+  <data name="ConditionRowOperatorLabel" xml:space="preserve">
+    <value>Condition {0} operator</value>
+  </data>
+  <data name="ConditionRowValueLabel" xml:space="preserve">
+    <value>Condition {0} value</value>
+  </data>
+  <data name="ConditionRowRemoveButton" xml:space="preserve">
+    <value>Remove condition {0}</value>
+  </data>
+  <data name="ConditionRowRemoveText" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+
+  <!-- Shared by VisibilityRuleEditor's and each ValidationRuleEditor rule's own All/Any toggle
+       and "add condition" button (PRD §6, D8's Model A). -->
+  <data name="RuleJoinLabel" xml:space="preserve">
+    <value>Match</value>
+  </data>
+  <data name="RuleJoinAllOption" xml:space="preserve">
+    <value>All conditions</value>
+  </data>
+  <data name="RuleJoinAnyOption" xml:space="preserve">
+    <value>Any condition</value>
+  </data>
+  <data name="RuleAddConditionButton" xml:space="preserve">
+    <value>Add condition</value>
+  </data>
+
+  <!-- VisibilityRuleEditor (Phase 6, PRD §4.1, §6): the focus-trapped dialog that edits a node's
+       own VisibleWhen. {0} in VisibilityRuleEditorTitle is the node's own label (or its
+       UntitledNodeLabel fallback); {0} in VisibilityRuleCycleRejected is the named cycle path,
+       already arrow-joined into one string. -->
+  <data name="VisibilityRuleEditorTitle" xml:space="preserve">
+    <value>Edit visibility rule for '{0}'</value>
+  </data>
+  <data name="VisibilityRuleApplyButton" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="VisibilityRuleCancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="VisibilityRuleCycleRejected" xml:space="preserve">
+    <value>This rule would create a cycle: {0}. Choose a different field.</value>
+  </data>
+
+  <!-- ValidationRuleEditor (Phase 6, PRD §4.1, §6): the form-wide cross-field validation rule
+       list. {0} in ValidationRuleTargetLabel/MessageLabel/RemoveButton is the rule's own one-based
+       ordinal among ValidationRules. -->
+  <data name="ValidationRuleEditorHeading" xml:space="preserve">
+    <value>Validation rules</value>
+  </data>
+  <data name="ValidationRuleEmptyText" xml:space="preserve">
+    <value>No validation rules yet.</value>
+  </data>
+  <data name="ValidationRuleTargetLabel" xml:space="preserve">
+    <value>Rule {0} target field</value>
+  </data>
+  <data name="ValidationRuleMessageLabel" xml:space="preserve">
+    <value>Rule {0} message</value>
+  </data>
+  <data name="ValidationRuleMessageHint" xml:space="preserve">
+    <value>State the fix, not just the problem (e.g. "Enter a value for 'Email'.").</value>
+  </data>
+  <data name="ValidationRuleAddButton" xml:space="preserve">
+    <value>Add rule</value>
+  </data>
+  <data name="ValidationRuleRemoveButton" xml:space="preserve">
+    <value>Remove rule {0}</value>
+  </data>
+  <data name="ValidationRuleRemoveText" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+
+  <!-- PageTabStrip (Phase 3, PRD §4.1): the page tablist and its add-page/add-section/empty-page
+       affordances. -->
+  <data name="PageTabStripLabel" xml:space="preserve">
+    <value>Pages</value>
+  </data>
+  <data name="AddPageButtonLabel" xml:space="preserve">
+    <value>Add page</value>
+  </data>
+  <data name="AddSectionButtonLabel" xml:space="preserve">
+    <value>Add blank section</value>
+  </data>
+  <data name="StartFromTemplateButtonLabel" xml:space="preserve">
+    <value>Start from template</value>
+  </data>
+  <data name="EmptyPageText" xml:space="preserve">
+    <value>This page has no sections yet.</value>
+  </data>
+
+  <!-- PropertiesPanel (Phase 4, PRD §4.1, §5, §5.1): field labels, hints, and the accessible
+       empty-label affordance every property control needs. -->
+  <data name="PropFieldIdLabel" xml:space="preserve">
+    <value>Field ID</value>
+  </data>
+  <data name="PropLabelLabel" xml:space="preserve">
+    <value>Label</value>
+  </data>
+  <data name="PropLabelRequiredWarning" xml:space="preserve">
+    <value>This field needs a label; a placeholder does not count as one.</value>
+  </data>
+  <data name="PropHelpLabel" xml:space="preserve">
+    <value>Help text</value>
+  </data>
+  <data name="PropPlaceholderLabel" xml:space="preserve">
+    <value>Placeholder</value>
+  </data>
+  <data name="PropRequiredLabel" xml:space="preserve">
+    <value>Required</value>
+  </data>
+  <data name="PropRequiredWhenVisibleLabel" xml:space="preserve">
+    <value>Required only while visible</value>
+  </data>
+  <data name="PropHalfWidthLabel" xml:space="preserve">
+    <value>Half-width</value>
+  </data>
+  <data name="PropMinLabel" xml:space="preserve">
+    <value>Minimum</value>
+  </data>
+  <data name="PropMaxLabel" xml:space="preserve">
+    <value>Maximum</value>
+  </data>
+  <data name="PropLevelLabel" xml:space="preserve">
+    <value>Heading level</value>
+  </data>
+  <data name="PropLevelOption2" xml:space="preserve">
+    <value>Level 2</value>
+  </data>
+  <data name="PropLevelOption3" xml:space="preserve">
+    <value>Level 3</value>
+  </data>
+  <data name="PropLevelOption4" xml:space="preserve">
+    <value>Level 4</value>
+  </data>
+  <data name="PropContentLabel" xml:space="preserve">
+    <value>Content</value>
+  </data>
+  <data name="PropSupportsMarkdownHint" xml:space="preserve">
+    <value>Supports Markdown</value>
+  </data>
+  <data name="PropVisibilityLabel" xml:space="preserve">
+    <value>Visibility</value>
+  </data>
+  <data name="PropVisibilityAlwaysVisible" xml:space="preserve">
+    <value>Always visible.</value>
+  </data>
+  <data name="PropVisibilityAddRuleButton" xml:space="preserve">
+    <value>Add rule</value>
+  </data>
+  <data name="PropVisibilityEditRuleButton" xml:space="preserve">
+    <value>Edit rule</value>
+  </data>
+  <data name="PropVisibilityRemoveRuleButton" xml:space="preserve">
+    <value>Remove rule</value>
+  </data>
+
+  <!-- OptionsEditor (Phase 4, PRD §4.1, §5): the choice-node options row list. Each row's
+       stable Value follows the row itself, never its position (AGENTS.md invariant #5), so
+       {0} below is always the row's current ordinal, naming the option for a screen reader
+       even when its own label is blank (a newly added row) or duplicates a sibling's. -->
+  <data name="PropOptionsLabel" xml:space="preserve">
+    <value>Options</value>
+  </data>
+  <data name="PropOptionsRowLabel" xml:space="preserve">
+    <value>Option {0} label</value>
+  </data>
+  <data name="PropOptionsMoveUpButton" xml:space="preserve">
+    <value>Move option {0} up</value>
+  </data>
+  <data name="PropOptionsMoveDownButton" xml:space="preserve">
+    <value>Move option {0} down</value>
+  </data>
+  <data name="PropOptionsRemoveButton" xml:space="preserve">
+    <value>Remove option {0}</value>
+  </data>
+  <data name="PropOptionsMoveUpText" xml:space="preserve">
+    <value>Move up</value>
+  </data>
+  <data name="PropOptionsMoveDownText" xml:space="preserve">
+    <value>Move down</value>
+  </data>
+  <data name="PropOptionsRemoveText" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="PropOptionsAddButton" xml:space="preserve">
+    <value>Add option</value>
+  </data>
+
+  <!-- LinterDock (Phase 7, PRD §8): the collapsible dock listing every lint finding. {0} in
+       LinterDockToggleButton is the current finding count; {0} in LinterDockJumpButton is the
+       finding's own node label; {0} in the two announcement templates is a count. -->
+  <data name="LinterDockRegionLabel" xml:space="preserve">
+    <value>Linter</value>
+  </data>
+  <data name="LinterDockToggleButton" xml:space="preserve">
+    <value>Linter ({0})</value>
+  </data>
+  <data name="LinterDockEmptyText" xml:space="preserve">
+    <value>No issues found.</value>
+  </data>
+  <data name="LinterDockSeverityBlocking" xml:space="preserve">
+    <value>Blocking</value>
+  </data>
+  <data name="LinterDockSeverityAdvisory" xml:space="preserve">
+    <value>Advisory</value>
+  </data>
+  <data name="LinterDockJumpButton" xml:space="preserve">
+    <value>Jump to '{0}'</value>
+  </data>
+  <data name="LinterDockFixButton" xml:space="preserve">
+    <value>Fix automatically</value>
+  </data>
+  <data name="LinterDockBlockingCountAnnouncement" xml:space="preserve">
+    <value>{0} blocking issue(s) remain.</value>
+  </data>
+  <data name="LinterDockNewFindingAnnouncement" xml:space="preserve">
+    <value>The linter now reports {0} issue(s).</value>
+  </data>
+
+  <!-- DeleteProtectionDialog (Phase 7, PRD §4.1): the delete-protection warning naming every
+       reference to a field before it is deleted. {0} in DeleteProtectionTitle is the node's own
+       label (or its UntitledNodeLabel fallback); {0} in DeleteProtectionReferenceVisibility is
+       the referencing node's own label; {0} in DeleteProtectionReferenceValidationTarget is the
+       rule's own message; {0}/{1} in DeleteProtectionReferenceValidationExpression are the rule's
+       own target field label and its message. -->
+  <data name="DeleteProtectionTitle" xml:space="preserve">
+    <value>Delete '{0}'?</value>
+  </data>
+  <data name="DeleteProtectionIntro" xml:space="preserve">
+    <value>This field is referenced by the following logic or validation rules. Deleting it anyway will leave those references dangling until you fix or remove them.</value>
+  </data>
+  <data name="DeleteProtectionConfirmButton" xml:space="preserve">
+    <value>Delete anyway</value>
+  </data>
+  <data name="DeleteProtectionCancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="DeleteProtectionReferenceVisibility" xml:space="preserve">
+    <value>The visibility rule for '{0}'.</value>
+  </data>
+  <data name="DeleteProtectionReferenceValidationTarget" xml:space="preserve">
+    <value>A validation rule reported against this field: '{0}'.</value>
+  </data>
+  <data name="DeleteProtectionReferenceValidationExpression" xml:space="preserve">
+    <value>A validation rule for '{0}' checks this field's value: '{1}'.</value>
+  </data>
+
+  <!-- KeyboardHelpDialog (Phase 7, PRD §4.1): the in-app keyboard-command reference. Each *Key
+       value is shown verbatim, so it is never actually translated even in another culture's
+       resource set; only the matching *Description explains what the combination does. -->
+  <data name="KeyboardHelpOpenButton" xml:space="preserve">
+    <value>Keyboard shortcuts</value>
+  </data>
+  <data name="KeyboardHelpTitle" xml:space="preserve">
+    <value>Keyboard shortcuts</value>
+  </data>
+  <data name="KeyboardHelpCloseButton" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="KeyboardHelpTabKey" xml:space="preserve">
+    <value>Tab</value>
+  </data>
+  <data name="KeyboardHelpTabDescription" xml:space="preserve">
+    <value>Enter or leave the canvas.</value>
+  </data>
+  <data name="KeyboardHelpArrowsKey" xml:space="preserve">
+    <value>↑ / ↓</value>
+  </data>
+  <data name="KeyboardHelpArrowsDescription" xml:space="preserve">
+    <value>Move the roving cursor between fields.</value>
+  </data>
+  <data name="KeyboardHelpEnterKey" xml:space="preserve">
+    <value>Enter</value>
+  </data>
+  <data name="KeyboardHelpEnterDescription" xml:space="preserve">
+    <value>Select the active field and open its properties.</value>
+  </data>
+  <data name="KeyboardHelpDuplicateKey" xml:space="preserve">
+    <value>Ctrl+D</value>
+  </data>
+  <data name="KeyboardHelpDuplicateDescription" xml:space="preserve">
+    <value>Duplicate the active field.</value>
+  </data>
+  <data name="KeyboardHelpDeleteKey" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="KeyboardHelpDeleteDescription" xml:space="preserve">
+    <value>Delete the active field. Warns first if logic or validation references it.</value>
+  </data>
+  <data name="KeyboardHelpUndoKey" xml:space="preserve">
+    <value>Ctrl+Z</value>
+  </data>
+  <data name="KeyboardHelpUndoDescription" xml:space="preserve">
+    <value>Undo the most recent change.</value>
+  </data>
+  <data name="KeyboardHelpRedoKey" xml:space="preserve">
+    <value>Ctrl+Shift+Z</value>
+  </data>
+  <data name="KeyboardHelpRedoDescription" xml:space="preserve">
+    <value>Redo the most recently undone change.</value>
+  </data>
+  <data name="KeyboardHelpReorderWithinKey" xml:space="preserve">
+    <value>Alt+↑ / Alt+↓</value>
+  </data>
+  <data name="KeyboardHelpReorderWithinDescription" xml:space="preserve">
+    <value>Move the active field up or down within its section.</value>
+  </data>
+  <data name="KeyboardHelpReorderAcrossKey" xml:space="preserve">
+    <value>Alt+← / Alt+→</value>
+  </data>
+  <data name="KeyboardHelpReorderAcrossDescription" xml:space="preserve">
+    <value>Move the active field to the previous or next section.</value>
+  </data>
+  <data name="KeyboardHelpMoveToPositionKey" xml:space="preserve">
+    <value>Ctrl+M</value>
+  </data>
+  <data name="KeyboardHelpMoveToPositionDescription" xml:space="preserve">
+    <value>Open the "move to position" dialog for the active field.</value>
+  </data>
+
+  <!-- FormDesigner toolbar (Phase 8, PRD §7): the Publish and Version-history buttons that open
+       PublishDialog and VersionHistory respectively. -->
+  <data name="ToolbarPublishButton" xml:space="preserve">
+    <value>Publish</value>
+  </data>
+  <data name="ToolbarVersionHistoryButton" xml:space="preserve">
+    <value>Version history</value>
+  </data>
+
+  <!-- PublishDialog (Phase 8, PRD §7): the publish gate. Re-lints on open and again on confirm,
+       so a blocking issue introduced after open is caught before anything publishes. {0} in
+       PublishDialogJumpButton is the blocking finding's own node label; {0} in
+       PublishDialogVersionAnnouncement is the version number just published. -->
+  <data name="PublishDialogTitle" xml:space="preserve">
+    <value>Publish this form</value>
+  </data>
+  <data name="PublishDialogBlockedIntro" xml:space="preserve">
+    <value>Fix these issues before publishing:</value>
+  </data>
+  <data name="PublishDialogJumpButton" xml:space="preserve">
+    <value>Jump to '{0}'</value>
+  </data>
+  <data name="PublishDialogChangeNoteLabel" xml:space="preserve">
+    <value>What changed?</value>
+  </data>
+  <data name="PublishDialogConfirmButton" xml:space="preserve">
+    <value>Publish</value>
+  </data>
+  <data name="PublishDialogCancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="PublishDialogUnknownAuthor" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="PublishDialogVersionAnnouncement" xml:space="preserve">
+    <value>Published version {0}.</value>
+  </data>
+  <data name="PublishDialogNoteRequiredHint" xml:space="preserve">
+    <value>A change note is required to publish.</value>
+  </data>
+
+  <!-- RetireConfirmationDialog (Phase 8, PRD §7): the retire confirm. {0} in RetireDialogTitle is
+       the version number about to be retired. -->
+  <data name="RetireDialogTitle" xml:space="preserve">
+    <value>Retire version {0}?</value>
+  </data>
+  <data name="RetireDialogBody" xml:space="preserve">
+    <value>Retiring stops this version from accepting new fills. Existing submissions stay renderable, and this cannot be undone.</value>
+  </data>
+  <data name="RetireDialogConfirmButton" xml:space="preserve">
+    <value>Retire</value>
+  </data>
+  <data name="RetireDialogCancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+
+  <!-- VersionHistory (Phase 8, PRD §7): the version-history panel listing every published or
+       retired version, newest first. {0} in VersionHistoryPublishedOn/RetiredOn is a formatted
+       date. -->
+  <data name="VersionHistoryTitle" xml:space="preserve">
+    <value>Version history</value>
+  </data>
+  <data name="VersionHistoryCloseButton" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="VersionHistoryLoading" xml:space="preserve">
+    <value>Loading version history…</value>
+  </data>
+  <data name="VersionHistoryEmpty" xml:space="preserve">
+    <value>This form has no published versions yet.</value>
+  </data>
+  <data name="VersionHistoryColumnVersion" xml:space="preserve">
+    <value>Version</value>
+  </data>
+  <data name="VersionHistoryColumnStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="VersionHistoryColumnNote" xml:space="preserve">
+    <value>Change note</value>
+  </data>
+  <data name="VersionHistoryColumnAuthor" xml:space="preserve">
+    <value>Author</value>
+  </data>
+  <data name="VersionHistoryColumnDate" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="VersionHistoryColumnSubmissions" xml:space="preserve">
+    <value>Submissions</value>
+  </data>
+  <data name="VersionHistoryColumnActions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="VersionHistoryNoNote" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="VersionHistoryNoAuthor" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="VersionHistoryStatePublished" xml:space="preserve">
+    <value>Published</value>
+  </data>
+  <data name="VersionHistoryStateRetired" xml:space="preserve">
+    <value>Retired</value>
+  </data>
+  <data name="VersionHistoryRetireButton" xml:space="preserve">
+    <value>Retire</value>
+  </data>
+  <data name="VersionHistoryReviseButton" xml:space="preserve">
+    <value>Revise as draft</value>
+  </data>
+  <data name="VersionHistoryPublishedOn" xml:space="preserve">
+    <value>Published {0}</value>
+  </data>
+  <data name="VersionHistoryRetiredOn" xml:space="preserve">
+    <value>Retired {0}</value>
+  </data>
+
+  <!-- FormDesigner toolbar's Preview toggle (Phase 9, PRD §4.1) and PreviewPane itself: renders
+       the working draft through the real FormRenderer with Ephemeral set, so a preview fill has
+       zero host side effects and its test data is discarded the moment the author exits. -->
+  <data name="ToolbarPreviewButton" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="PreviewHeading" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="PreviewNote" xml:space="preserve">
+    <value>This is a live preview of your working draft. Anything you type or submit here is not saved.</value>
+  </data>
+  <data name="PreviewExitButton" xml:space="preserve">
+    <value>Exit preview</value>
+  </data>
+
+  <!-- FormLibrary (Phase 10, PRD §4.4): the thin management surface over
+       IFormDefinitionStore.ListFormsAsync. Search covers name and author only: FormVersionSummary
+       carries no "program" facet, and there is no blocking-issues-only filter either, since a
+       summary carries no FormDefinition to lint (see FormLibrary's own remarks). {0}/{1} in
+       FormLibraryResultCount are the filtered and total form counts; {0} in FormLibraryOpenButton
+       is the form's own name. -->
+  <data name="FormLibraryTitle" xml:space="preserve">
+    <value>Form library</value>
+  </data>
+  <data name="FormLibrarySearchLabel" xml:space="preserve">
+    <value>Search forms</value>
+  </data>
+  <data name="FormLibrarySearchPlaceholder" xml:space="preserve">
+    <value>Search by name or author</value>
+  </data>
+  <data name="FormLibraryStatusFilterLabel" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="FormLibraryStatusAll" xml:space="preserve">
+    <value>All statuses</value>
+  </data>
+  <data name="FormLibraryStatusDraft" xml:space="preserve">
+    <value>Draft</value>
+  </data>
+  <data name="FormLibraryStatusPublished" xml:space="preserve">
+    <value>Published</value>
+  </data>
+  <data name="FormLibraryStatusRetired" xml:space="preserve">
+    <value>Retired</value>
+  </data>
+  <data name="FormLibrarySortLabel" xml:space="preserve">
+    <value>Sort by</value>
+  </data>
+  <data name="FormLibrarySortName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="FormLibrarySortSubmissionCount" xml:space="preserve">
+    <value>Submission count</value>
+  </data>
+  <data name="FormLibrarySortLastPublished" xml:space="preserve">
+    <value>Last published</value>
+  </data>
+  <data name="FormLibraryViewToggleLabel" xml:space="preserve">
+    <value>View</value>
+  </data>
+  <data name="FormLibraryViewCards" xml:space="preserve">
+    <value>Cards</value>
+  </data>
+  <data name="FormLibraryViewTable" xml:space="preserve">
+    <value>Table</value>
+  </data>
+  <data name="FormLibraryLoading" xml:space="preserve">
+    <value>Loading forms…</value>
+  </data>
+  <data name="FormLibraryEmpty" xml:space="preserve">
+    <value>No forms yet.</value>
+  </data>
+  <data name="FormLibraryNoResults" xml:space="preserve">
+    <value>No forms match your search and filters.</value>
+  </data>
+  <data name="FormLibraryResultCount" xml:space="preserve">
+    <value>Showing {0} of {1} forms</value>
+  </data>
+  <data name="FormLibraryOpenButton" xml:space="preserve">
+    <value>Open '{0}' in the designer</value>
+  </data>
+  <data name="FormLibraryNoAuthor" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="FormLibraryVersionDraft" xml:space="preserve">
+    <value>Draft</value>
+  </data>
+  <data name="FormLibraryColumnName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="FormLibraryColumnStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="FormLibraryColumnVersion" xml:space="preserve">
+    <value>Version</value>
+  </data>
+  <data name="FormLibraryColumnAuthor" xml:space="preserve">
+    <value>Author</value>
+  </data>
+  <data name="FormLibraryColumnSubmissions" xml:space="preserve">
+    <value>Submissions</value>
+  </data>
+  <data name="FormLibraryColumnActions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="FormLibraryTableCaption" xml:space="preserve">
+    <value>Forms</value>
+  </data>
+</root>

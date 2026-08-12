@@ -1,0 +1,98 @@
+/* The shell as a whole (PRD §4.1, D9): a toolbar (the keyboard-help button), the three-pane
+ * docked layout, and, below the panes, the linter dock (PRD §8) and the aria-live region -- all
+ * stacked in one column. */
+.bf-designer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-3);
+    font-family: var(--bf-font-sans);
+    color: var(--bf-color-text);
+}
+
+.bf-designer__toolbar {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--bf-space-2);
+}
+
+.bf-designer__help-button,
+.bf-designer__preview-button,
+.bf-designer__version-history-button,
+.bf-designer__publish-button {
+    padding-inline: var(--bf-space-3);
+    padding-block: var(--bf-space-2);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+    background-color: var(--bf-color-surface);
+    color: var(--bf-color-text);
+    cursor: pointer;
+}
+
+/* aria-pressed is what assistive tech announces as the toggle's own on/off state; this border
+ * treatment is the sighted equivalent, so "preview is currently on" reads visually too rather
+ * than relying on the button's own static label. */
+.bf-designer__preview-button[aria-pressed='true'] {
+    border-color: var(--bf-color-primary);
+    color: var(--bf-color-primary);
+}
+
+/* The publish gate lives entirely in PublishDialog itself -- this button always opens it, never
+ * disables based on the lint picture, so its own primary-color treatment signals "the main
+ * action here", not "publishing is currently allowed". */
+.bf-designer__publish-button {
+    border-color: var(--bf-color-primary);
+    background-color: var(--bf-color-primary);
+    color: var(--bf-color-primary-contrast);
+}
+
+.bf-designer__help-button:focus-visible,
+.bf-designer__preview-button:focus-visible,
+.bf-designer__version-history-button:focus-visible,
+.bf-designer__publish-button:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}
+
+/* Three-pane docked layout (PRD §4.1, D9 -- docked is the only P1 layout). The three column
+ * widths/gap and the shell's minimum height are the designer's own new tokens
+ * (docs/theming.md); every other value here is one BlazeForms.Renderer's blazeforms.css already
+ * declares, since FormDesigner depends on the renderer and a host that links this component
+ * links that stylesheet too (PRD §9). */
+.bf-designer__panes {
+    display: grid;
+    grid-template-columns: var(--bf-palette-width) minmax(0, 1fr) var(--bf-properties-width);
+    gap: var(--bf-pane-gap);
+    min-block-size: var(--bf-dock-height);
+}
+
+.bf-designer__pane {
+    display: flex;
+    flex-direction: column;
+    min-block-size: 0;
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-md);
+    background-color: var(--bf-color-bg);
+}
+
+.bf-designer__pane-heading {
+    margin: 0;
+    padding: var(--bf-space-3) var(--bf-space-4);
+    border-block-end: var(--bf-border-width) solid var(--bf-color-border);
+    font-size: var(--bf-font-size-base);
+    font-weight: 600;
+}
+
+.bf-designer__pane-body {
+    flex: 1 1 auto;
+    padding: var(--bf-space-4);
+    overflow-y: auto;
+}
+
+.bf-designer__draft-name {
+    margin-block: 0 var(--bf-space-2);
+    font-weight: 600;
+}
+
+.bf-designer__placeholder {
+    color: var(--bf-color-muted);
+}

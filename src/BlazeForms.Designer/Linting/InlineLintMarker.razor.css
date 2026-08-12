@@ -1,0 +1,27 @@
+.bf-inline-lint {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--bf-font-size-sm);
+}
+
+.bf-inline-lint__item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--bf-space-1);
+}
+
+.bf-inline-lint__item--blocking {
+    color: var(--bf-color-danger);
+}
+
+.bf-inline-lint__item--advisory {
+    color: var(--bf-color-muted);
+}
+
+.bf-inline-lint__severity {
+    font-weight: 600;
+}

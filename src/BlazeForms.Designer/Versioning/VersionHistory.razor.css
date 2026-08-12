@@ -1,0 +1,102 @@
+/* Not a modal -- see VersionHistory.razor.cs's own remarks. Positioned as an overlay panel purely
+ * so it reads clearly above the three-pane shell without reflowing it, the same visual treatment
+ * LinterDock's own dock gets, but role="region" rather than role="dialog" underneath. */
+.bf-version-history {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-3);
+    max-block-size: 70vh;
+    overflow-y: auto;
+    margin-block-start: var(--bf-space-3);
+    padding: var(--bf-space-4);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-md);
+    background-color: var(--bf-color-bg);
+    color: var(--bf-color-text);
+}
+
+.bf-version-history__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--bf-space-3);
+}
+
+.bf-version-history__title {
+    margin: 0;
+    font-size: var(--bf-font-size-lg);
+}
+
+.bf-version-history__close {
+    padding-inline: var(--bf-space-3);
+    padding-block: var(--bf-space-2);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+    background-color: var(--bf-color-surface);
+    color: var(--bf-color-text);
+    cursor: pointer;
+}
+
+.bf-version-history__status {
+    color: var(--bf-color-muted);
+}
+
+.bf-version-history__table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.bf-version-history__table th,
+.bf-version-history__table td {
+    padding: var(--bf-space-2) var(--bf-space-3);
+    border-block-end: var(--bf-border-width) solid var(--bf-color-border);
+    text-align: start;
+    vertical-align: top;
+}
+
+/* State is named in text (StateLabel), never color alone -- the badge modifier below is a
+ * secondary reinforcement, the same convention LinterDock's own severity chip uses. */
+.bf-version-history__badge {
+    display: inline-block;
+    padding-inline: var(--bf-space-2);
+    padding-block: var(--bf-space-1);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+    font-size: var(--bf-font-size-sm);
+}
+
+.bf-version-history__badge--published {
+    border-color: var(--bf-color-primary);
+    color: var(--bf-color-primary);
+}
+
+.bf-version-history__badge--retired {
+    color: var(--bf-color-muted);
+}
+
+.bf-version-history__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--bf-space-2);
+}
+
+.bf-version-history__actions button {
+    padding-inline: var(--bf-space-3);
+    padding-block: var(--bf-space-1);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+    background-color: var(--bf-color-surface);
+    color: var(--bf-color-text);
+    cursor: pointer;
+}
+
+.bf-version-history__actions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.bf-version-history__close:focus-visible,
+.bf-version-history__actions button:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}
