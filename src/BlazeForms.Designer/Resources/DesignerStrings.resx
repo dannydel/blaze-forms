@@ -803,4 +803,95 @@
   <data name="PreviewExitButton" xml:space="preserve">
     <value>Exit preview</value>
   </data>
+
+  <!-- FormLibrary (Phase 10, PRD §4.4): the thin management surface over
+       IFormDefinitionStore.ListFormsAsync. Search covers name and author only: FormVersionSummary
+       carries no "program" facet, and there is no blocking-issues-only filter either, since a
+       summary carries no FormDefinition to lint (see FormLibrary's own remarks). {0}/{1} in
+       FormLibraryResultCount are the filtered and total form counts; {0} in FormLibraryOpenButton
+       is the form's own name. -->
+  <data name="FormLibraryTitle" xml:space="preserve">
+    <value>Form library</value>
+  </data>
+  <data name="FormLibrarySearchLabel" xml:space="preserve">
+    <value>Search forms</value>
+  </data>
+  <data name="FormLibrarySearchPlaceholder" xml:space="preserve">
+    <value>Search by name or author</value>
+  </data>
+  <data name="FormLibraryStatusFilterLabel" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="FormLibraryStatusAll" xml:space="preserve">
+    <value>All statuses</value>
+  </data>
+  <data name="FormLibraryStatusDraft" xml:space="preserve">
+    <value>Draft</value>
+  </data>
+  <data name="FormLibraryStatusPublished" xml:space="preserve">
+    <value>Published</value>
+  </data>
+  <data name="FormLibraryStatusRetired" xml:space="preserve">
+    <value>Retired</value>
+  </data>
+  <data name="FormLibrarySortLabel" xml:space="preserve">
+    <value>Sort by</value>
+  </data>
+  <data name="FormLibrarySortName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="FormLibrarySortSubmissionCount" xml:space="preserve">
+    <value>Submission count</value>
+  </data>
+  <data name="FormLibrarySortLastPublished" xml:space="preserve">
+    <value>Last published</value>
+  </data>
+  <data name="FormLibraryViewToggleLabel" xml:space="preserve">
+    <value>View</value>
+  </data>
+  <data name="FormLibraryViewCards" xml:space="preserve">
+    <value>Cards</value>
+  </data>
+  <data name="FormLibraryViewTable" xml:space="preserve">
+    <value>Table</value>
+  </data>
+  <data name="FormLibraryLoading" xml:space="preserve">
+    <value>Loading forms…</value>
+  </data>
+  <data name="FormLibraryEmpty" xml:space="preserve">
+    <value>No forms yet.</value>
+  </data>
+  <data name="FormLibraryNoResults" xml:space="preserve">
+    <value>No forms match your search and filters.</value>
+  </data>
+  <data name="FormLibraryResultCount" xml:space="preserve">
+    <value>Showing {0} of {1} forms</value>
+  </data>
+  <data name="FormLibraryOpenButton" xml:space="preserve">
+    <value>Open '{0}' in the designer</value>
+  </data>
+  <data name="FormLibraryNoAuthor" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="FormLibraryVersionDraft" xml:space="preserve">
+    <value>Draft</value>
+  </data>
+  <data name="FormLibraryColumnName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="FormLibraryColumnStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="FormLibraryColumnVersion" xml:space="preserve">
+    <value>Version</value>
+  </data>
+  <data name="FormLibraryColumnAuthor" xml:space="preserve">
+    <value>Author</value>
+  </data>
+  <data name="FormLibraryColumnSubmissions" xml:space="preserve">
+    <value>Submissions</value>
+  </data>
+  <data name="FormLibraryColumnActions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
 </root>

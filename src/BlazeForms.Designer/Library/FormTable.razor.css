@@ -1,0 +1,49 @@
+.bf-form-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--bf-color-text);
+}
+
+.bf-form-table th,
+.bf-form-table td {
+    padding: var(--bf-space-2) var(--bf-space-3);
+    border-block-end: var(--bf-border-width) solid var(--bf-color-border);
+    text-align: start;
+    vertical-align: top;
+}
+
+/* State is named in text (StatusLabel), never color alone -- the badge modifier below is a
+ * secondary reinforcement, the same convention VersionHistory's own badge uses. */
+.bf-form-table__badge {
+    display: inline-block;
+    padding-inline: var(--bf-space-2);
+    padding-block: var(--bf-space-1);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+    font-size: var(--bf-font-size-sm);
+}
+
+.bf-form-table__badge--published {
+    border-color: var(--bf-color-primary);
+    color: var(--bf-color-primary);
+}
+
+.bf-form-table__badge--retired {
+    color: var(--bf-color-muted);
+}
+
+.bf-form-table__open {
+    min-block-size: var(--bf-touch-target);
+    padding-inline: var(--bf-space-3);
+    padding-block: var(--bf-space-1);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+    background-color: var(--bf-color-surface);
+    color: var(--bf-color-text);
+    cursor: pointer;
+}
+
+.bf-form-table__open:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}

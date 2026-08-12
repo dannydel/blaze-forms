@@ -1,0 +1,74 @@
+.bf-form-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-2);
+    padding: var(--bf-space-4);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-md);
+    background-color: var(--bf-color-bg);
+    color: var(--bf-color-text);
+}
+
+.bf-form-card__name {
+    margin: 0;
+    font-size: var(--bf-font-size-base);
+}
+
+/* State is named in text (StatusLabel), never color alone -- the badge modifier below is a
+ * secondary reinforcement, the same convention VersionHistory's own badge uses. */
+.bf-form-card__badge {
+    align-self: start;
+    padding-inline: var(--bf-space-2);
+    padding-block: var(--bf-space-1);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+    font-size: var(--bf-font-size-sm);
+}
+
+.bf-form-card__badge--published {
+    border-color: var(--bf-color-primary);
+    color: var(--bf-color-primary);
+}
+
+.bf-form-card__badge--retired {
+    color: var(--bf-color-muted);
+}
+
+.bf-form-card__meta {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-1);
+    margin: 0;
+}
+
+.bf-form-card__meta-row {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--bf-space-2);
+    font-size: var(--bf-font-size-sm);
+}
+
+.bf-form-card__meta-row dt {
+    color: var(--bf-color-muted);
+}
+
+.bf-form-card__meta-row dd {
+    margin: 0;
+}
+
+.bf-form-card__open {
+    align-self: start;
+    min-block-size: var(--bf-touch-target);
+    padding-inline: var(--bf-space-3);
+    padding-block: var(--bf-space-2);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+    background-color: var(--bf-color-surface);
+    color: var(--bf-color-text);
+    cursor: pointer;
+}
+
+.bf-form-card__open:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}

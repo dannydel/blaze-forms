@@ -1,0 +1,77 @@
+<table class="bf-form-table">
+    <thead>
+        <tr>
+            <th scope="col">@Localizer["FormLibraryColumnName"].Value</th>
+            <th scope="col">@Localizer["FormLibraryColumnStatus"].Value</th>
+            <th scope="col">@Localizer["FormLibraryColumnVersion"].Value</th>
+            <th scope="col">@Localizer["FormLibraryColumnAuthor"].Value</th>
+            <th scope="col">@Localizer["FormLibraryColumnSubmissions"].Value</th>
+            <th scope="col">@Localizer["FormLibraryColumnActions"].Value</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var form in Forms)
+        {
+            <tr @key="form.FormId">
+                <td>@form.Name</td>
+                <td>
+                    <span class="bf-form-table__badge bf-form-table__badge--@StatusModifier(form.State)">
+                        @StatusLabel(form.State)
+                    </span>
+                </td>
+                <td>
+                    @if (form.State == FormLifecycleState.Draft)
+                    {
+                        @Localizer["FormLibraryVersionDraft"].Value
+                    }
+                    else
+                    {
+                        @form.Version
+                    }
+                </td>
+                <td>@(form.Author ?? Localizer["FormLibraryNoAuthor"].Value)</td>
+                <td>@form.SubmissionCount</td>
+                <td>
+                    <button type="button" class="bf-form-table__open" @onclick="() => OpenAsync(form.FormId)">
+                        @Localizer["FormLibraryOpenButton", form.Name].Value
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    /// <summary>
+    /// The rows this table presents — <see cref="BlazeForms.FormLibrary.FilteredForms"/>'s current
+    /// value, in the order it should render.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public IReadOnlyList<FormVersionSummary> Forms { get; set; } = default!;
+
+    /// <summary>
+    /// Raised with a row's own <see cref="FormVersionSummary.FormId"/> when that row's open
+    /// control is activated — <see cref="BlazeForms.FormLibrary"/>'s own hook onto
+    /// <see cref="BlazeForms.FormLibrary.OnOpenInDesigner"/>.
+    /// </summary>
+    [Parameter]
+    public EventCallback<string> OnOpen { get; set; }
+
+    private static IStringLocalizer<DesignerStrings> Localizer => DesignerLocalization.Shared;
+
+    private static string StatusLabel(FormLifecycleState state) => state switch
+    {
+        FormLifecycleState.Published => Localizer["FormLibraryStatusPublished"].Value,
+        FormLifecycleState.Retired => Localizer["FormLibraryStatusRetired"].Value,
+        _ => Localizer["FormLibraryStatusDraft"].Value,
+    };
+
+    private static string StatusModifier(FormLifecycleState state) => state switch
+    {
+        FormLifecycleState.Published => "published",
+        FormLifecycleState.Retired => "retired",
+        _ => "draft",
+    };
+
+    private Task OpenAsync(string formId) => OnOpen.InvokeAsync(formId);
+}

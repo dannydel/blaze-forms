@@ -1,0 +1,64 @@
+<article class="bf-form-card" aria-labelledby="@_headingId">
+    <h3 id="@_headingId" class="bf-form-card__name">@Summary.Name</h3>
+    <span class="bf-form-card__badge bf-form-card__badge--@StatusModifier">@StatusLabel</span>
+    <dl class="bf-form-card__meta">
+        <div class="bf-form-card__meta-row">
+            <dt>@Localizer["FormLibraryColumnVersion"].Value</dt>
+            @if (Summary.State == FormLifecycleState.Draft)
+            {
+                <dd>@Localizer["FormLibraryVersionDraft"].Value</dd>
+            }
+            else
+            {
+                <dd>@Summary.Version</dd>
+            }
+        </div>
+        <div class="bf-form-card__meta-row">
+            <dt>@Localizer["FormLibraryColumnSubmissions"].Value</dt>
+            <dd>@Summary.SubmissionCount</dd>
+        </div>
+        <div class="bf-form-card__meta-row">
+            <dt>@Localizer["FormLibraryColumnAuthor"].Value</dt>
+            <dd>@(Summary.Author ?? Localizer["FormLibraryNoAuthor"].Value)</dd>
+        </div>
+    </dl>
+    <button type="button" class="bf-form-card__open" @onclick="OpenAsync">
+        @Localizer["FormLibraryOpenButton", Summary.Name].Value
+    </button>
+</article>
+
+@code {
+    private readonly string _headingId = "bf-form-card-" + Guid.NewGuid().ToString("n");
+
+    /// <summary>
+    /// The form this card presents — one row of <see cref="BlazeForms.FormLibrary.FilteredForms"/>.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public FormVersionSummary Summary { get; set; } = default!;
+
+    /// <summary>
+    /// Raised with <see cref="Summary"/>'s own <see cref="FormVersionSummary.FormId"/> when this
+    /// card's open control is activated — <see cref="BlazeForms.FormLibrary"/>'s own hook onto
+    /// <see cref="BlazeForms.FormLibrary.OnOpenInDesigner"/>.
+    /// </summary>
+    [Parameter]
+    public EventCallback<string> OnOpen { get; set; }
+
+    private static IStringLocalizer<DesignerStrings> Localizer => DesignerLocalization.Shared;
+
+    private string StatusLabel => Summary.State switch
+    {
+        FormLifecycleState.Published => Localizer["FormLibraryStatusPublished"].Value,
+        FormLifecycleState.Retired => Localizer["FormLibraryStatusRetired"].Value,
+        _ => Localizer["FormLibraryStatusDraft"].Value,
+    };
+
+    private string StatusModifier => Summary.State switch
+    {
+        FormLifecycleState.Published => "published",
+        FormLifecycleState.Retired => "retired",
+        _ => "draft",
+    };
+
+    private Task OpenAsync() => OnOpen.InvokeAsync(Summary.FormId);
+}
