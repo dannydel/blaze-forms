@@ -1,0 +1,23 @@
+@inherits FormFieldBase
+<fieldset class="bf-sample-mud-fieldset" id="@FieldId" tabindex="-1" disabled="@Disabled" aria-describedby="@BuildDescribedBy()" @onfocusout="OnBlurAsync">
+    <legend>@Node.Label</legend>
+    @for (var index = 0; index < Node.Options.Count; index++)
+    {
+        var option = Node.Options[index];
+        <MudCheckBox T="bool"
+                     Value="@IsChecked(option.Value)"
+                     ValueChanged="@(isChecked => ToggleAsync(option.Value, isChecked))"
+                     Label="@option.Label"
+                     Disabled="@Disabled"
+                     id="@OptionElementId(index)"
+                     @key="option.Value" />
+    }
+    @if (HasHelp)
+    {
+        <div id="@HelpElementId" class="bf-sample-mud-help">@HelpMarkup</div>
+    }
+    @if (HasError)
+    {
+        <span id="@ErrorElementId" class="bf-sample-mud-error">@Error</span>
+    }
+</fieldset>

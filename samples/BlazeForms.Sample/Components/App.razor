@@ -7,6 +7,11 @@
     <base href="/" />
     <ResourcePreloader />
     <link rel="stylesheet" href="@Assets["app.css"]" />
+    <link rel="stylesheet" href="_content/BlazeForms.Renderer/blazeforms.css" />
+    @* MudBlazor lives only in this sample (never src/) -- see Mud/MudFieldComponentRegistry.cs.
+       Its stylesheet and Roboto webfont are the two assets its own setup docs require in <head>. *@
+    <link rel="stylesheet" href="_content/MudBlazor/MudBlazor.min.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
     <link rel="stylesheet" href="@Assets["BlazeForms.Sample.styles.css"]" />
     <ImportMap />
     <HeadOutlet />
@@ -16,6 +21,7 @@
     <Routes />
     <ReconnectModal />
     <script src="@Assets["_framework/blazor.web.js"]"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
 </body>
 
 </html>

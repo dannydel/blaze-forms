@@ -1,0 +1,28 @@
+@inherits FormFieldBase
+<fieldset class="bf-sample-mud-fieldset" disabled="@Disabled" @onfocusout="OnBlurAsync">
+    <legend id="@LegendElementId">@Node.Label</legend>
+    <MudRadioGroup T="string"
+                   Value="@StringValue"
+                   ValueChanged="SetStringValueAsync"
+                   Disabled="@Disabled"
+                   Required="@Node.Required"
+                   Error="@HasError"
+                   ErrorText="@Error"
+                   id="@FieldId"
+                   aria-labelledby="@LegendElementId"
+                   aria-required="@(Node.Required ? "true" : "false")"
+                   aria-describedby="@BuildDescribedBy()">
+        @foreach (var option in Node.Options)
+        {
+            <MudRadio T="string" Value="@option.Value" @key="option.Value">@option.Label</MudRadio>
+        }
+    </MudRadioGroup>
+    @if (HasHelp)
+    {
+        <div id="@HelpElementId" class="bf-sample-mud-help">@HelpMarkup</div>
+    }
+    @if (HasError)
+    {
+        <span id="@ErrorElementId" class="bf-sample-mud-error">@Error</span>
+    }
+</fieldset>

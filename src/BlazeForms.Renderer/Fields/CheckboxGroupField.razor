@@ -1,0 +1,37 @@
+@inherits FormFieldBase
+@* No aria-required here: a fieldset's implicit "group" role does not support it, and there is no
+   group-level "required" semantic for a checkbox set. A required checkbox group's constraint is
+   conveyed through validation messaging (a later slice), not an attribute AT would ignore. The
+   fieldset carries the field's own DOM id and tabindex="-1" so an error-summary anchor (#FieldId)
+   has somewhere to land (PRD §11, WCAG 2.4.1) -- there is no role="radiogroup" container here to
+   carry it instead, unlike RadioGroupField/YesNoField. *@
+<fieldset class="bf-fieldset" id="@FieldId" tabindex="-1" disabled="@Disabled" aria-describedby="@BuildDescribedBy()">
+    <legend>@Node.Label</legend>
+    <div class="bf-choice-group">
+        @for (var index = 0; index < Node.Options.Count; index++)
+        {
+            var option = Node.Options[index];
+            var optionId = OptionElementId(index);
+            <div class="bf-choice" @key="option.Value">
+                <input type="checkbox"
+                       id="@optionId"
+                       name="@FieldId"
+                       value="@option.Value"
+                       disabled="@Disabled"
+                       aria-invalid="@InvalidAttributeValue"
+                       checked="@IsChecked(option.Value)"
+                       @onchange="e => ToggleAsync(option.Value, (bool)e.Value!)"
+                       @onblur="OnBlurAsync" />
+                <label for="@optionId">@option.Label</label>
+            </div>
+        }
+    </div>
+    @if (HasHelp)
+    {
+        <div id="@HelpElementId" class="bf-field__help bf-prose">@HelpMarkup</div>
+    }
+    @if (HasError)
+    {
+        <span id="@ErrorElementId" class="bf-field__error">@Error</span>
+    }
+</fieldset>

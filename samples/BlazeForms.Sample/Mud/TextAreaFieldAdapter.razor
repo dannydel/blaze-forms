@@ -1,0 +1,14 @@
+@inherits FormFieldBase
+<MudTextField T="string"
+              Value="@StringValue"
+              ValueChanged="SetStringValueAsync"
+              Lines="3"
+              Label="@Node.Label"
+              Placeholder="@Node.Placeholder"
+              HelperText="@Node.Help"
+              Disabled="@Disabled"
+              Required="@Node.Required"
+              Error="@HasError"
+              ErrorText="@Error"
+              InputId="@FieldId"
+              OnBlur="OnBlurAsync" />

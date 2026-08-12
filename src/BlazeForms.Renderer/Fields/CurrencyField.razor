@@ -1,0 +1,27 @@
+@inherits FormFieldBase
+<div class="bf-field">
+    <label for="@FieldId">@Node.Label</label>
+    <input id="@FieldId"
+           type="number"
+           inputmode="decimal"
+           step="0.01"
+           min="@Node.Min"
+           max="@Node.Max"
+           placeholder="@Node.Placeholder"
+           disabled="@Disabled"
+           aria-required="@RequiredAttributeValue"
+           aria-invalid="@InvalidAttributeValue"
+           aria-describedby="@BuildDescribedBy()"
+           @bind:event="oninput"
+           @bind:get="DecimalValue"
+           @bind:set="SetDecimalValueAsync"
+           @onblur="OnBlurAsync" />
+    @if (HasHelp)
+    {
+        <div id="@HelpElementId" class="bf-field__help bf-prose">@HelpMarkup</div>
+    }
+    @if (HasError)
+    {
+        <span id="@ErrorElementId" class="bf-field__error">@Error</span>
+    }
+</div>

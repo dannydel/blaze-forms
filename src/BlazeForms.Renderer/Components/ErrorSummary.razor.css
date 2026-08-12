@@ -1,0 +1,35 @@
+.bf-error-summary {
+    border: var(--bf-border-width) solid var(--bf-color-danger);
+    border-radius: var(--bf-radius-md);
+    padding: var(--bf-space-4);
+    background-color: var(--bf-color-bg);
+}
+
+.bf-error-summary:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}
+
+.bf-error-summary__heading {
+    margin-block: 0 var(--bf-space-2);
+    color: var(--bf-color-danger);
+    font-size: var(--bf-font-size-base);
+}
+
+.bf-error-summary__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-1);
+    margin: 0;
+    padding-inline-start: var(--bf-space-5);
+}
+
+.bf-error-summary__list a {
+    color: var(--bf-color-danger);
+    text-decoration: underline;
+}
+
+.bf-error-summary__list a:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}

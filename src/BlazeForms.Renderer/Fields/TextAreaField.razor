@@ -1,0 +1,22 @@
+@inherits FormFieldBase
+<div class="bf-field">
+    <label for="@FieldId">@Node.Label</label>
+    <textarea id="@FieldId"
+              placeholder="@Node.Placeholder"
+              disabled="@Disabled"
+              aria-required="@RequiredAttributeValue"
+              aria-invalid="@InvalidAttributeValue"
+              aria-describedby="@BuildDescribedBy()"
+              @bind:event="oninput"
+              @bind:get="StringValue"
+              @bind:set="SetStringValueAsync"
+              @onblur="OnBlurAsync"></textarea>
+    @if (HasHelp)
+    {
+        <div id="@HelpElementId" class="bf-field__help bf-prose">@HelpMarkup</div>
+    }
+    @if (HasError)
+    {
+        <span id="@ErrorElementId" class="bf-field__error">@Error</span>
+    }
+</div>

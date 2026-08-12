@@ -1,0 +1,5 @@
+.bf-divider {
+    margin-block: var(--bf-space-5);
+    border: 0;
+    border-block-start: var(--bf-border-width) solid var(--bf-color-border);
+}

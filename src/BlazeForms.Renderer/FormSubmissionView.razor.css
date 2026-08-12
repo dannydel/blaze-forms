@@ -1,0 +1,128 @@
+.bf-submission {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-5);
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * Superseded-version notice (PRD §4.3, §7). `role="note"` plus `aria-label` gives it a
+ * programmatically associated name without needing a second element just to hold the heading
+ * text an `aria-labelledby` would otherwise point at.
+ * ------------------------------------------------------------------------------------------- */
+
+.bf-submission__notice {
+    padding: var(--bf-space-4);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-md);
+    background-color: var(--bf-color-surface);
+}
+
+.bf-submission__notice-text {
+    margin: 0;
+    color: var(--bf-color-text);
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * JSON export.
+ * ------------------------------------------------------------------------------------------- */
+
+.bf-submission__toolbar {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.bf-submission__export {
+    min-block-size: var(--bf-touch-target);
+    padding-inline: var(--bf-space-4);
+    padding-block: var(--bf-space-2);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+    background-color: var(--bf-color-bg);
+    color: var(--bf-color-text);
+    font: inherit;
+    cursor: pointer;
+    transition: border-color var(--bf-motion-duration) var(--bf-motion-ease);
+}
+
+.bf-submission__export:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * Pages, sections, and one label/value row per input node.
+ * ------------------------------------------------------------------------------------------- */
+
+.bf-submission__page {
+    margin-block-end: var(--bf-space-6);
+}
+
+.bf-submission__page-title {
+    margin-block: 0 var(--bf-space-4);
+    font-size: var(--bf-font-size-lg);
+}
+
+.bf-submission__section {
+    margin-block-end: var(--bf-space-5);
+}
+
+.bf-submission__section-title {
+    margin-block: 0 var(--bf-space-2);
+    font-size: var(--bf-font-size-base);
+    font-weight: 600;
+}
+
+.bf-submission__section-description {
+    margin-block: 0 var(--bf-space-3);
+    color: var(--bf-color-muted);
+}
+
+/* A captured heading still marks structure, but rendering it as muted text -- rather than a
+   genuine h2-h4 -- keeps it from competing with the page/section headings this component already
+   emits for its own document outline (see FormSubmissionView.razor.cs's remarks). It sits as a
+   block-level sibling directly above its own <dl> -- never inside one, since a <dl>'s only valid
+   children are dt/dd groups -- so it no longer needs a grid-column span to lay out correctly. */
+.bf-submission__subheading {
+    margin-block: var(--bf-space-3) var(--bf-space-2);
+    color: var(--bf-color-muted);
+    font-weight: 600;
+}
+
+.bf-submission__subheading:first-child {
+    margin-block-start: 0;
+}
+
+.bf-submission__list {
+    display: grid;
+    grid-template-columns: minmax(10rem, 1fr) 2fr;
+    gap: var(--bf-space-2) var(--bf-space-4);
+    margin: 0;
+}
+
+.bf-submission__term {
+    font-weight: 600;
+}
+
+.bf-submission__value {
+    margin: 0;
+}
+
+.bf-submission__value--not-applicable,
+.bf-submission__value--empty {
+    color: var(--bf-color-muted);
+    font-style: italic;
+}
+
+/* Below the collapse breakpoint every row stacks label above value, same as the renderer's
+ * half-width fields collapsing to one column (PRD §4.2). A `@media` condition cannot reference a
+ * custom property, so this literal mirrors `--bf-breakpoint-collapse` -- keep the two in sync if
+ * that token's value ever changes. */
+@media (max-width: 480px) {
+    .bf-submission__list {
+        grid-template-columns: 1fr;
+    }
+
+    .bf-submission__term {
+        margin-block-start: var(--bf-space-2);
+    }
+}

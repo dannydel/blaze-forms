@@ -1,0 +1,11 @@
+.bf-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-1);
+    margin-block-end: var(--bf-space-4);
+}
+
+.bf-field__help {
+    font-size: var(--bf-font-size-sm);
+    color: var(--bf-color-muted);
+}

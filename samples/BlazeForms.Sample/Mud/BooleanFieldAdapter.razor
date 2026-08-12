@@ -1,0 +1,22 @@
+@inherits FormFieldBase
+<div class="bf-sample-mud-fieldset" @onfocusout="OnBlurAsync">
+    <MudCheckBox T="bool"
+                 Value="@BoolValue"
+                 ValueChanged="SetBoolValueAsync"
+                 Label="@Node.Label"
+                 Disabled="@Disabled"
+                 Required="@Node.Required"
+                 Error="@HasError"
+                 ErrorText="@Error"
+                 id="@FieldId"
+                 aria-required="@(Node.Required ? "true" : "false")"
+                 aria-describedby="@BuildDescribedBy()" />
+    @if (HasHelp)
+    {
+        <div id="@HelpElementId" class="bf-sample-mud-help">@HelpMarkup</div>
+    }
+    @if (HasError)
+    {
+        <span id="@ErrorElementId" class="bf-sample-mud-error">@Error</span>
+    }
+</div>

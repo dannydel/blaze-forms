@@ -1,0 +1,94 @@
+using System.Diagnostics.CodeAnalysis;
+using BlazeForms.Definitions;
+using BlazeForms.Fields;
+using BlazeForms.Hosting;
+using Microsoft.AspNetCore.Components;
+
+namespace BlazeForms.Renderer.Tests;
+
+/// <summary>
+/// Covers the internal resolver in <c>Fields/DefaultFieldComponents.cs</c>: registry-first
+/// lookup, the shipped default fallback, and its two failure modes.
+/// </summary>
+public sealed class DefaultFieldComponentsTests
+{
+    [SuppressMessage(
+        "Performance",
+        "CA1812:Avoid uninstantiated internal classes",
+        Justification = "Used only as a Type identity passed to the resolver under test; the resolver never constructs it.")]
+    private sealed class FakeFieldComponent : FormFieldBase
+    {
+    }
+
+    [SuppressMessage(
+        "Performance",
+        "CA1812:Avoid uninstantiated internal classes",
+        Justification = "Used only as a Type identity passed to the resolver under test; the resolver never constructs it.")]
+    private sealed class NotAFieldComponent : ComponentBase
+    {
+    }
+
+    private sealed class StubRegistry : IFieldComponentRegistry
+    {
+        private readonly Dictionary<NodeType, Type> _registrations = [];
+
+        public void Register(NodeType nodeType, Type componentType) => _registrations[nodeType] = componentType;
+
+        public bool TryGetComponentType(NodeType nodeType, out Type? componentType) =>
+            _registrations.TryGetValue(nodeType, out componentType);
+    }
+
+    [Fact]
+    public void FallsBackToTheShippedDefaultWhenNoRegistryIsSupplied()
+    {
+        var resolved = DefaultFieldComponents.Resolve(NodeType.Text, registry: null);
+
+        Assert.Equal(typeof(TextField), resolved);
+    }
+
+    [Fact]
+    public void FallsBackToTheShippedDefaultWhenTheRegistryHasNoOverride()
+    {
+        var registry = new StubRegistry();
+
+        var resolved = DefaultFieldComponents.Resolve(NodeType.Email, registry);
+
+        Assert.Equal(typeof(EmailField), resolved);
+    }
+
+    [Fact]
+    public void HonorsARegistryOverrideThatDerivesFromFormFieldBase()
+    {
+        var registry = new StubRegistry();
+        registry.Register(NodeType.Text, typeof(FakeFieldComponent));
+
+        var resolved = DefaultFieldComponents.Resolve(NodeType.Text, registry);
+
+        Assert.Equal(typeof(FakeFieldComponent), resolved);
+    }
+
+    [Fact]
+    public void ThrowsWhenTheRegistryOverrideDoesNotDeriveFromFormFieldBase()
+    {
+        var registry = new StubRegistry();
+        registry.Register(NodeType.Text, typeof(NotAFieldComponent));
+
+        Assert.Throws<InvalidOperationException>(() => DefaultFieldComponents.Resolve(NodeType.Text, registry));
+    }
+
+    [Fact]
+    public void ThrowsForAP2ReservedNodeTypeWithNoRegistryOverride()
+    {
+        Assert.Throws<InvalidOperationException>(() => DefaultFieldComponents.Resolve(NodeType.Repeating, registry: null));
+    }
+
+    [Fact]
+    public void EveryPhaseOneNodeTypeResolvesToADefaultFormFieldBaseSubclass()
+    {
+        foreach (var nodeType in FormSchema.PhaseOneNodeTypes)
+        {
+            var resolved = DefaultFieldComponents.Resolve(nodeType, registry: null);
+            Assert.True(typeof(FormFieldBase).IsAssignableFrom(resolved), $"{nodeType} resolved to {resolved}.");
+        }
+    }
+}

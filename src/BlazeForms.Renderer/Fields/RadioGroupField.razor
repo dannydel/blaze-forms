@@ -1,0 +1,42 @@
+@inherits FormFieldBase
+<fieldset class="bf-fieldset" disabled="@Disabled">
+    <legend id="@LegendElementId">@Node.Label</legend>
+    @* aria-required is invalid on a fieldset's implicit "group" role, so the required state and
+       description ride a role="radiogroup" container (which supports both), named from the legend.
+       It also carries the field's own DOM id and tabindex="-1" so an error-summary anchor
+       (#FieldId) has somewhere to land -- the fieldset itself is never the anchor target (PRD §11,
+       WCAG 2.4.1). *@
+    <div class="bf-choice-group"
+         id="@FieldId"
+         tabindex="-1"
+         role="radiogroup"
+         aria-labelledby="@LegendElementId"
+         aria-required="@RequiredAttributeValue"
+         aria-describedby="@BuildDescribedBy()">
+        @for (var index = 0; index < Node.Options.Count; index++)
+        {
+            var option = Node.Options[index];
+            var optionId = OptionElementId(index);
+            <div class="bf-choice" @key="option.Value">
+                <input type="radio"
+                       id="@optionId"
+                       name="@FieldId"
+                       value="@option.Value"
+                       disabled="@Disabled"
+                       aria-invalid="@InvalidAttributeValue"
+                       checked="@(StringValue == option.Value)"
+                       @onchange="() => SetStringValueAsync(option.Value)"
+                       @onblur="OnBlurAsync" />
+                <label for="@optionId">@option.Label</label>
+            </div>
+        }
+    </div>
+    @if (HasHelp)
+    {
+        <div id="@HelpElementId" class="bf-field__help bf-prose">@HelpMarkup</div>
+    }
+    @if (HasError)
+    {
+        <span id="@ErrorElementId" class="bf-field__error">@Error</span>
+    }
+</fieldset>

@@ -1,0 +1,62 @@
+@using BlazeForms.Definitions
+<div class="bf-submission">
+    @if (SupersededNoticeText is { } noticeText)
+    {
+        <div class="bf-submission__notice" role="note" aria-label="@Localizer["SubmissionSupersededHeading"].Value">
+            <p class="bf-submission__notice-text">@noticeText</p>
+        </div>
+    }
+
+    <div class="bf-submission__toolbar">
+        <button type="button" class="bf-submission__export" @onclick="ExportJsonAsync">
+            @Localizer["SubmissionExportButtonLabel"].Value
+        </button>
+    </div>
+
+    @for (var pageIndex = 0; pageIndex < Definition.Pages.Count; pageIndex++)
+    {
+        var page = Definition.Pages[pageIndex];
+        <section class="bf-submission__page" aria-labelledby="@PageHeadingId(page)" @key="page.Id">
+            <h2 id="@PageHeadingId(page)" class="bf-submission__page-title">@PageHeadingText(page, pageIndex)</h2>
+
+            @foreach (var section in page.Sections)
+            {
+                <div class="bf-submission__section" @key="section.Id">
+                    @if (!string.IsNullOrWhiteSpace(section.Title))
+                    {
+                        <h3 class="bf-submission__section-title">@section.Title</h3>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(section.Description))
+                    {
+                        <p class="bf-submission__section-description">@section.Description</p>
+                    }
+
+                    @* A captured heading cannot legally sit inside a <dl> alongside dt/dd pairs
+                       (a <dl>'s only valid children are dt/dd groups, optionally wrapped in a div
+                       that itself contains only dt/dd), so BuildNodeGroups splits each section
+                       into heading-led runs and this loop emits the heading -- when a run has one
+                       -- as its own element above that run's <dl>, not inside it. See
+                       BuildNodeGroups' remarks for why this stays a flat, non-recursive read. *@
+                    @foreach (var group in BuildNodeGroups(section))
+                    {
+                        @if (group.Heading is { } headingNode)
+                        {
+                            <div class="bf-submission__subheading" @key="@($"{group.Key}-heading")">@headingNode.Label</div>
+                        }
+                        @if (group.Fields.Count > 0)
+                        {
+                            <dl class="bf-submission__list" @key="@($"{group.Key}-list")">
+                                @foreach (var node in group.Fields)
+                                {
+                                    var display = BuildDisplay(node);
+                                    <dt class="bf-submission__term" @key="@($"{node.Id}-term")">@node.Label</dt>
+                                    <dd class="@ValueCssClass(display.Kind)" @key="@($"{node.Id}-value")">@ResolveDisplayText(display)</dd>
+                                }
+                            </dl>
+                        }
+                    }
+                </div>
+            }
+        </section>
+    }
+</div>

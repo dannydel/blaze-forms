@@ -1,0 +1,21 @@
+@inherits FormFieldBase
+<div class="bf-field">
+    <label for="@FieldId">@Node.Label</label>
+    <input id="@FieldId"
+           type="date"
+           disabled="@Disabled"
+           aria-required="@RequiredAttributeValue"
+           aria-invalid="@InvalidAttributeValue"
+           aria-describedby="@BuildDescribedBy()"
+           @bind:get="DateValue"
+           @bind:set="SetDateValueAsync"
+           @onblur="OnBlurAsync" />
+    @if (HasHelp)
+    {
+        <div id="@HelpElementId" class="bf-field__help bf-prose">@HelpMarkup</div>
+    }
+    @if (HasError)
+    {
+        <span id="@ErrorElementId" class="bf-field__error">@Error</span>
+    }
+</div>

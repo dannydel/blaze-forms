@@ -1,0 +1,13 @@
+@inherits FormFieldBase
+@if (Level == 2)
+{
+    <h2 id="@FieldId" class="bf-heading">@Node.Label</h2>
+}
+else if (Level == 3)
+{
+    <h3 id="@FieldId" class="bf-heading">@Node.Label</h3>
+}
+else
+{
+    <h4 id="@FieldId" class="bf-heading">@Node.Label</h4>
+}
