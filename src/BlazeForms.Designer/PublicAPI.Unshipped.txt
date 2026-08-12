@@ -138,11 +138,27 @@ BlazeForms.FormDesigner.OnClosed.get -> Microsoft.AspNetCore.Components.EventCal
 BlazeForms.FormDesigner.OnClosed.set -> void
 BlazeForms.FormDesigner.OnPublished.get -> Microsoft.AspNetCore.Components.EventCallback<BlazeForms.Versioning.FormVersion!>
 BlazeForms.FormDesigner.OnPublished.set -> void
+BlazeForms.FormLibrary
+BlazeForms.FormLibrary.FormLibrary() -> void
+BlazeForms.FormLibrary.OnOpenInDesigner.get -> Microsoft.AspNetCore.Components.EventCallback<string!>
+BlazeForms.FormLibrary.OnOpenInDesigner.set -> void
 BlazeForms.KeyboardHelpDialog
 BlazeForms.KeyboardHelpDialog.DisposeAsync() -> System.Threading.Tasks.ValueTask
 BlazeForms.KeyboardHelpDialog.KeyboardHelpDialog() -> void
 BlazeForms.KeyboardHelpDialog.OnClosed.get -> Microsoft.AspNetCore.Components.EventCallback
 BlazeForms.KeyboardHelpDialog.OnClosed.set -> void
+BlazeForms.Library.FormCard
+BlazeForms.Library.FormCard.FormCard() -> void
+BlazeForms.Library.FormCard.OnOpen.get -> Microsoft.AspNetCore.Components.EventCallback<string!>
+BlazeForms.Library.FormCard.OnOpen.set -> void
+BlazeForms.Library.FormCard.Summary.get -> BlazeForms.Versioning.FormVersionSummary!
+BlazeForms.Library.FormCard.Summary.set -> void
+BlazeForms.Library.FormTable
+BlazeForms.Library.FormTable.Forms.get -> System.Collections.Generic.IReadOnlyList<BlazeForms.Versioning.FormVersionSummary!>!
+BlazeForms.Library.FormTable.Forms.set -> void
+BlazeForms.Library.FormTable.FormTable() -> void
+BlazeForms.Library.FormTable.OnOpen.get -> Microsoft.AspNetCore.Components.EventCallback<string!>
+BlazeForms.Library.FormTable.OnOpen.set -> void
 BlazeForms.Linting.InlineLintMarker
 BlazeForms.Linting.InlineLintMarker.Findings.get -> System.Collections.Generic.IReadOnlyList<BlazeForms.Linting.LintResult!>!
 BlazeForms.Linting.InlineLintMarker.Findings.set -> void
@@ -258,6 +274,8 @@ override BlazeForms.Designer.DesignerSelection.GetHashCode() -> int
 override BlazeForms.Designer.DesignerSelection.ToString() -> string!
 override BlazeForms.FormDesigner.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
 override BlazeForms.FormDesigner.OnInitialized() -> void
+override BlazeForms.FormLibrary.OnInitialized() -> void
+override BlazeForms.FormLibrary.OnInitializedAsync() -> System.Threading.Tasks.Task!
 override BlazeForms.KeyboardHelpDialog.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
 override BlazeForms.Linting.LinterDock.OnInitialized() -> void
 override BlazeForms.Linting.LinterDock.OnParametersSet() -> void
@@ -296,7 +314,10 @@ static BlazeForms.Designer.DesignerSelection.operator ==(BlazeForms.Designer.Des
 ~override BlazeForms.Canvas.PageTabStrip.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Delete.DeleteProtectionDialog.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.FormDesigner.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
+~override BlazeForms.FormLibrary.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.KeyboardHelpDialog.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
+~override BlazeForms.Library.FormCard.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
+~override BlazeForms.Library.FormTable.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Linting.InlineLintMarker.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Linting.LinterDock.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Palette.FieldPalette.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void

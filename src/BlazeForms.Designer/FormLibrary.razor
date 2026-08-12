@@ -1,0 +1,82 @@
+<div class="bf-library" role="region" aria-label="@Localizer["FormLibraryTitle"].Value">
+    <h2 class="bf-library__title">@Localizer["FormLibraryTitle"].Value</h2>
+
+    <div class="bf-library__controls">
+        <div class="bf-library__control">
+            <label class="bf-library__label" for="@_searchInputId">@Localizer["FormLibrarySearchLabel"].Value</label>
+            <input id="@_searchInputId"
+                   type="search"
+                   class="bf-library__search-input"
+                   placeholder="@Localizer["FormLibrarySearchPlaceholder"].Value"
+                   value="@_searchTerm"
+                   @oninput="OnSearchInput" />
+        </div>
+
+        <div class="bf-library__control">
+            <label class="bf-library__label" for="@_statusFilterId">@Localizer["FormLibraryStatusFilterLabel"].Value</label>
+            <select id="@_statusFilterId" class="bf-library__select" @onchange="OnStatusFilterChanged">
+                <option value="">@Localizer["FormLibraryStatusAll"].Value</option>
+                <option value="Draft">@Localizer["FormLibraryStatusDraft"].Value</option>
+                <option value="Published">@Localizer["FormLibraryStatusPublished"].Value</option>
+                <option value="Retired">@Localizer["FormLibraryStatusRetired"].Value</option>
+            </select>
+        </div>
+
+        <div class="bf-library__control">
+            <label class="bf-library__label" for="@_sortSelectId">@Localizer["FormLibrarySortLabel"].Value</label>
+            <select id="@_sortSelectId" class="bf-library__select" @onchange="OnSortChanged">
+                <option value="Name">@Localizer["FormLibrarySortName"].Value</option>
+                <option value="SubmissionCount">@Localizer["FormLibrarySortSubmissionCount"].Value</option>
+                <option value="LastPublished">@Localizer["FormLibrarySortLastPublished"].Value</option>
+            </select>
+        </div>
+
+        <div class="bf-library__view-toggle" role="group" aria-label="@Localizer["FormLibraryViewToggleLabel"].Value">
+            <button type="button"
+                    class="bf-library__view-button"
+                    aria-pressed="@(_viewMode == ViewMode.Cards ? "true" : "false")"
+                    @onclick="() => SetViewMode(ViewMode.Cards)">
+                @Localizer["FormLibraryViewCards"].Value
+            </button>
+            <button type="button"
+                    class="bf-library__view-button"
+                    aria-pressed="@(_viewMode == ViewMode.Table ? "true" : "false")"
+                    @onclick="() => SetViewMode(ViewMode.Table)">
+                @Localizer["FormLibraryViewTable"].Value
+            </button>
+        </div>
+    </div>
+
+    @if (!_isLoading)
+    {
+        <p class="bf-library__result-count" aria-live="polite">@ResultCountAnnouncement</p>
+    }
+
+    @if (_isLoading)
+    {
+        <p class="bf-library__status">@Localizer["FormLibraryLoading"].Value</p>
+    }
+    else if (_forms.Count == 0)
+    {
+        <p class="bf-library__status">@Localizer["FormLibraryEmpty"].Value</p>
+    }
+    else if (FilteredForms.Count == 0)
+    {
+        <p class="bf-library__status">@Localizer["FormLibraryNoResults"].Value</p>
+    }
+    else if (_viewMode == ViewMode.Cards)
+    {
+        <ul class="bf-library__cards" aria-label="@Localizer["FormLibraryTitle"].Value">
+            @foreach (var form in FilteredForms)
+            {
+                <li class="bf-library__card-item" @key="form.FormId">
+                    <FormCard Summary="form" OnOpen="OpenAsync" />
+                </li>
+            }
+        </ul>
+    }
+    else
+    {
+        <FormTable Forms="FilteredForms" OnOpen="OpenAsync" />
+    }
+</div>
