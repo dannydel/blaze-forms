@@ -16,6 +16,7 @@
 }
 
 .bf-designer__help-button,
+.bf-designer__preview-button,
 .bf-designer__version-history-button,
 .bf-designer__publish-button {
     padding-inline: var(--bf-space-3);
@@ -25,6 +26,14 @@
     background-color: var(--bf-color-surface);
     color: var(--bf-color-text);
     cursor: pointer;
+}
+
+/* aria-pressed is what assistive tech announces as the toggle's own on/off state; this border
+ * treatment is the sighted equivalent, so "preview is currently on" reads visually too rather
+ * than relying on the button's own static label. */
+.bf-designer__preview-button[aria-pressed='true'] {
+    border-color: var(--bf-color-primary);
+    color: var(--bf-color-primary);
 }
 
 /* The publish gate lives entirely in PublishDialog itself -- this button always opens it, never
@@ -37,6 +46,7 @@
 }
 
 .bf-designer__help-button:focus-visible,
+.bf-designer__preview-button:focus-visible,
 .bf-designer__version-history-button:focus-visible,
 .bf-designer__publish-button:focus-visible {
     outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
