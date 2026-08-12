@@ -1,0 +1,65 @@
+@page "/design/{FormId?}"
+@rendermode InteractiveServer
+@inject IFormDefinitionStore DefinitionStore
+@inject NavigationManager Navigation
+
+<PageTitle>Design — BlazeForms Sample</PageTitle>
+
+@if (_isResolving)
+{
+    <p>Loading the designer…</p>
+}
+else if (_resolvedFormId is null)
+{
+    <p>No forms are available to design yet.</p>
+    <p><a href="/library">Back to the library</a></p>
+}
+else
+{
+    <FormDesigner FormId="@_resolvedFormId" Author="Sample Author" OnPublished="HandlePublishedAsync" OnClosed="HandleClosed" />
+}
+
+@code {
+    /// <summary>
+    /// The <c>formId</c> route segment. Optional -- omitting it (plain <c>/design</c>) opens the
+    /// seeded reference enrollment form (<c>Data.EnrollmentForm</c>), which every sample visitor
+    /// can rely on existing (<c>Program.cs</c> seeds and publishes it at startup) — the same
+    /// "there is always a form to open" contract <c>Fill.razor</c> leans on for its own default. A
+    /// host with a real "start a new form" flow of its own would instead route here with a
+    /// freshly minted <c>FormIds.NewFormId</c>-generated id; this sample has no such affordance
+    /// yet, so <c>/design</c> with no segment always means "edit the reference form".
+    /// </summary>
+    [Parameter]
+    public string? FormId { get; set; }
+
+    private bool _isResolving = true;
+    private string? _resolvedFormId;
+
+    // Runs once during the prerendered pass and again once the circuit reconnects (ordinary
+    // @rendermode InteractiveServer behavior, same as Fill.razor's own OnInitializedAsync) — both
+    // calls are plain reads against the in-memory store, so running twice is harmless.
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(FormId))
+        {
+            _resolvedFormId = FormId;
+            _isResolving = false;
+            return;
+        }
+
+        var forms = await DefinitionStore.ListFormsAsync();
+        _resolvedFormId = forms.FirstOrDefault()?.FormId;
+        _isResolving = false;
+    }
+
+    // FormDesigner already persists the newly published version to the store itself
+    // (PublishDialog -> IFormDefinitionStore.PublishAsync) -- this handler's only job is to send
+    // the author on to the library, where the form now shows its new published status.
+    private Task HandlePublishedAsync(FormVersion published)
+    {
+        Navigation.NavigateTo("/library");
+        return Task.CompletedTask;
+    }
+
+    private void HandleClosed() => Navigation.NavigateTo("/library");
+}

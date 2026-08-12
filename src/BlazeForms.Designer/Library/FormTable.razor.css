@@ -4,6 +4,19 @@
     color: var(--bf-color-text);
 }
 
+/* Gives the table its own accessible name (parity with the card view's <ul>, which the
+ * enclosing labelled region already covers) -- visually hidden since the region's own heading
+ * makes a visible duplicate redundant, but present in the accessibility tree so a screen
+ * reader's table-navigation command still announces something other than "table". */
+.bf-form-table__caption {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
 .bf-form-table th,
 .bf-form-table td {
     padding: var(--bf-space-2) var(--bf-space-3);
