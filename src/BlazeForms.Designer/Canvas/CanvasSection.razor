@@ -1,4 +1,4 @@
-<div class="bf-canvas-section" role="group" aria-labelledby="@_headingId">
+<div class="bf-canvas-section" role="group" aria-labelledby="@_headingId" tabindex="-1" @ref="_element">
     @* aria-hidden, not merely visual styling, on the title and description: the enclosing
        role="group" is itself an owned child of DesignerCanvas's own role="listbox" (the
        WAI-ARIA grouped-listbox pattern), and axe's aria-required-children rule walks every
@@ -22,40 +22,3 @@
         @ChildContent
     </div>
 </div>
-
-@code {
-    private readonly string _headingId = "bf-canvas-section-" + Guid.NewGuid().ToString("n");
-
-    /// <summary>
-    /// The section this wrapper groups.
-    /// </summary>
-    [Parameter, EditorRequired]
-    public FormSection Section { get; set; } = default!;
-
-    /// <summary>
-    /// The section's node rows, rendered by <see cref="DesignerCanvas"/>. <see langword="null"/>
-    /// renders an empty (but still grouped and labelled) section. The wrapping
-    /// <c>div.bf-canvas-section__rows</c> carries <c>role="presentation"</c> so it drops out of
-    /// the accessibility tree entirely -- without it, each row's <c>role="option"</c> would sit
-    /// inside a generic, unnamed <c>div</c> rather than being owned directly by this section's own
-    /// <c>role="group"</c>, breaking the listbox → group → option ownership chain WAI-ARIA's
-    /// grouped-listbox pattern requires (an axe <c>aria-required-parent</c> violation).
-    /// </summary>
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
-
-    /// <summary>
-    /// Raised on a native <c>drop</c> landing anywhere in this section's rows wrapper that a row's
-    /// own <see cref="CanvasNodeRow.OnDropped"/> did not already claim and stop from propagating
-    /// -- an empty section, or the space below its last row. <see cref="DesignerCanvas"/> is the
-    /// only intended subscriber; it appends the dragged node to the end of <see cref="Section"/>,
-    /// the drag-and-drop path's fallback target when there is no specific row to drop before
-    /// (PRD §4.1).
-    /// </summary>
-    [Parameter]
-    public EventCallback<DragEventArgs> OnDropped { get; set; }
-
-    private string SectionTitle => Section.Title ?? Localizer["UntitledSectionName"].Value;
-
-    private static IStringLocalizer<DesignerStrings> Localizer => DesignerLocalization.Shared;
-}

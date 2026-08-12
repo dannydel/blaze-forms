@@ -7,11 +7,15 @@ else
     <div class="bf-canvas"
          role="listbox"
          aria-label="@Localizer["CanvasRegionLabel"].Value"
+         tabindex="-1"
          @ref="_canvasElement"
          @onkeydown="OnKeyDown">
         @foreach (var section in ActivePage.Sections)
         {
-            <CanvasSection @key="section.Id" Section="section" OnDropped="@GetSectionDropCallback(section.Id)">
+            <CanvasSection @key="section.Id"
+                           Section="section"
+                           RequestFocus="@IsSectionFocusPending(section.Id)"
+                           OnDropped="@GetSectionDropCallback(section.Id)">
                 @foreach (var node in section.Nodes)
                 {
                     <CanvasNodeRow @key="node.Id"

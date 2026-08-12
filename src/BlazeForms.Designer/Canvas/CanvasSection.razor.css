@@ -7,6 +7,14 @@
     border-radius: var(--bf-radius-md);
 }
 
+/* Visible focus ring for the section's own group element when a node-less undo/redo (PRD §11)
+ * lands real DOM focus here instead of on a row -- the same :focus-visible treatment
+ * CanvasNodeRow.razor.css gives its own rows, since a mouse never focuses this element. */
+.bf-canvas-section:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}
+
 .bf-canvas-section__title {
     margin: 0;
     font-size: var(--bf-font-size-base);

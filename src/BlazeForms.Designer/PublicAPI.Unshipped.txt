@@ -35,6 +35,8 @@ BlazeForms.Canvas.CanvasSection.ChildContent.get -> Microsoft.AspNetCore.Compone
 BlazeForms.Canvas.CanvasSection.ChildContent.set -> void
 BlazeForms.Canvas.CanvasSection.OnDropped.get -> Microsoft.AspNetCore.Components.EventCallback<Microsoft.AspNetCore.Components.Web.DragEventArgs!>
 BlazeForms.Canvas.CanvasSection.OnDropped.set -> void
+BlazeForms.Canvas.CanvasSection.RequestFocus.get -> bool
+BlazeForms.Canvas.CanvasSection.RequestFocus.set -> void
 BlazeForms.Canvas.CanvasSection.Section.get -> BlazeForms.Definitions.FormSection!
 BlazeForms.Canvas.CanvasSection.Section.set -> void
 BlazeForms.Canvas.DesignerCanvas
@@ -258,6 +260,8 @@ override BlazeForms.Canvas.CanvasNodeRow.OnAfterRenderAsync(bool firstRender) ->
 override BlazeForms.Canvas.CanvasNodeRow.OnInitialized() -> void
 override BlazeForms.Canvas.CanvasNodeRow.OnParametersSet() -> void
 override BlazeForms.Canvas.CanvasNodeRow.ShouldRender() -> bool
+override BlazeForms.Canvas.CanvasSection.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
+override BlazeForms.Canvas.CanvasSection.OnParametersSet() -> void
 override BlazeForms.Canvas.DesignerCanvas.OnAfterRender(bool firstRender) -> void
 override BlazeForms.Canvas.DesignerCanvas.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
 override BlazeForms.Canvas.DesignerCanvas.OnParametersSet() -> void

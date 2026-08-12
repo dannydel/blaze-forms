@@ -119,6 +119,8 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
     private IJSObjectReference? _scrollSuppressionHandle;
     private string? _activeNodeId;
     private string? _pendingFocusNodeId;
+    private string? _pendingFocusSectionId;
+    private bool _pendingFocusCanvasRoot;
     private string? _lastSyncedActivePageId;
     private string? _draggedNodeId;
     private bool _showMoveDialog;
@@ -208,7 +210,11 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
     }
 
     /// <inheritdoc/>
-    protected override void OnAfterRender(bool firstRender) => _pendingFocusNodeId = null;
+    protected override void OnAfterRender(bool firstRender)
+    {
+        _pendingFocusNodeId = null;
+        _pendingFocusSectionId = null;
+    }
 
     /// <summary>
     /// Imports <see cref="ModulePath"/>'s scroll-suppression module on this canvas's first render
@@ -232,6 +238,21 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
         if (firstRender)
         {
             _module = await JSRuntime.InvokeAsync<IJSObjectReference>("import", ModulePath);
+        }
+
+        // The last-resort fallback for a node-less restored selection that names no section
+        // either (DesignerSelection.None, or a page-only selection) -- see
+        // OnEditContextStateChanged's own remarks. This is a plain ElementReference.FocusAsync
+        // call, not JS interop through _module, so it runs (and clears itself) independently of
+        // whether that module ever finished importing.
+        if (_pendingFocusCanvasRoot)
+        {
+            _pendingFocusCanvasRoot = false;
+
+            if (ActivePage is not null)
+            {
+                await _canvasElement.FocusAsync();
+            }
         }
 
         if (_module is null)
@@ -318,6 +339,13 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
     private bool IsRowSelected(string nodeId) => string.Equals(EditContext.Selection.NodeId, nodeId, StringComparison.Ordinal);
 
     private bool IsFocusPending(string nodeId) => string.Equals(_pendingFocusNodeId, nodeId, StringComparison.Ordinal);
+
+    /// <summary>
+    /// Whether <paramref name="sectionId"/> is the one-shot target
+    /// <see cref="OnEditContextStateChanged"/>'s node-less-restore fallback most recently named --
+    /// see <see cref="CanvasSection.RequestFocus"/>.
+    /// </summary>
+    private bool IsSectionFocusPending(string sectionId) => string.Equals(_pendingFocusSectionId, sectionId, StringComparison.Ordinal);
 
     /// <summary>
     /// The plain-language description of <paramref name="node"/>'s own
@@ -858,11 +886,30 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
     /// guaranteed to already reflect a page switch that same event is triggering elsewhere (see
     /// that method's own remarks).
     /// </summary>
+    /// <remarks>
+    /// <b>Node-less restore fallback (WCAG 2.4.3).</b> <see cref="DesignerEditContext.Undo"/> and
+    /// <see cref="DesignerEditContext.Redo"/> tag their restored selection
+    /// <see cref="DesignerFocusIntent.Restored"/> regardless of what it names -- unlike every
+    /// other mutation, which always lands on a real node (PRD §11's other intents). A restored
+    /// selection can legitimately name no node at all: <see cref="DesignerSelection.None"/> itself
+    /// (undoing the only add a still-empty section or page ever had), or a section it names but
+    /// that section (still, or once again) has no rows of its own. With nothing to hand a
+    /// <see cref="CanvasNodeRow"/>, real DOM focus would otherwise stay exactly where it was --
+    /// typically nowhere, once whatever row or dialog last held it has left the DOM -- stranding
+    /// it on <c>&lt;body&gt;</c> even though <see cref="DesignerEditContext.Announced"/> still
+    /// speaks the undo/redo. This falls back to the named section's own group element
+    /// (<see cref="CanvasSection.RequestFocus"/>) when the restored selection still anchors one,
+    /// or this canvas's own listbox root when it does not. <see cref="DesignerSelection.PageId"/>
+    /// is <see langword="null"/> for <see cref="DesignerSelection.None"/> itself, so the same
+    /// page-match this method's node branch requires would otherwise reject it outright even
+    /// though undo/redo only ever concerns whichever page this canvas is already showing.
+    /// </remarks>
     private void OnEditContextStateChanged() => InvokeAsync(() =>
     {
         var selection = EditContext.Selection;
+        var isThisPage = selection.PageId is null || string.Equals(selection.PageId, ActivePageId, StringComparison.Ordinal);
 
-        if (string.Equals(selection.PageId, ActivePageId, StringComparison.Ordinal) && selection.NodeId is { } nodeId)
+        if (isThisPage && selection.NodeId is { } nodeId)
         {
             _activeNodeId = nodeId;
 
@@ -870,6 +917,11 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
             {
                 _pendingFocusNodeId = nodeId;
             }
+        }
+        else if (isThisPage && selection.Intent == DesignerFocusIntent.Restored)
+        {
+            _pendingFocusSectionId = selection.SectionId;
+            _pendingFocusCanvasRoot = selection.SectionId is null;
         }
 
         StateHasChanged();

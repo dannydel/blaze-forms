@@ -13,6 +13,25 @@ public sealed class AgnosticismTests
 {
     private const string CoreAssemblyName = "BlazeForms.Core";
     private const string RendererAssemblyName = "BlazeForms.Renderer";
+    private const string DesignerAssemblyName = "BlazeForms.Designer";
+
+    /// <summary>
+    /// Assembly name prefixes allowed anywhere in the Designer's transitive dependency closure:
+    /// the BCL, first-party BlazeForms assemblies, and Markdig — the one sanctioned third-party
+    /// dependency, pulled in transitively through Core's safe-Markdown pipeline (PRD §9). No
+    /// other third-party (and in particular no UI-framework) assembly may leak in; the Designer
+    /// must stay UI-framework-agnostic (PRD §10 / D3) even though it depends on Core and
+    /// Renderer, neither of which may themselves reference a concrete UI framework.
+    /// </summary>
+    private static readonly string[] AllowedClosurePrefixes =
+    [
+        "System.",
+        "Microsoft.",
+        "netstandard",
+        "mscorlib",
+        "BlazeForms.",
+        "Markdig",
+    ];
 
     [Fact]
     public void CorePublicApiReferencesOnlyBclAndOwnTypes()
@@ -25,6 +44,84 @@ public sealed class AgnosticismTests
     {
         AssertPublicApiIsAgnostic(RendererAssemblyName, allowAspNetCoreComponents: true);
     }
+
+    /// <summary>
+    /// Enforces AGENTS.md invariant #1 at the assembly-reference level rather than the public-API
+    /// level: even a third-party UI package used only internally by the Designer — never
+    /// appearing in a public signature — would defeat the point of PRD §10/D3's commitment to
+    /// keep the Designer swappable across host UI frameworks. This walks
+    /// <c>BlazeForms.Designer</c>'s full transitive closure of referenced assemblies (not just
+    /// its direct references) and fails on the first assembly outside the allow-list.
+    /// </summary>
+    [Fact]
+    public void DesignerDependencyClosureContainsNoThirdPartyUiPackage()
+    {
+        var assembly = Assembly.Load(DesignerAssemblyName);
+        var closure = CollectTransitiveReferencedAssemblies(assembly);
+
+        var violations = closure
+            .Where(name => !IsAllowedInClosure(name.Name))
+            .Select(name => name.FullName ?? name.Name ?? "<unknown>")
+            .OrderBy(name => name, StringComparer.Ordinal)
+            .ToList();
+
+        Assert.True(
+            violations.Count == 0,
+            $"""
+            {DesignerAssemblyName} pulls in third-party dependenc{(violations.Count == 1 ? "y" : "ies")} outside the
+            allow-list (BCL, BlazeForms.*, and Markdig): {string.Join(", ", violations)}.
+            The Designer must stay UI-framework-agnostic (PRD §10 / D3): it may not depend,
+            even transitively, on a concrete UI/component package.
+            """);
+    }
+
+    /// <summary>
+    /// Breadth-first walk of <see cref="Assembly.GetReferencedAssemblies"/> starting from
+    /// <paramref name="root"/>, resolving each referenced assembly (so its own references are
+    /// followed in turn) and de-duplicating by assembly name.
+    /// </summary>
+    private static Dictionary<string, AssemblyName>.ValueCollection CollectTransitiveReferencedAssemblies(Assembly root)
+    {
+        var visited = new Dictionary<string, AssemblyName>(StringComparer.OrdinalIgnoreCase);
+        var queue = new Queue<Assembly>();
+        queue.Enqueue(root);
+
+        var processedAssemblies = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { root.GetName().Name! };
+
+        while (queue.Count > 0)
+        {
+            var current = queue.Dequeue();
+
+            foreach (var referenced in current.GetReferencedAssemblies())
+            {
+                var key = referenced.Name ?? referenced.FullName;
+                visited[key] = referenced;
+
+                if (!processedAssemblies.Add(key))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    queue.Enqueue(Assembly.Load(referenced));
+                }
+                catch (Exception ex) when (ex is FileNotFoundException or FileLoadException or BadImageFormatException)
+                {
+                    // Reference metadata without a resolvable assembly on disk (e.g. a
+                    // facade/reference assembly with no runtime counterpart) can't contribute
+                    // further transitive references; it's still recorded as visited above so
+                    // it's checked against the allow-list itself.
+                }
+            }
+        }
+
+        return visited.Values;
+    }
+
+    private static bool IsAllowedInClosure(string? assemblyName) =>
+        assemblyName is not null
+        && AllowedClosurePrefixes.Any(prefix => assemblyName.StartsWith(prefix, StringComparison.Ordinal));
 
     private static void AssertPublicApiIsAgnostic(string assemblyName, bool allowAspNetCoreComponents)
     {

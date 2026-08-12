@@ -602,6 +602,59 @@ public sealed class DesignerCanvasTests : DesignerTestContext
     }
 
     [Fact]
+    public async Task UndoOfTheVeryFirstMutationRestoresANodelessSelectionAndFocusesTheCanvasRoot()
+    {
+        // Nothing has ever been selected yet -- DesignerSelection.None -- so the very first
+        // mutation's own undo snapshot carries that same node-less, section-less selection.
+        // Undoing it restores None with Intent overridden to Restored (PRD §11), which names
+        // neither a node nor a section: without this fallback, OnEditContextStateChanged would
+        // move no focus at all, stranding it on <body> (WCAG 2.4.3) even though the aria-live
+        // region still announces the undo.
+        await using var context = CreateContext(DesignerTestFixtures.TwoSectionDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+        context.MoveNodeWithinSection("node-a", +1);
+        cut.WaitForAssertion(() => Assert.Equal(["node-b", "node-a", "node-c"], context.Draft.Definition.Pages[0].Sections[0].Nodes.Select(n => n.Id)));
+
+        context.Undo();
+
+        cut.WaitForAssertion(() => Assert.Equal(["node-a", "node-b", "node-c"], context.Draft.Definition.Pages[0].Sections[0].Nodes.Select(n => n.Id)));
+        Assert.Null(context.Selection.NodeId);
+        Assert.Null(context.Selection.SectionId);
+        Assert.Equal(DesignerFocusIntent.Restored, context.Selection.Intent);
+
+        // Once for the move itself landing on node-a, once more for the undo's own node-less
+        // fallback, which -- with no section to point to either -- lands on the canvas's own
+        // role="listbox" root.
+        JSInterop.VerifyFocusAsyncInvoke(2);
+    }
+
+    [Fact]
+    public async Task UndoOfASecondAddedSectionRestoresASectionOnlySelectionAndFocusesThatSectionsGroup()
+    {
+        // AddSection's own selection never carries a node either, but its own live commit is
+        // tagged NewNode, not Restored -- moving focus there is a later phase's own concern (see
+        // this canvas's own class remarks). Undoing a second AddSection, though, restores the
+        // first one's still-node-less ForSection selection with Intent overridden to Restored, so
+        // the fallback this test exercises is exactly the "still names a section" half of it: the
+        // section's own role="group" element, not the canvas root.
+        await using var context = CreateContext(DesignerTestFixtures.OneFieldDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+        context.AddSection("page-1");
+        cut.WaitForAssertion(() => Assert.Equal(2, context.Draft.Definition.Pages[0].Sections.Count));
+        var firstAddedSectionId = context.Draft.Definition.Pages[0].Sections[1].Id;
+        context.AddSection("page-1");
+        cut.WaitForAssertion(() => Assert.Equal(3, context.Draft.Definition.Pages[0].Sections.Count));
+
+        context.Undo();
+
+        cut.WaitForAssertion(() => Assert.Equal(2, context.Draft.Definition.Pages[0].Sections.Count));
+        Assert.Null(context.Selection.NodeId);
+        Assert.Equal(firstAddedSectionId, context.Selection.SectionId);
+        Assert.Equal(DesignerFocusIntent.Restored, context.Selection.Intent);
+        JSInterop.VerifyFocusAsyncInvoke();
+    }
+
+    [Fact]
     public async Task DeleteOfAnUnreferencedNodeDeletesDirectlyWithNoDialogAndFocusesTheNeighbour()
     {
         await using var context = CreateContext(DesignerTestFixtures.ReferencedFieldDefinition("form-1"));
