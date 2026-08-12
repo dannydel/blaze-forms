@@ -1,0 +1,9 @@
+@page "/library"
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+
+<PageTitle>Library — BlazeForms Sample</PageTitle>
+
+<p><a href="/">Back to the sample home</a></p>
+
+<FormLibrary OnOpenInDesigner="@(formId => Navigation.NavigateTo($"/design/{formId}"))" />

@@ -305,6 +305,45 @@ public sealed class DesignerCanvasTests : DesignerTestContext
     }
 
     [Fact]
+    public async Task SectionTitleAndDescriptionAreAriaHiddenSoTheListboxOwnsOnlyGroupsAndOptions()
+    {
+        // A section's title and description are exactly what the enclosing role="group" already
+        // names via aria-labelledby -- exposing either as a plain heading/paragraph too would be a
+        // second, disallowed kind of child under DesignerCanvas's own role="listbox" (a real
+        // regression the Playwright + axe E2E gate caught: "Element has children which are not
+        // allowed: h3"). Both must carry aria-hidden="true" so they drop out of the accessibility
+        // tree while staying visible on the canvas.
+        var definition = new FormDefinition
+        {
+            Id = "form-1",
+            Name = "Form",
+            Pages =
+            [
+                new FormPage
+                {
+                    Id = "page-1",
+                    Sections =
+                    [
+                        new FormSection
+                        {
+                            Id = "section-1",
+                            Title = "Your details",
+                            Description = "We use this to reach you.",
+                            Nodes = [new FormNode { Id = "node-a", Type = NodeType.Text, Label = "Field A" }],
+                        },
+                    ],
+                },
+            ],
+        };
+
+        await using var context = CreateContext(definition);
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+
+        Assert.Equal("true", cut.Find("h3.bf-canvas-section__title").GetAttribute("aria-hidden"));
+        Assert.Equal("true", cut.Find("p.bf-canvas-section__description").GetAttribute("aria-hidden"));
+    }
+
+    [Fact]
     public async Task TheScrollSuppressionModuleIsImportedOnFirstRender()
     {
         var module = JSInterop.SetupModule(DesignerCanvas.ModulePath);
