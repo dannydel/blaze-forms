@@ -5,13 +5,35 @@
             {
                 var page = Pages[pageIndex];
                 var title = PageTitle(page, pageIndex);
-                <button type="button"
-                        class="@TabClass(page.Id)"
-                        aria-current="@(IsActiveTab(page.Id) ? "page" : null)"
-                        @key="page.Id"
-                        @onclick="() => SelectPage(page.Id)">
-                    @title
-                </button>
+                @if (IsEditing(page.Id))
+                {
+                    <input type="text"
+                           class="bf-page-tabs__tab-editor"
+                           aria-label="@Localizer["PageTabRenameLabel"].Value"
+                           @key="page.Id"
+                           @ref="_editorElement"
+                           @bind="_editingTitle"
+                           @bind:event="oninput"
+                           @onblur="() => CommitRename(page.Id)"
+                           @onkeydown="e => OnEditorKeyDown(e, page.Id)" />
+                }
+                else
+                {
+                    // Both the active and non-active button share this one branch -- rather than a
+                    // separate branch per state each carrying its own @ref -- because Blazor's diff
+                    // builder cannot swap an element that captures a reference for one that does not
+                    // under the same @key: it throws trying to remove the old ElementReferenceCapture
+                    // frame the instant the active page changes (see this class's own remarks). Every
+                    // button therefore captures into TabButtonRefs, keyed by page id, so
+                    // OnAfterRenderAsync can still find the specific one to return focus to.
+                    <button type="button" class="@TabClass(page.Id)"
+                            aria-current="@(IsActiveTab(page.Id) ? "page" : null)"
+                            title="@Localizer["PageTabRenameHint"].Value"
+                            @key="page.Id" @ref="TabButtonRefs[page.Id]"
+                            @onclick="() => SelectPage(page.Id)" @ondblclick="() => BeginRename(page.Id)" @onkeydown="e => OnTabKeyDown(e, page.Id)">
+                        @title
+                    </button>
+                }
             }
         </nav>
         <button type="button" class="bf-page-tabs__add" @onclick="AddPage">

@@ -6,6 +6,9 @@
 
 <PageTitle>Fill (MudBlazor) — BlazeForms Sample</PageTitle>
 
+<p><a href="/">Back to the sample home</a></p>
+<div class="bf-container">
+
 @if (_version is null)
 {
     <p>No published form is available yet.</p>
@@ -23,6 +26,7 @@ else
     <FormRenderer Version="_version" RespondentKey="demo-respondent-mud" FieldComponents="_mudRegistry" OnSubmitted="HandleSubmittedAsync" />
 }
 
+</div>
 @code {
     private static readonly MudFieldComponentRegistry _mudRegistry = new();
 

@@ -218,6 +218,9 @@
   <data name="AnnouncementPageAdded" xml:space="preserve">
     <value>Added page {0}.</value>
   </data>
+  <data name="AnnouncementPageRenamed" xml:space="preserve">
+    <value>Renamed page to '{0}'.</value>
+  </data>
   <data name="AnnouncementSectionAdded" xml:space="preserve">
     <value>Added a section to '{0}'.</value>
   </data>
@@ -430,6 +433,12 @@
   </data>
   <data name="AddPageButtonLabel" xml:space="preserve">
     <value>Add page</value>
+  </data>
+  <data name="PageTabRenameLabel" xml:space="preserve">
+    <value>Page title</value>
+  </data>
+  <data name="PageTabRenameHint" xml:space="preserve">
+    <value>Double-click or press F2 to rename</value>
   </data>
   <data name="AddSectionButtonLabel" xml:space="preserve">
     <value>Add blank section</value>

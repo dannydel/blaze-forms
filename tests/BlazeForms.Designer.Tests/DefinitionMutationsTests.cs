@@ -185,6 +185,45 @@ public sealed class DefinitionMutationsTests
             DefinitionMutations.AddSection(original, "no-such-page", new FormSection { Id = "section-new" }));
     }
 
+    [Fact]
+    public void RenamePageReplacesTheTitleWithoutMutatingTheOriginalDefinition()
+    {
+        var original = DesignerTestFixtures.OneFieldDefinition("form-1"); // page-1's title starts as "About you"
+
+        var updated = DefinitionMutations.RenamePage(original, "page-1", "Contact details");
+
+        Assert.Equal("About you", original.Pages[0].Title);
+        Assert.Equal("Contact details", updated.Pages[0].Title);
+    }
+
+    [Fact]
+    public void RenamePageToTheSameTitleIsANoOp()
+    {
+        var original = DesignerTestFixtures.OneFieldDefinition("form-1"); // page-1's title starts as "About you"
+
+        var updated = DefinitionMutations.RenamePage(original, "page-1", "About you");
+
+        Assert.Same(original, updated);
+    }
+
+    [Fact]
+    public void RenamePageToNullClearsTheTitle()
+    {
+        var original = DesignerTestFixtures.OneFieldDefinition("form-1"); // page-1's title starts as "About you"
+
+        var updated = DefinitionMutations.RenamePage(original, "page-1", null);
+
+        Assert.Null(updated.Pages[0].Title);
+    }
+
+    [Fact]
+    public void RenamePageThrowsWhenThePageDoesNotExist()
+    {
+        var original = DesignerTestFixtures.OneFieldDefinition("form-1");
+
+        Assert.Throws<ArgumentException>(() => DefinitionMutations.RenamePage(original, "no-such-page", "New title"));
+    }
+
     [Theory]
     [InlineData(1, 2)] // b moves later, past c -> becomes last (index 2)
     [InlineData(-1, 0)] // b moves earlier -> becomes first (index 0)

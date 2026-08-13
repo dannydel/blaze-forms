@@ -5,6 +5,9 @@
 
 <PageTitle>Fill — BlazeForms Sample</PageTitle>
 
+<p><a href="/">Back to the sample home</a></p>
+
+<div class="bf-container">
 @if (_version is null)
 {
     <p>No published form is available yet.</p>
@@ -18,6 +21,7 @@ else
     </p>
     <FormRenderer Version="_version" RespondentKey="@RespondentKey" OnSubmitted="HandleSubmittedAsync" />
 }
+</div>
 
 @code {
     private FormVersion? _version;

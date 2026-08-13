@@ -1,4 +1,5 @@
 .bf-canvas-row {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: var(--bf-space-1);
@@ -7,6 +8,20 @@
     border-radius: var(--bf-radius-sm);
     background-color: var(--bf-color-bg);
     cursor: pointer;
+}
+
+/* Drag-and-drop drop indicator (PRD §4.1): a colored line in the gap directly above this row,
+ * toggled by DesignerCanvas.razor.js while a dragged row hovers here -- the exact spot
+ * DesignerCanvas.razor.cs's DropOnRow would insert the dragged node (immediately before this
+ * row). Purely visual; the reorder itself stays in C#. */
+.bf-canvas-row--drop-before::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: calc((var(--bf-space-2) + var(--bf-drop-indicator-width)) / -2);
+    height: var(--bf-drop-indicator-width);
+    border-radius: var(--bf-radius-sm);
+    background-color: var(--bf-color-primary);
 }
 
 .bf-canvas-row[aria-selected="true"] {

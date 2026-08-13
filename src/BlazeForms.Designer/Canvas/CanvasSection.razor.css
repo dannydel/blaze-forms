@@ -32,3 +32,20 @@
     flex-direction: column;
     gap: var(--bf-space-2);
 }
+
+/* Drop indicator for the section-level append fallback (PRD §4.1): a colored line at the bottom
+ * of the rows list, toggled by DesignerCanvas.razor.js when a dragged row hovers the empty space
+ * below the last row (or an empty section) -- where DropOnSection appends it. Purely visual. */
+.bf-canvas-section__rows--drop-end {
+    position: relative;
+}
+
+.bf-canvas-section__rows--drop-end::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: calc(var(--bf-space-2) / -2);
+    height: var(--bf-drop-indicator-width);
+    border-radius: var(--bf-radius-sm);
+    background-color: var(--bf-color-primary);
+}

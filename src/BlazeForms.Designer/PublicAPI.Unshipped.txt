@@ -104,6 +104,7 @@ BlazeForms.Designer.DesignerEditContext.MoveNodeAcrossSections(string! nodeId, s
 BlazeForms.Designer.DesignerEditContext.MoveNodeToPosition(string! nodeId, string! sectionId, int position) -> void
 BlazeForms.Designer.DesignerEditContext.MoveNodeWithinSection(string! nodeId, int delta) -> void
 BlazeForms.Designer.DesignerEditContext.Redo() -> void
+BlazeForms.Designer.DesignerEditContext.RenamePage(string! pageId, string? title) -> void
 BlazeForms.Designer.DesignerEditContext.Select(BlazeForms.Designer.DesignerSelection! selection) -> void
 BlazeForms.Designer.DesignerEditContext.Selection.get -> BlazeForms.Designer.DesignerSelection!
 BlazeForms.Designer.DesignerEditContext.SetValidationRules(System.Collections.Generic.IReadOnlyList<BlazeForms.Expressions.ValidationRule!>! rules) -> void
@@ -267,6 +268,8 @@ override BlazeForms.Canvas.DesignerCanvas.OnAfterRenderAsync(bool firstRender) -
 override BlazeForms.Canvas.DesignerCanvas.OnParametersSet() -> void
 override BlazeForms.Canvas.MoveToPositionDialog.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
 override BlazeForms.Canvas.MoveToPositionDialog.OnInitialized() -> void
+override BlazeForms.Canvas.PageTabStrip.OnAfterRender(bool firstRender) -> void
+override BlazeForms.Canvas.PageTabStrip.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
 override BlazeForms.Canvas.PageTabStrip.OnParametersSet() -> void
 override BlazeForms.Delete.DeleteProtectionDialog.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
 override BlazeForms.Delete.DeleteProtectionDialog.OnInitialized() -> void

@@ -6,4 +6,10 @@
 
 <p><a href="/">Back to the sample home</a></p>
 
-<FormLibrary OnOpenInDesigner="@(formId => Navigation.NavigateTo($"/design/{formId}"))" />
+<div class="bf-container">
+    <h1>Form library</h1>
+    <p>Search, filter, and sort every form the store knows about, with an open-in-designer action on each one.</p>
+
+
+    <FormLibrary OnOpenInDesigner="@(formId => Navigation.NavigateTo($"/design/{formId}"))" />
+</div>

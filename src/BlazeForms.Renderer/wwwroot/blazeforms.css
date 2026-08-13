@@ -45,6 +45,7 @@
   --bf-radius-sm: 0.25rem;
   --bf-radius-md: 0.5rem;
   --bf-border-width: 1px;
+  --bf-drop-indicator-width: 3px;
 
   /* Focus */
   --bf-focus-ring-width: 2px;

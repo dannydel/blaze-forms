@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using BlazeForms.Definitions;
 using BlazeForms.Designer;
 using BlazeForms.Internal;
 using BlazeForms.Resources;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.Localization;
 
 namespace BlazeForms.Canvas;
@@ -49,11 +51,48 @@ namespace BlazeForms.Canvas;
 /// author nothing. The add-page button sits outside the <c>&lt;nav&gt;</c> entirely, rather than
 /// as one more of its children, so it never reads as one more page to navigate to.
 /// </para>
+/// <para>
+/// <b>Rename.</b> Double-clicking a page button, or pressing <c>F2</c> while it holds focus,
+/// swaps that one button for a text input pre-filled with the page's current title (PRD §4.1,
+/// §11). Pressing Enter, or the input losing focus, commits the edit through
+/// <see cref="DesignerEditContext.RenamePage"/> -- a real, undoable mutation, so <c>Ctrl+Z</c>
+/// restores the prior title the same as any other edit. Pressing <c>Escape</c> instead cancels,
+/// discarding the in-progress text and leaving the page's title untouched. Committing an empty
+/// or whitespace-only value clears the title back to its localized "Page N" fallback rather than
+/// storing an empty string. Either way, focus returns to the tab button of the page that was
+/// being edited once the editor closes -- not necessarily the active tab, since the button grid
+/// carries no roving tabindex and an author can Tab to a non-active button and press <c>F2</c>
+/// there -- a rename never moves focus onto the canvas.
+/// </para>
+/// <para>
+/// <b>Why every button, not just the active one, captures a reference.</b> <see cref="TabButtonRefs"/>
+/// holds one <see cref="ElementReference"/> per page, refreshed by every non-editing button's own
+/// <c>@ref</c> every render, rather than a single field only the active button's markup binds.
+/// Blazor's render-tree diff builder cannot swap an element that carries a reference capture for
+/// one that does not under the same <c>@key</c> -- it throws
+/// <see cref="NotImplementedException"/> ("Unexpected frame type during RemoveOldFrame:
+/// ElementReferenceCapture") the instant a different page becomes active, since that swap is
+/// exactly a with-capture/without-capture transition on the very element <c>@key="page.Id"</c>
+/// asks it to diff in place. Giving every button an identically-shaped capture keeps the two
+/// states' frames structurally identical, so only the <c>aria-current</c> attribute value and
+/// CSS class actually differ between them -- an ordinary attribute diff, not a frame-shape one.
+/// </para>
 /// </remarks>
 public partial class PageTabStrip : ComponentBase, IAsyncDisposable
 {
     private DesignerEditContext? _subscribedContext;
     private bool _disposed;
+    private ElementReference _editorElement;
+    private string? _editingPageId;
+    private string _editingTitle = string.Empty;
+    private bool _focusEditorOnNextRender;
+    private string? _pendingFocusTabPageId;
+
+    /// <summary>
+    /// Every page's own tab button, keyed by <see cref="FormPage.Id"/> -- see this class's own
+    /// remarks on why every button captures one rather than only the active button doing so.
+    /// </summary>
+    private Dictionary<string, ElementReference> TabButtonRefs { get; } = [];
 
     /// <summary>
     /// The mutation engine this strip adds pages and sections through.
@@ -145,4 +184,122 @@ public partial class PageTabStrip : ComponentBase, IAsyncDisposable
     }
 
     private void OnEditContextStateChanged() => InvokeAsync(StateHasChanged);
+
+    private bool IsEditing(string pageId) => string.Equals(_editingPageId, pageId, StringComparison.Ordinal);
+
+    /// <summary>
+    /// Opens the inline editor for a page's title -- the double-click and <c>F2</c> paths.
+    /// </summary>
+    private void BeginRename(string pageId)
+    {
+        var page = Pages.FirstOrDefault(p => string.Equals(p.Id, pageId, StringComparison.Ordinal));
+        if (page is null)
+        {
+            return;
+        }
+
+        _editingPageId = pageId;
+        _editingTitle = page.Title ?? string.Empty; // empty when unset, so committing empty clears back to the fallback
+        _focusEditorOnNextRender = true;
+    }
+
+    /// <summary>
+    /// Commits the in-progress edit through <see cref="DesignerEditContext.RenamePage"/> -- the
+    /// Enter and blur paths.
+    /// </summary>
+    private void CommitRename(string pageId)
+    {
+        // Guarded so the blur that fires when Enter/Escape has already torn the input down is a no-op
+        // rather than a second commit.
+        if (!IsEditing(pageId))
+        {
+            return;
+        }
+
+        _editingPageId = null;
+        _pendingFocusTabPageId = pageId;
+        EditContext.RenamePage(pageId, _editingTitle); // itself a no-op when the title is unchanged
+    }
+
+    /// <summary>
+    /// Discards the in-progress edit without touching the draft -- the <c>Escape</c> path.
+    /// </summary>
+    private void CancelRename()
+    {
+        if (_editingPageId is null)
+        {
+            return;
+        }
+
+        _pendingFocusTabPageId = _editingPageId;
+        _editingPageId = null;
+    }
+
+    private void OnEditorKeyDown(KeyboardEventArgs e, string pageId)
+    {
+        if (string.Equals(e.Key, "Enter", StringComparison.Ordinal))
+        {
+            CommitRename(pageId);
+        }
+        else if (string.Equals(e.Key, "Escape", StringComparison.Ordinal))
+        {
+            CancelRename();
+        }
+    }
+
+    // F2 is the platform-standard rename key -- the keyboard equivalent of the double-click, so the
+    // rename affordance is not mouse-only (the designer gates on axe/WCAG).
+    private void OnTabKeyDown(KeyboardEventArgs e, string pageId)
+    {
+        if (string.Equals(e.Key, "F2", StringComparison.Ordinal))
+        {
+            BeginRename(pageId);
+        }
+    }
+
+    /// <summary>
+    /// Prunes <see cref="TabButtonRefs"/> of any page id no longer present in <see cref="Pages"/>
+    /// -- page ids are immutable and never reused, so a stale entry is harmless (its
+    /// <see cref="ElementReference"/> roots no DOM once the button is gone), but nothing else ever
+    /// removes one, so this keeps the dictionary from growing forever across deletes.
+    /// </summary>
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (TabButtonRefs.Count > Pages.Count)
+        {
+            var live = Pages.Select(p => p.Id).ToHashSet(StringComparer.Ordinal);
+            foreach (var staleId in TabButtonRefs.Keys.Where(id => !live.Contains(id)).ToList())
+            {
+                TabButtonRefs.Remove(staleId);
+            }
+        }
+    }
+
+    /// <inheritdoc/>
+    [SuppressMessage(
+        "Reliability",
+        "CA2007:Consider calling ConfigureAwait on the awaited task",
+        Justification = "A Blazor lifecycle method must resume on the renderer's synchronization context, not a captured-context-free one, so it can safely schedule the next render.")]
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_focusEditorOnNextRender)
+        {
+            _focusEditorOnNextRender = false;
+            await _editorElement.FocusAsync();
+        }
+        else if (_pendingFocusTabPageId is { } focusPageId)
+        {
+            _pendingFocusTabPageId = null;
+
+            // Only when no editor is open, and only if that page still has a rendered button --
+            // guards against a rename that immediately re-opens another edit (unlikely, but not
+            // impossible if a future caller chains one) racing focus back onto a tab button whose
+            // row just became an input again, and against the edited page having been deleted out
+            // from under a still-pending focus request.
+            if (_editingPageId is null && TabButtonRefs.TryGetValue(focusPageId, out var button))
+            {
+                await button.FocusAsync();
+            }
+        }
+    }
 }

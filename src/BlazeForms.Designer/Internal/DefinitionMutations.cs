@@ -189,6 +189,37 @@ internal static class DefinitionMutations
     }
 
     /// <summary>
+    /// Renames a page -- the page tab strip's double-click/F2 inline editor's path.
+    /// </summary>
+    /// <param name="definition">
+    /// The definition to rename within.
+    /// </param>
+    /// <param name="pageId">
+    /// The page to rename.
+    /// </param>
+    /// <param name="title">
+    /// The new title, or <see langword="null"/> to clear it back to the "Page N" fallback.
+    /// </param>
+    /// <returns>
+    /// A new definition with the page's title replaced, or the exact same <paramref name="definition"/>
+    /// instance, unchanged, when <paramref name="title"/> is already the page's current title --
+    /// the same ReferenceEquals-guard contract <see cref="MoveNodeWithinSection"/> already relies
+    /// on, so a caller can skip pushing a no-op onto the undo stack.
+    /// </returns>
+    internal static FormDefinition RenamePage(FormDefinition definition, string pageId, string? title)
+    {
+        var pageIndex = RequirePage(definition, pageId);
+        var page = definition.Pages[pageIndex];
+
+        if (string.Equals(page.Title, title, StringComparison.Ordinal))
+        {
+            return definition;
+        }
+
+        return ReplacePage(definition, pageIndex, page with { Title = title });
+    }
+
+    /// <summary>
     /// Moves a node earlier or later within its own section.
     /// </summary>
     /// <param name="definition">

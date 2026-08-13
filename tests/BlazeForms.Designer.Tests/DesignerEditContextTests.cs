@@ -157,6 +157,48 @@ public sealed class DesignerEditContextTests
     }
 
     [Fact]
+    public async Task RenamePageChangesTheTitleAndCanBeUndone()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.OneFieldDefinition("form-1")); // page-1 starts as "About you"
+        DesignerAnnouncement? announcement = null;
+        context.Announced += a => announcement = a;
+
+        context.RenamePage("page-1", "Contact details");
+
+        Assert.Equal("Contact details", context.Draft.Definition.Pages[0].Title);
+        Assert.Equal("page-1", context.Selection.PageId);
+        Assert.Equal(DesignerFocusIntent.None, context.Selection.Intent);
+        Assert.Equal(Localizer["AnnouncementPageRenamed", "Contact details"].Value, announcement!.Message);
+        Assert.True(context.CanUndo);
+
+        context.Undo();
+
+        Assert.Equal("About you", context.Draft.Definition.Pages[0].Title);
+    }
+
+    [Fact]
+    public async Task RenamePageToTheSameTitleIsANoOp()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.OneFieldDefinition("form-1")); // page-1 starts as "About you"
+        var definitionBefore = context.Draft.Definition;
+
+        context.RenamePage("page-1", "About you");
+
+        Assert.Same(definitionBefore, context.Draft.Definition);
+        Assert.False(context.CanUndo);
+    }
+
+    [Fact]
+    public async Task RenamePageToBlankClearsTheTitleToTheFallback()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.OneFieldDefinition("form-1")); // page-1 starts as "About you"
+
+        context.RenamePage("page-1", "   ");
+
+        Assert.Null(context.Draft.Definition.Pages[0].Title);
+    }
+
+    [Fact]
     public async Task MoveNodeWithinSectionAnnouncesThePositionInPlainLanguage()
     {
         await using var context = CreateContext(DesignerTestFixtures.TwoSectionDefinition("form-1"));

@@ -41,6 +41,21 @@
     outline-offset: var(--bf-focus-ring-offset);
 }
 
+.bf-page-tabs__tab-editor {
+    padding-inline: var(--bf-space-3);
+    padding-block: var(--bf-space-2);
+    border: var(--bf-border-width) solid var(--bf-color-primary);
+    border-radius: var(--bf-radius-sm);
+    background: none;
+    color: var(--bf-color-text);
+    font: inherit;
+}
+
+.bf-page-tabs__tab-editor:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}
+
 .bf-page-tabs__add {
     padding-inline: var(--bf-space-3);
     padding-block: var(--bf-space-2);

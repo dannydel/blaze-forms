@@ -5,16 +5,20 @@
 
 <PageTitle>Submission — BlazeForms Sample</PageTitle>
 
-@if (_envelope is null || _version is null)
-{
-    <p>No submission was found for id "@SubmissionId".</p>
-    <p><a href="/fill">Fill the form</a> to create one.</p>
-}
-else
-{
-    <h1>Submission received</h1>
-    <FormSubmissionView Envelope="_envelope" Version="_version" LatestPublishedVersion="_latestPublishedVersion" />
-}
+<p><a href="/">Back to the sample home</a></p>
+
+<div class="bf-container">
+    @if (_envelope is null || _version is null)
+    {
+        <p>No submission was found for id "@SubmissionId".</p>
+        <p><a href="/fill">Fill the form</a> to create one.</p>
+    }
+    else
+    {
+        <h1>Submission received</h1>
+        <FormSubmissionView Envelope="_envelope" Version="_version" LatestPublishedVersion="_latestPublishedVersion" />
+    }
+</div>
 
 @code {
     /// <summary>

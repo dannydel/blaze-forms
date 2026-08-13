@@ -38,8 +38,12 @@ body {
 
 /* Centered, comfortably measured reading column for every host page. */
 .bf-page {
-    max-width: var(--bf-page-max);
     margin-inline: auto;
+    padding: clamp(1.5rem, 4vw, 3rem) var(--bf-space) 4rem;
+}
+
+.bf-container{
+    max-width: var(--bf-page-max);
     padding: clamp(1.5rem, 4vw, 3rem) var(--bf-space) 4rem;
 }
 

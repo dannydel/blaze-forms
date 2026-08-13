@@ -304,6 +304,46 @@ public sealed class DesignerEditContext : IAsyncDisposable
     }
 
     /// <summary>
+    /// Renames a page -- the page tab strip's double-click/F2 inline editor's path (PRD §4.1). A
+    /// blank or whitespace-only <paramref name="title"/> normalizes to <see langword="null"/>,
+    /// clearing the page back to its "Page N" fallback display name rather than storing an empty
+    /// string as if it were a real title. Renaming to the page's own current title is a no-op: no
+    /// history entry, no autosave, no announcement -- the same contract
+    /// <see cref="MoveNodeWithinSection"/> already has for a move that does not actually move
+    /// anything.
+    /// </summary>
+    /// <param name="pageId">
+    /// The page to rename.
+    /// </param>
+    /// <param name="title">
+    /// The new title. Blank or whitespace-only clears it to the fallback name.
+    /// </param>
+    public void RenamePage(string pageId, string? title)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(pageId);
+
+        var normalized = string.IsNullOrWhiteSpace(title) ? null : title;
+        var updated = DefinitionMutations.RenamePage(Draft.Definition, pageId, normalized);
+
+        // Unchanged (DefinitionMutations.RenamePage handed the same instance back): no history entry,
+        // no announcement -- exactly the no-op contract a same-value edit should have.
+        if (ReferenceEquals(updated, Draft.Definition))
+        {
+            return;
+        }
+
+        var pageIndex = DefinitionMutations.FindPageIndex(updated, pageId)!.Value;
+        var page = updated.Pages[pageIndex];
+
+        // A rename never moves focus onto the canvas -- the author stays on the tab strip. PageTabStrip
+        // itself returns DOM focus to the renamed tab button locally (see its own OnAfterRenderAsync).
+        var selection = DesignerSelection.ForPage(pageId, DesignerFocusIntent.None);
+        var message = Localizer["AnnouncementPageRenamed", PageTitle(page, pageIndex)].Value;
+
+        Commit(updated, selection, message);
+    }
+
+    /// <summary>
     /// Moves a node earlier or later within its own section -- the <c>Alt+↑/↓</c> keyboard path
     /// (PRD §4.1). A move that would go past either end of the section clamps there instead of
     /// wrapping, and does nothing at all (no history entry, no announcement) when the node is
