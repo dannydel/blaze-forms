@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using BlazeForms.Definitions;
 using BlazeForms.Expressions;
+using BlazeForms.Fields.Internal;
 using BlazeForms.Hosting;
 using BlazeForms.Internal;
 using BlazeForms.Resources;
@@ -209,13 +210,7 @@ public partial class FormSubmissionView : ComponentBase, IAsyncDisposable
 
         if (node.Type == NodeType.Calc)
         {
-            // No P1 evaluation engine exists yet (PRD §5) -- a calc node carries no captured
-            // answer, so its row shows the same author-authored placeholder the live renderer's
-            // CalcField shows, or the empty placeholder when the author gave it none.
-            var placeholderText = node.Placeholder ?? "";
-            return string.IsNullOrEmpty(placeholderText)
-                ? new FieldDisplay(FieldDisplayKind.Empty, "")
-                : new FieldDisplay(FieldDisplayKind.Value, placeholderText);
+            return BuildCalcDisplay(node);
         }
 
         if (!_values.TryGetValue(node.Id, out var value) || value is null)
@@ -229,6 +224,48 @@ public partial class FormSubmissionView : ComponentBase, IAsyncDisposable
             ? new FieldDisplay(FieldDisplayKind.Empty, "")
             : new FieldDisplay(FieldDisplayKind.Value, text);
     }
+
+    /// <summary>
+    /// Builds a visible <see cref="NodeType.Calc"/> node's row: the value
+    /// <see cref="FormRenderer.RecomputeCalculations"/> captured into the envelope, formatted per
+    /// <see cref="FormNode.Calculation"/>'s <see cref="CalcFormat"/> exactly as the live
+    /// <c>CalcField</c> shows it (decision log D-D), or the same author-authored placeholder
+    /// <c>CalcField</c> falls back to when nothing was captured — a pre-engine (v1) envelope, a
+    /// calc node the engine could not resolve (a reference cycle, a blank operand), or one the
+    /// author gave no calculation at all.
+    /// </summary>
+    private FieldDisplay BuildCalcDisplay(FormNode node)
+    {
+        if (_values.TryGetValue(node.Id, out var raw) && raw is not null)
+        {
+            var format = node.Calculation?.Format ?? CalcFormat.Number;
+            var formatted = CalcDisplayFormatter.Format(NormalizeCapturedCalcValue(raw, format), format);
+
+            if (formatted is not null)
+            {
+                return new FieldDisplay(FieldDisplayKind.Value, formatted);
+            }
+        }
+
+        var placeholderText = node.Placeholder ?? "";
+        return string.IsNullOrEmpty(placeholderText)
+            ? new FieldDisplay(FieldDisplayKind.Empty, "")
+            : new FieldDisplay(FieldDisplayKind.Value, placeholderText);
+    }
+
+    /// <summary>
+    /// Reverses the one lossy leg of the envelope round trip <see cref="CalcDisplayFormatter"/>
+    /// needs to know about: <see cref="Serialization.FormValues.FromJsonValues"/> hands a captured
+    /// date back as its raw ISO-8601 <see cref="string"/>, not a <see cref="DateOnly"/>, because
+    /// JSON itself has no date type. Every other captured calc value already comes back as the
+    /// <see cref="decimal"/> <see cref="CalcDisplayFormatter.Format"/> expects.
+    /// </summary>
+    private static object? NormalizeCapturedCalcValue(object raw, CalcFormat format) =>
+        raw is string isoDate && format == CalcFormat.Date
+            ? DateOnly.TryParseExact(isoDate, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)
+                ? date
+                : null
+            : raw;
 
     private static string ResolveDisplayText(FieldDisplay display) => display.Kind switch
     {

@@ -292,6 +292,44 @@ public sealed class FormSubmissionViewTests : RendererTestContext
     }
 
     [Fact]
+    public void ACapturedCalcValueRendersFormattedPerItsCalcFormatRatherThanThePlaceholder()
+    {
+        var version = FormSubmissionViewTestFixtures.ToVersion(FormSubmissionViewTestFixtures.CalcDefinition);
+        var envelope = FormSubmissionViewTestFixtures.BuildEnvelope(
+            FormSubmissionViewTestFixtures.CalcDefinition,
+            version.Version,
+            new Dictionary<string, object?>(StringComparer.Ordinal) { ["total"] = 42.5m });
+
+        var cut = Render<FormSubmissionView>(p => p
+            .Add(f => f.Envelope, envelope)
+            .Add(f => f.Version, version));
+
+        // "total" is captured as a plain number in the envelope -- the row must format it per the
+        // node's own CalcFormat (Currency here: current-culture, two decimals, no symbol), not
+        // fall back to "Not yet calculated".
+        Assert.Equal(42.5m.ToString("F2", CultureInfo.CurrentCulture), ValueFor(cut, "Total"));
+    }
+
+    [Fact]
+    public void ALegacyEnvelopeWithNoCapturedCalcValueFallsBackToThePlaceholder()
+    {
+        var version = FormSubmissionViewTestFixtures.ToVersion(FormSubmissionViewTestFixtures.CalcDefinition);
+        var envelope = FormSubmissionViewTestFixtures.BuildEnvelope(
+            FormSubmissionViewTestFixtures.CalcDefinition,
+            version.Version,
+            new Dictionary<string, object?>(StringComparer.Ordinal));
+
+        var cut = Render<FormSubmissionView>(p => p
+            .Add(f => f.Envelope, envelope)
+            .Add(f => f.Version, version));
+
+        // A submission captured before the calc engine existed (or one the engine could not
+        // resolve) carries no "total" key at all -- the row must read the author's own
+        // placeholder, exactly like the live renderer's CalcField does for the same case.
+        Assert.Equal("Not yet calculated", ValueFor(cut, "Total"));
+    }
+
+    [Fact]
     public void DateValuesFormatForDisplayUsingCurrentCultureRatherThanAlwaysUsStyle()
     {
         var definition = new FormDefinition

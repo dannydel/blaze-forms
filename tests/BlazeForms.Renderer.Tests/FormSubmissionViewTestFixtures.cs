@@ -198,6 +198,50 @@ internal static class FormSubmissionViewTestFixtures
     };
 
     /// <summary>
+    /// One page, one section, a single <see cref="NodeType.Calc"/> node (<c>total</c>) with a
+    /// real <see cref="FormNode.Calculation"/> — for proving <see cref="FormSubmissionView"/>
+    /// formats a captured calc value per its <see cref="CalcFormat"/> rather than always showing
+    /// the author-authored placeholder.
+    /// </summary>
+    internal static FormDefinition CalcDefinition { get; } = new()
+    {
+        Id = "form-submission-calc",
+        Name = "Submission calc",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Title = "Page one",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Title = "Section one",
+                        Nodes =
+                        [
+                            new FormNode
+                            {
+                                Id = "total",
+                                Type = NodeType.Calc,
+                                Label = "Total",
+                                Placeholder = "Not yet calculated",
+                                Calculation = new CalcExpression
+                                {
+                                    Operation = CalcOperation.Sum,
+                                    Operands = [new CalcOperand { Number = 1m }],
+                                    Format = CalcFormat.Currency,
+                                },
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    };
+
+    /// <summary>
     /// One section whose nodes interleave two captured headings among the input nodes they
     /// introduce, for the "no <c>div</c> inside a <c>dl</c>" regression test: a headingless run
     /// ("before" the first heading), then two heading-led runs, the second of which introduces no

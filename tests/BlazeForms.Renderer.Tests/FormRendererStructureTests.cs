@@ -144,18 +144,23 @@ public sealed class FormRendererStructureTests : RendererTestContext
     }
 
     [Fact]
-    public void CalcNodeRendersButIsNeverWiredToAValueOrValueChanged()
+    public void CalcNodeReceivesItsComputedValueButNeverValueChangedOnBlurOrError()
     {
+        // Intentional P2 behavior change (calc-engine-plan.md "Resolved decisions" #5): the P1
+        // pin here used to be "calc never receives a Value" -- now that FormRenderer actually
+        // evaluates a calculation and formats it for display, CalcField *does* receive a Value
+        // (its formatted display text), while ValueChanged/OnBlur/Error stay unwired exactly as
+        // before, since a calculated field is never an editable, validated answer.
         var version = FormRendererTestFixtures.ToPublishedVersion(FormRendererTestFixtures.CalcDefinition);
 
         var cut = Render<FormRenderer>(p => p.Add(f => f.Version, version));
 
         Assert.NotNull(cut.Find("[id$='-estimate']"));
 
-        // The renderer never seeds a payload key for a calc node (PRD §5): the direct proof, at
-        // the component-wiring level, is that CalcField never receives a Value parameter in the
-        // first place, so there is nothing for it to have echoed back through ValueChanged.
         var calcField = cut.FindComponent<CalcField>();
-        Assert.Null(calcField.Instance.Value);
+        Assert.Equal("42", calcField.Instance.Value);
+        Assert.False(calcField.Instance.ValueChanged.HasDelegate);
+        Assert.False(calcField.Instance.OnBlur.HasDelegate);
+        Assert.Null(calcField.Instance.Error);
     }
 }

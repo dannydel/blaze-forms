@@ -80,6 +80,17 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     private IFormDraftStore? _draftStore;
 
     /// <summary>
+    /// The clock <see cref="RecomputeCalculations"/> reads <see cref="CalcFunction.Today"/> from,
+    /// resolved once in <see cref="OnInitialized"/> from <see cref="ServiceProvider"/> the same
+    /// optional-service way as <see cref="_sink"/> and <see cref="_draftStore"/>, falling back to
+    /// <see cref="TimeProvider.System"/> when a host registers none. Unlike those two, this is
+    /// never gated on <see cref="Ephemeral"/> — a design-time preview still wants
+    /// <c>today()</c>-only calculations to show a real date, and reading a clock has no host side
+    /// effect for <see cref="Ephemeral"/> to guard against.
+    /// </summary>
+    private TimeProvider _timeProvider = TimeProvider.System;
+
+    /// <summary>
     /// The published version to fill. The renderer holds this for the whole fill and never
     /// swaps the definition mid-fill (PRD D13) — a newer version publishing while a respondent
     /// is partway through never changes what they see or how it validates.
@@ -251,6 +262,12 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
             _sink = ServiceProvider.GetService(typeof(IFormSubmissionSink)) as IFormSubmissionSink;
             _draftStore = ServiceProvider.GetService(typeof(IFormDraftStore)) as IFormDraftStore;
         }
+
+        _timeProvider = ServiceProvider.GetService(typeof(TimeProvider)) as TimeProvider ?? TimeProvider.System;
+
+        // So a calc node whose expression depends on nothing but today() already shows a value
+        // on the very first render, before the respondent has touched anything.
+        RecomputeCalculations();
     }
 
     /// <inheritdoc />
@@ -646,6 +663,11 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
         // the fill, not when they resumed it.
         _startedAt = draft.StartedAt;
 
+        // The resumed answers may feed a calc node the respondent never has to touch again --
+        // recompute before the first post-resume render rather than waiting for a SetValue that
+        // may never come.
+        RecomputeCalculations();
+
         StateHasChanged();
     }
 
@@ -739,9 +761,16 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     /// Builds the parameter set a <c>DynamicComponent</c> hands to the field or static-content
     /// component resolved for <paramref name="node"/>. <see cref="FormFieldBase.Value"/>,
     /// <see cref="FormFieldBase.ValueChanged"/>, <see cref="FormFieldBase.OnBlur"/>, and
-    /// <see cref="FormFieldBase.Error"/> are wired only for node types that actually capture an
-    /// answer — static content and <see cref="NodeType.Calc"/> (which renders but never writes a
-    /// value, PRD §5) never seed a payload key in <see cref="_values"/> and are never validated.
+    /// <see cref="FormFieldBase.Error"/> are wired only for node types that actually capture a
+    /// respondent-typed answer — static content and <see cref="NodeType.Calc"/> never seed a
+    /// payload key in <see cref="_values"/> through the field component and are never validated.
+    /// A <see cref="NodeType.Calc"/> node is its own case: it still gets a
+    /// <see cref="FormFieldBase.Value"/> — its own formatted display text, computed by
+    /// <see cref="RecomputeCalculations"/> and formatted by
+    /// <see cref="Fields.Internal.CalcDisplayFormatter"/> — but never
+    /// <see cref="FormFieldBase.ValueChanged"/>, <see cref="FormFieldBase.OnBlur"/>, or
+    /// <see cref="FormFieldBase.Error"/>, since nothing the respondent does to a read-only
+    /// calculated field is ever an answer to validate (PRD §5, decision log D-E, #5).
     /// </summary>
     private Dictionary<string, object> BuildFieldParameters(FormNode node)
     {
@@ -758,6 +787,12 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
             parameters[nameof(FormFieldBase.ValueChanged)] = GetValueChangedCallback(node.Id);
             parameters[nameof(FormFieldBase.OnBlur)] = GetOnBlurCallback(node.Id);
             parameters[nameof(FormFieldBase.Error)] = GetFieldError(node.Id)!;
+        }
+        else if (node.Type == NodeType.Calc)
+        {
+            _values.TryGetValue(node.Id, out var computed);
+            var formatted = node.Calculation is null ? null : CalcDisplayFormatter.Format(computed, node.Calculation.Format);
+            parameters[nameof(FormFieldBase.Value)] = formatted!;
         }
 
         return parameters;
@@ -806,7 +841,34 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
         return callback;
     }
 
-    private void SetValue(string nodeId, object? value) => _values[nodeId] = value;
+    private void SetValue(string nodeId, object? value)
+    {
+        _values[nodeId] = value;
+        RecomputeCalculations();
+    }
+
+    /// <summary>
+    /// Recomputes every <see cref="NodeType.Calc"/> node's value via
+    /// <see cref="CalcEvaluator.EvaluateAll"/> and writes each result straight back into
+    /// <see cref="_values"/>, keyed by the calc node's own ID (PRD §5, decision log D-D). This is
+    /// capture-at-submit, not recompute-at-view: a computed value lands in exactly the same
+    /// dictionary a typed answer would, so it flows through <see cref="VisibilityEvaluator"/> and
+    /// into <see cref="BuildSubmissionEnvelope"/> like any other answer — a visible calc node's
+    /// value is captured into the envelope, a hidden one is filtered out, and a calc value is
+    /// available to a <see cref="FormNode.VisibleWhen"/> or cross-field rule with no extra wiring
+    /// here at all. Called after every answer change (<see cref="SetValue"/>), after a draft
+    /// resumes (<see cref="LoadDraftAsync"/>), and once in <see cref="OnInitialized"/> so a
+    /// <c>today()</c>-only calculation already has a value before the respondent types anything.
+    /// </summary>
+    private void RecomputeCalculations()
+    {
+        var today = DateOnly.FromDateTime(_timeProvider.GetLocalNow().DateTime);
+
+        foreach (var (nodeId, value) in CalcEvaluator.EvaluateAll(Definition, _values, today))
+        {
+            _values[nodeId] = value;
+        }
+    }
 
     /// <summary>
     /// Cancels any in-flight draft load/save/delete via <see cref="_disposalCts"/> and disposes

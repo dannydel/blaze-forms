@@ -5,23 +5,41 @@ using Bunit;
 namespace BlazeForms.Renderer.Tests;
 
 /// <summary>
-/// Covers <see cref="CalcField"/>: the P1 read-only placeholder for the P2 calc evaluation
-/// engine (PRD §5). It must never behave like an editable answer.
+/// Covers <see cref="CalcField"/>: a read-only, live-region <c>&lt;output&gt;</c> that shows
+/// either the display text the renderer's calc evaluation engine formatted, or the node's own
+/// placeholder when nothing has been computed (PRD §5, decision log D-E #4). It must never
+/// behave like an editable answer.
 /// </summary>
 public sealed class CalcFieldTests : BunitContext
 {
     [Fact]
-    public void RendersAReadOnlyDisabledInputLabelledByFieldId()
+    public void FallsBackToThePlaceholderWhenNoValueIsGiven()
     {
         var node = TestNodes.Create(NodeType.Calc, label: "Total", placeholder: "Calculated automatically");
         var cut = Render<CalcField>(p => p
             .Add(f => f.Node, node)
             .Add(f => f.FieldId, "f1"));
 
-        var input = cut.Find("input");
-        Assert.NotNull(input.GetAttribute("readonly"));
-        Assert.NotNull(input.GetAttribute("disabled"));
-        Assert.Equal("Calculated automatically", input.GetAttribute("value"));
+        var output = cut.Find("output");
+        Assert.Equal("Calculated automatically", output.TextContent);
+        Assert.Equal("f1", output.GetAttribute("id"));
+        Assert.Equal("f1", cut.Find("label").GetAttribute("for"));
+    }
+
+    [Fact]
+    public void RendersAComputedValueInAnOutputElementLabelledByFieldId()
+    {
+        var node = TestNodes.Create(NodeType.Calc, label: "Total", placeholder: "Calculated automatically");
+        var cut = Render<CalcField>(p => p
+            .Add(f => f.Node, node)
+            .Add(f => f.FieldId, "f1")
+            .Add(f => f.Value, "42"));
+
+        // The renderer's own formatted display text wins over the placeholder once one exists --
+        // the placeholder is only ever a fallback for "nothing has been computed yet".
+        var output = cut.Find("output");
+        Assert.Equal("42", output.TextContent);
+        Assert.Equal("f1", output.GetAttribute("id"));
         Assert.Equal("f1", cut.Find("label").GetAttribute("for"));
     }
 
@@ -36,9 +54,10 @@ public sealed class CalcFieldTests : BunitContext
             .Add(f => f.Value, "42")
             .Add(f => f.ValueChanged, _ => raised = true));
 
-        // There is no editable control to raise a change from -- assert the negative directly
-        // against the rendered markup rather than attempting (and failing) to interact with one.
-        Assert.Empty(cut.FindAll("input:not([readonly])"));
+        // There is no editable control to raise a change from -- an <output> carries no editable
+        // form-control semantics at all, so asserting the negative against the rendered markup is
+        // the only thing to prove here.
+        Assert.Empty(cut.FindAll("input"));
         Assert.False(raised);
     }
 
@@ -50,6 +69,8 @@ public sealed class CalcFieldTests : BunitContext
             .Add(f => f.Node, node)
             .Add(f => f.FieldId, "f1"));
 
-        Assert.Null(cut.Find("input").GetAttribute("aria-required"));
+        // <output> has no notion of aria-required to begin with -- this pins that CalcField never
+        // adds one itself, the same guarantee the old <input>-based markup gave.
+        Assert.Null(cut.Find("output").GetAttribute("aria-required"));
     }
 }

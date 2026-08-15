@@ -195,7 +195,10 @@ internal static class FormRendererTestFixtures
     };
 
     /// <summary>
-    /// One page, one section, a single <see cref="NodeType.Calc"/> node.
+    /// One page, one section, a single <see cref="NodeType.Calc"/> node whose expression is a
+    /// fixed numeric literal (no field dependency) — enough for a component-wiring test to prove
+    /// the field actually receives a formatted <see cref="Fields.FormFieldBase.Value"/>, with
+    /// nothing else in the fixture able to change it.
     /// </summary>
     internal static FormDefinition CalcDefinition { get; } = new()
     {
@@ -213,7 +216,210 @@ internal static class FormRendererTestFixtures
                     {
                         Id = "section-1",
                         Title = "Section one",
-                        Nodes = [new FormNode { Id = "estimate", Type = NodeType.Calc, Label = "Estimate" }],
+                        Nodes =
+                        [
+                            new FormNode
+                            {
+                                Id = "estimate",
+                                Type = NodeType.Calc,
+                                Label = "Estimate",
+                                Calculation = new CalcExpression
+                                {
+                                    Operation = CalcOperation.Sum,
+                                    Operands = [new CalcOperand { Number = 42m }],
+                                    Format = CalcFormat.Number,
+                                },
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    };
+
+    /// <summary>
+    /// One page, one section: two independent number fields (<c>a</c>, <c>b</c>) and a calc
+    /// (<c>total</c>) whose expression reads only <c>a</c> — <c>b</c> is a red herring, present
+    /// solely so a test can prove typing into it never recomputes or re-renders <c>total</c>.
+    /// </summary>
+    internal static FormDefinition CalcDependsOnOneOfTwoFieldsDefinition { get; } = new()
+    {
+        Id = "form-calc-dependency",
+        Name = "Calc dependency",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Title = "Page one",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Title = "Section one",
+                        Nodes =
+                        [
+                            new FormNode { Id = "a", Type = NodeType.Number, Label = "A" },
+                            new FormNode { Id = "b", Type = NodeType.Number, Label = "B" },
+                            new FormNode
+                            {
+                                Id = "total",
+                                Type = NodeType.Calc,
+                                Label = "Total",
+                                Calculation = new CalcExpression
+                                {
+                                    Operation = CalcOperation.Sum,
+                                    Operands = [new CalcOperand { Field = "a" }],
+                                    Format = CalcFormat.Number,
+                                },
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    };
+
+    /// <summary>
+    /// One page, one section: a boolean (<c>trigger</c>) controls the visibility of a calc
+    /// (<c>hidden-total</c>, a fixed numeric literal so it always has a value once computed) —
+    /// for proving a hidden calc's captured value is filtered out of the envelope exactly like
+    /// any other hidden input node.
+    /// </summary>
+    internal static FormDefinition CalcHiddenByVisibilityDefinition { get; } = new()
+    {
+        Id = "form-calc-hidden",
+        Name = "Calc hidden",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Title = "Page one",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Title = "Section one",
+                        Nodes =
+                        [
+                            new FormNode { Id = "trigger", Type = NodeType.Boolean, Label = "Show total?" },
+                            new FormNode
+                            {
+                                Id = "hidden-total",
+                                Type = NodeType.Calc,
+                                Label = "Total",
+                                VisibleWhen = new ConditionGroup
+                                {
+                                    Conditions = [new Condition { Field = "trigger", Operator = ConditionOperator.IsTrue }],
+                                },
+                                Calculation = new CalcExpression
+                                {
+                                    Operation = CalcOperation.Sum,
+                                    Operands = [new CalcOperand { Number = 10m }],
+                                    Format = CalcFormat.Number,
+                                },
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    };
+
+    /// <summary>
+    /// One page, one section: a number field (<c>amount</c>) feeds a calc (<c>total</c>), and a
+    /// text field (<c>bonus-notice</c>) is visible only once <c>total</c> exceeds 100 — proving a
+    /// visibility rule can target a calc node's computed value, not just a respondent-typed one.
+    /// </summary>
+    internal static FormDefinition CalcFeedsVisibilityDefinition { get; } = new()
+    {
+        Id = "form-calc-feeds-visibility",
+        Name = "Calc feeds visibility",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Title = "Page one",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Title = "Section one",
+                        Nodes =
+                        [
+                            new FormNode { Id = "amount", Type = NodeType.Number, Label = "Amount" },
+                            new FormNode
+                            {
+                                Id = "total",
+                                Type = NodeType.Calc,
+                                Label = "Total",
+                                Calculation = new CalcExpression
+                                {
+                                    Operation = CalcOperation.Sum,
+                                    Operands = [new CalcOperand { Field = "amount" }],
+                                    Format = CalcFormat.Number,
+                                },
+                            },
+                            new FormNode
+                            {
+                                Id = "bonus-notice",
+                                Type = NodeType.Text,
+                                Label = "Bonus notice",
+                                VisibleWhen = new ConditionGroup
+                                {
+                                    Conditions = [new Condition { Field = "total", Operator = ConditionOperator.GreaterThan, Value = "100" }],
+                                },
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    };
+
+    /// <summary>
+    /// One page, one section, a single <c>today()</c>-only calc (<c>today-date</c>): its
+    /// expression reads no field at all, only <see cref="CalcFunction.Today"/>, via a
+    /// zero-day <see cref="CalcOperation.DateAddDays"/> that hands the date straight back
+    /// unchanged — for proving the renderer's injected <see cref="TimeProvider"/> resolves
+    /// deterministically rather than reading the real clock.
+    /// </summary>
+    internal static FormDefinition CalcTodayOnlyDefinition { get; } = new()
+    {
+        Id = "form-calc-today",
+        Name = "Calc today",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Title = "Page one",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Title = "Section one",
+                        Nodes =
+                        [
+                            new FormNode
+                            {
+                                Id = "today-date",
+                                Type = NodeType.Calc,
+                                Label = "Today",
+                                Calculation = new CalcExpression
+                                {
+                                    Operation = CalcOperation.DateAddDays,
+                                    Operands = [new CalcOperand { Function = CalcFunction.Today }, new CalcOperand { Number = 0m }],
+                                    Format = CalcFormat.Date,
+                                },
+                            },
+                        ],
                     },
                 ],
             },

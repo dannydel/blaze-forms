@@ -5,6 +5,23 @@
     margin-block-end: var(--bf-space-4);
 }
 
+/* <output> carries none of the native <input> styling blazeforms.css's disabled-input rules
+ * target, so the token-styled read-only look -- the same background/border/padding a disabled
+ * text input renders with -- is reproduced here directly rather than by selector reuse. */
+.bf-field__output {
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: var(--bf-touch-target);
+    padding: var(--bf-space-2) var(--bf-space-3);
+    background-color: var(--bf-color-surface);
+    color: var(--bf-color-muted);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+    font: inherit;
+}
+
 .bf-field__help {
     font-size: var(--bf-font-size-sm);
     color: var(--bf-color-muted);
