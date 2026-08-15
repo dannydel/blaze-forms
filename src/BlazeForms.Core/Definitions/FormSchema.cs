@@ -8,9 +8,11 @@ public static class FormSchema
 {
     /// <summary>
     /// The schema version this build reads and writes. Bumped by any change to the serialized
-    /// shape of a definition (AGENTS.md invariant #2).
+    /// shape of a definition (AGENTS.md invariant #2). Version 2 added the optional
+    /// <see cref="FormNode.Calculation"/> property; a version-1 document omits it and still reads,
+    /// so no migration is needed.
     /// </summary>
-    public const int CurrentVersion = 1;
+    public const int CurrentVersion = 2;
 
     private static readonly NodeType[] StaticNodeTypesBacking =
     [

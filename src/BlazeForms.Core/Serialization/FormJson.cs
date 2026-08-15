@@ -183,4 +183,40 @@ public static class FormJson
         return JsonSerializer.Deserialize(json, FormJsonContext.Default.ConditionGroup)
             ?? throw new JsonException("The JSON did not contain an expression.");
     }
+
+    /// <summary>
+    /// Serializes a calculation expression on its own, for logic summaries and diagnostics.
+    /// </summary>
+    /// <param name="expression">
+    /// The expression to write.
+    /// </param>
+    /// <returns>
+    /// The expression as JSON.
+    /// </returns>
+    public static string SerializeCalcExpression(CalcExpression expression)
+    {
+        ArgumentNullException.ThrowIfNull(expression);
+
+        return JsonSerializer.Serialize(expression, FormJsonContext.Default.CalcExpression);
+    }
+
+    /// <summary>
+    /// Deserializes a calculation expression on its own.
+    /// </summary>
+    /// <param name="json">
+    /// The JSON to read.
+    /// </param>
+    /// <returns>
+    /// The expression.
+    /// </returns>
+    /// <exception cref="JsonException">
+    /// The JSON is malformed, is the literal <c>null</c>, or omits the required operation.
+    /// </exception>
+    public static CalcExpression DeserializeCalcExpression(string json)
+    {
+        ArgumentNullException.ThrowIfNull(json);
+
+        return JsonSerializer.Deserialize(json, FormJsonContext.Default.CalcExpression)
+            ?? throw new JsonException("The JSON did not contain a calculation expression.");
+    }
 }

@@ -61,6 +61,33 @@ public sealed class DanglingReferenceRuleTests
     }
 
     [Fact]
+    public void ACalculationReferencingAMissingFieldIsFlaggedAndAnchoredToItsOwner()
+    {
+        var definition = RuleTestHelpers.Definition(
+        [
+            new FormNode { Id = "node-fee", Type = NodeType.Currency, Label = "Fee" },
+            new FormNode
+            {
+                Id = "node-total",
+                Type = NodeType.Calc,
+                Label = "Total",
+                Calculation = new CalcExpression
+                {
+                    Operation = CalcOperation.Sum,
+                    Operands = [new CalcOperand { Field = "node-fee" }, new CalcOperand { Field = "node-ghost" }],
+                },
+            },
+        ]);
+
+        var result = Assert.Single(RuleTestHelpers.Analyze(Rule, definition));
+
+        Assert.Equal(LintRuleIds.Fr03, result.RuleId);
+        Assert.Equal(LintSeverity.Blocking, result.Severity);
+        Assert.Equal("node-total", result.NodeId);
+        Assert.Contains("node-ghost", result.Detail, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void LiveReferencesAreClean()
     {
         var definition = RuleTestHelpers.Definition(
@@ -72,6 +99,18 @@ public sealed class DanglingReferenceRuleTests
                     Type = NodeType.Text,
                     Label = "Detail",
                     VisibleWhen = Refers("node-trigger"),
+                },
+                new FormNode { Id = "node-fee", Type = NodeType.Currency, Label = "Fee" },
+                new FormNode
+                {
+                    Id = "node-total",
+                    Type = NodeType.Calc,
+                    Label = "Total",
+                    Calculation = new CalcExpression
+                    {
+                        Operation = CalcOperation.Sum,
+                        Operands = [new CalcOperand { Field = "node-fee" }, new CalcOperand { Number = 50m }],
+                    },
                 },
             ],
             [

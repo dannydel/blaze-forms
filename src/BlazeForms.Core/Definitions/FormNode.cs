@@ -107,4 +107,12 @@ public sealed record FormNode
     /// from the accessibility tree (PRD §6).
     /// </summary>
     public ConditionGroup? VisibleWhen { get; init; }
+
+    /// <summary>
+    /// The expression a <see cref="NodeType.Calc"/> node computes its read-only value from
+    /// (PRD §5, §13). <see langword="null"/> for every other node type, and for a calc node whose
+    /// author has not written a calculation yet — which renders as an empty read-only field and is
+    /// an advisory lint (CALC-01), not an error.
+    /// </summary>
+    public CalcExpression? Calculation { get; init; }
 }

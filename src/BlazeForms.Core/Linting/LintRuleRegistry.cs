@@ -16,10 +16,11 @@ public static class LintRuleRegistry
         new RemedyMessageRule(),
         new HeadingLevelRule(),
         new LinkTextRule(),
+        new CalcMissingExpressionRule(),
     ];
 
     /// <summary>
-    /// The five built-in rules — A11Y-01, FR-03, A11Y-06, A11Y-08, A11Y-09 — in that order.
+    /// The six built-in rules — A11Y-01, FR-03, A11Y-06, A11Y-08, A11Y-09, CALC-01 — in that order.
     /// </summary>
     public static IReadOnlyList<ILintRule> Default => DefaultBacking;
 }

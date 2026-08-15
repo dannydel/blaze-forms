@@ -31,4 +31,9 @@ public static class LintRuleIds
     /// A Markdown link's text does not describe its destination (Advisory).
     /// </summary>
     public const string A11y09 = "A11Y-09";
+
+    /// <summary>
+    /// A calc node carries no calculation, so it renders as an empty read-only field (Advisory).
+    /// </summary>
+    public const string Calc01 = "CALC-01";
 }

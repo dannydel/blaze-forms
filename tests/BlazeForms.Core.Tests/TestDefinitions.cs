@@ -244,7 +244,17 @@ internal static class TestDefinitions
                                 Id = "node-estimated-cost",
                                 Type = NodeType.Calc,
                                 Label = "Estimated annual cost",
-                                Help = "Calculated once the calc engine ships.",
+                                Help = "The annual fee plus a fixed processing charge.",
+                                Calculation = new CalcExpression
+                                {
+                                    Operation = CalcOperation.Sum,
+                                    Format = CalcFormat.Currency,
+                                    Operands =
+                                    [
+                                        new CalcOperand { Field = "node-annual-fee" },
+                                        new CalcOperand { Number = 50m },
+                                    ],
+                                },
                             },
                             new FormNode
                             {

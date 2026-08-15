@@ -24,6 +24,12 @@ public enum ReferenceKind
     /// A <see cref="ValidationRule.Expression"/> names the field via <see cref="Condition.Field"/>.
     /// </summary>
     ValidationExpression,
+
+    /// <summary>
+    /// A node's own <see cref="FormNode.Calculation"/> names the field via
+    /// <see cref="CalcOperand.Field"/>.
+    /// </summary>
+    Calculation,
 }
 
 /// <summary>
@@ -40,8 +46,9 @@ public sealed record ReferenceSite
     public required ReferenceKind Kind { get; init; }
 
     /// <summary>
-    /// The identifier of the node whose own <see cref="FormNode.VisibleWhen"/> carries the
-    /// reference. Set only when <see cref="Kind"/> is <see cref="ReferenceKind.Visibility"/>;
+    /// The identifier of the node whose own <see cref="FormNode.VisibleWhen"/> or
+    /// <see cref="FormNode.Calculation"/> carries the reference. Set when <see cref="Kind"/> is
+    /// <see cref="ReferenceKind.Visibility"/> or <see cref="ReferenceKind.Calculation"/>;
     /// <see langword="null"/> for a validation-rule reference.
     /// </summary>
     public string? ReferencingNodeId { get; init; }
@@ -101,6 +108,11 @@ public static class ExpressionDependencyAnalysis
             if (node.VisibleWhen is not null && ReferencesField(node.VisibleWhen, nodeId))
             {
                 sites.Add(new ReferenceSite { Kind = ReferenceKind.Visibility, ReferencingNodeId = node.Id });
+            }
+
+            if (node.Calculation is not null && ReferencesField(node.Calculation, nodeId))
+            {
+                sites.Add(new ReferenceSite { Kind = ReferenceKind.Calculation, ReferencingNodeId = node.Id });
             }
         }
 
@@ -172,8 +184,64 @@ public static class ExpressionDependencyAnalysis
         return false;
     }
 
+    /// <summary>
+    /// Decides whether replacing <paramref name="nodeId"/>'s own <see cref="FormNode.Calculation"/>
+    /// with <paramref name="candidateCalculation"/> would introduce a cycle in the calculation
+    /// graph — the directed graph with one edge <c>nodeId → field</c> for every field a node's own
+    /// <see cref="FormNode.Calculation"/> references. Independent of the visibility graph: a
+    /// visibility rule that reads a calc field, or a calculation that reads a field a visibility
+    /// rule governs, never closes a cycle here.
+    /// </summary>
+    /// <param name="definition">
+    /// The definition <paramref name="nodeId"/> belongs to. Every node's <em>current</em>
+    /// <see cref="FormNode.Calculation"/> contributes its own edges except
+    /// <paramref name="nodeId"/>'s own, which this call replaces with
+    /// <paramref name="candidateCalculation"/> for the purpose of this check only —
+    /// <paramref name="definition"/> itself is never mutated.
+    /// </param>
+    /// <param name="nodeId">
+    /// The field whose calculation is being edited.
+    /// </param>
+    /// <param name="candidateCalculation">
+    /// The calculation the editor is about to apply, had this check not run.
+    /// </param>
+    /// <param name="cyclePath">
+    /// When this method returns <see langword="true"/>, the cycle as an ordered list of node
+    /// identifiers starting and ending at <paramref name="nodeId"/>. Empty when this method returns
+    /// <see langword="false"/>.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> when the replacement would close a cycle.
+    /// </returns>
+    public static bool WouldCreateCalculationCycle(
+        FormDefinition definition,
+        string nodeId,
+        CalcExpression candidateCalculation,
+        out IReadOnlyList<string> cyclePath)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+        ArgumentException.ThrowIfNullOrWhiteSpace(nodeId);
+        ArgumentNullException.ThrowIfNull(candidateCalculation);
+
+        var edges = BuildCalculationGraph(definition, nodeId, candidateCalculation);
+        var path = new List<string> { nodeId };
+        var onPath = new HashSet<string>(StringComparer.Ordinal) { nodeId };
+
+        if (TryFindCycle(nodeId, edges, path, onPath))
+        {
+            cyclePath = path;
+            return true;
+        }
+
+        cyclePath = [];
+        return false;
+    }
+
     private static bool ReferencesField(ConditionGroup group, string nodeId) =>
         group.Conditions.Any(condition => string.Equals(condition.Field, nodeId, StringComparison.Ordinal));
+
+    private static bool ReferencesField(CalcExpression expression, string nodeId) =>
+        expression.Operands.Any(operand => string.Equals(operand.Field, nodeId, StringComparison.Ordinal));
 
     /// <summary>
     /// Builds the visibility graph's adjacency list, one entry per node in
@@ -215,6 +283,48 @@ public static class ExpressionDependencyAnalysis
             if (seen.Add(condition.Field))
             {
                 fields.Add(condition.Field);
+            }
+        }
+
+        return fields;
+    }
+
+    /// <summary>
+    /// The calculation-graph counterpart of <see cref="BuildVisibilityGraph"/>: one entry per node,
+    /// each mapping to the distinct fields its own <see cref="FormNode.Calculation"/> references,
+    /// with <paramref name="overriddenNodeId"/>'s edges taken from <paramref name="overrideCalculation"/>.
+    /// </summary>
+    private static Dictionary<string, IReadOnlyList<string>> BuildCalculationGraph(
+        FormDefinition definition,
+        string overriddenNodeId,
+        CalcExpression overrideCalculation)
+    {
+        var graph = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
+
+        foreach (var node in definition.EnumerateNodes())
+        {
+            var expression = string.Equals(node.Id, overriddenNodeId, StringComparison.Ordinal) ? overrideCalculation : node.Calculation;
+            graph[node.Id] = expression is null ? [] : DistinctFields(expression);
+        }
+
+        if (!graph.ContainsKey(overriddenNodeId))
+        {
+            graph[overriddenNodeId] = DistinctFields(overrideCalculation);
+        }
+
+        return graph;
+    }
+
+    private static List<string> DistinctFields(CalcExpression expression)
+    {
+        var fields = new List<string>();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var operand in expression.Operands)
+        {
+            if (operand.Field is not null && seen.Add(operand.Field))
+            {
+                fields.Add(operand.Field);
             }
         }
 

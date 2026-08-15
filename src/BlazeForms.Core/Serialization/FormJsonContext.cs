@@ -31,6 +31,7 @@ namespace BlazeForms.Serialization;
 [JsonSerializable(typeof(FormVersion))]
 [JsonSerializable(typeof(FormVersionSummary))]
 [JsonSerializable(typeof(ConditionGroup))]
+[JsonSerializable(typeof(CalcExpression))]
 internal sealed partial class FormJsonContext : JsonSerializerContext;
 
 /// <summary>

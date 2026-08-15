@@ -20,6 +20,15 @@ public sealed class ExpressionDependencyAnalysisTests
         Conditions = [.. fields.Select(field => new Condition { Field = field, Operator = ConditionOperator.IsBlank })],
     };
 
+    private static FormNode CalcNode(string id, CalcExpression? calculation = null) =>
+        new() { Id = id, Type = NodeType.Calc, Label = id, Calculation = calculation };
+
+    private static CalcExpression Calculates(params string[] fields) => new()
+    {
+        Operation = CalcOperation.Sum,
+        Operands = [.. fields.Select(field => new CalcOperand { Field = field })],
+    };
+
     private static FormDefinition Definition(params FormNode[] nodes) => new()
     {
         Id = "form-under-test",
@@ -167,5 +176,80 @@ public sealed class ExpressionDependencyAnalysisTests
         var sites = ExpressionDependencyAnalysis.ReferencesTo(definition, "a");
 
         Assert.Empty(sites);
+    }
+
+    [Fact]
+    public void ReferencesToFindsACalculationReference()
+    {
+        var definition = Definition(Node("fee"), CalcNode("total", Calculates("fee")));
+
+        var sites = ExpressionDependencyAnalysis.ReferencesTo(definition, "fee");
+
+        var site = Assert.Single(sites);
+        Assert.Equal(ReferenceKind.Calculation, site.Kind);
+        Assert.Equal("total", site.ReferencingNodeId);
+        Assert.Null(site.ReferencingRule);
+    }
+
+    // -- WouldCreateCalculationCycle --------------------------------------------------------
+
+    [Fact]
+    public void ACalculationSelfReferenceIsACycle()
+    {
+        var definition = Definition(CalcNode("a"));
+        var candidate = Calculates("a");
+
+        var isCycle = ExpressionDependencyAnalysis.WouldCreateCalculationCycle(definition, "a", candidate, out var path);
+
+        Assert.True(isCycle);
+        Assert.Equal(["a", "a"], path);
+    }
+
+    [Fact]
+    public void ATransitiveThreeNodeCalculationCycleIsRejectedWithTheFullPath()
+    {
+        // b already calculates from c, c already calculates from a; giving a a candidate that
+        // calculates from b closes a → b → c → a.
+        var definition = Definition(
+            CalcNode("a"),
+            CalcNode("b", Calculates("c")),
+            CalcNode("c", Calculates("a")));
+        var candidate = Calculates("b");
+
+        var isCycle = ExpressionDependencyAnalysis.WouldCreateCalculationCycle(definition, "a", candidate, out var path);
+
+        Assert.True(isCycle);
+        Assert.Equal(["a", "b", "c", "a"], path);
+    }
+
+    [Fact]
+    public void ACalculationCandidateThatDependsOnNothingNewIsNotACycle()
+    {
+        var definition = Definition(CalcNode("a"), Node("b"));
+        var candidate = Calculates("b");
+
+        var isCycle = ExpressionDependencyAnalysis.WouldCreateCalculationCycle(definition, "a", candidate, out var path);
+
+        Assert.False(isCycle);
+        Assert.Empty(path);
+    }
+
+    [Fact]
+    public void TheVisibilityAndCalculationGraphsAreIndependent()
+    {
+        // 'shown' is visible-when it references 'total'; 'total' would calculate from 'shown'. That
+        // is a cycle only if the two graphs are conflated — which they must not be. Neither the
+        // calculation check nor the visibility check should see a loop.
+        var definition = Definition(
+            CalcNode("total"),
+            Node("shown", ReferencesField("total")));
+
+        var calcCycle = ExpressionDependencyAnalysis.WouldCreateCalculationCycle(definition, "total", Calculates("shown"), out var calcPath);
+        var visibilityCycle = ExpressionDependencyAnalysis.WouldCreateCycle(definition, "shown", ReferencesField("total"), out var visibilityPath);
+
+        Assert.False(calcCycle);
+        Assert.Empty(calcPath);
+        Assert.False(visibilityCycle);
+        Assert.Empty(visibilityPath);
     }
 }

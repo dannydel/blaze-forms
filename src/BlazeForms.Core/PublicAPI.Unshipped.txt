@@ -346,7 +346,7 @@ BlazeForms.Versioning.FormVersionSummary.SubmissionCount.get -> int
 BlazeForms.Versioning.FormVersionSummary.SubmissionCount.init -> void
 BlazeForms.Versioning.FormVersionSummary.Version.get -> int
 BlazeForms.Versioning.FormVersionSummary.Version.init -> void
-const BlazeForms.Definitions.FormSchema.CurrentVersion = 1 -> int
+const BlazeForms.Definitions.FormSchema.CurrentVersion = 2 -> int
 const BlazeForms.Linting.LintRuleIds.A11y01 = "A11Y-01" -> string!
 const BlazeForms.Linting.LintRuleIds.A11y06 = "A11Y-06" -> string!
 const BlazeForms.Linting.LintRuleIds.A11y08 = "A11Y-08" -> string!
@@ -486,3 +486,57 @@ static BlazeForms.Versioning.FormVersion.operator ==(BlazeForms.Versioning.FormV
 static BlazeForms.Versioning.FormVersionSummary.operator !=(BlazeForms.Versioning.FormVersionSummary? left, BlazeForms.Versioning.FormVersionSummary? right) -> bool
 static BlazeForms.Versioning.FormVersionSummary.operator ==(BlazeForms.Versioning.FormVersionSummary? left, BlazeForms.Versioning.FormVersionSummary? right) -> bool
 ~override BlazeForms.Markdown.SafeHtml.Equals(object obj) -> bool
+BlazeForms.Definitions.FormNode.Calculation.get -> BlazeForms.Expressions.CalcExpression?
+BlazeForms.Definitions.FormNode.Calculation.init -> void
+BlazeForms.Expressions.CalcExpression
+BlazeForms.Expressions.CalcExpression.<Clone>$() -> BlazeForms.Expressions.CalcExpression!
+BlazeForms.Expressions.CalcExpression.CalcExpression() -> void
+BlazeForms.Expressions.CalcExpression.Equals(BlazeForms.Expressions.CalcExpression? other) -> bool
+BlazeForms.Expressions.CalcExpression.Format.get -> BlazeForms.Expressions.CalcFormat
+BlazeForms.Expressions.CalcExpression.Format.init -> void
+BlazeForms.Expressions.CalcExpression.Operands.get -> System.Collections.Generic.IReadOnlyList<BlazeForms.Expressions.CalcOperand!>!
+BlazeForms.Expressions.CalcExpression.Operands.init -> void
+BlazeForms.Expressions.CalcExpression.Operation.get -> BlazeForms.Expressions.CalcOperation
+BlazeForms.Expressions.CalcExpression.Operation.init -> void
+BlazeForms.Expressions.CalcFormat
+BlazeForms.Expressions.CalcFormat.Currency = 2 -> BlazeForms.Expressions.CalcFormat
+BlazeForms.Expressions.CalcFormat.Date = 3 -> BlazeForms.Expressions.CalcFormat
+BlazeForms.Expressions.CalcFormat.Integer = 1 -> BlazeForms.Expressions.CalcFormat
+BlazeForms.Expressions.CalcFormat.Number = 0 -> BlazeForms.Expressions.CalcFormat
+BlazeForms.Expressions.CalcFunction
+BlazeForms.Expressions.CalcFunction.Today = 0 -> BlazeForms.Expressions.CalcFunction
+BlazeForms.Expressions.CalcOperand
+BlazeForms.Expressions.CalcOperand.<Clone>$() -> BlazeForms.Expressions.CalcOperand!
+BlazeForms.Expressions.CalcOperand.CalcOperand() -> void
+BlazeForms.Expressions.CalcOperand.Equals(BlazeForms.Expressions.CalcOperand? other) -> bool
+BlazeForms.Expressions.CalcOperand.Field.get -> string?
+BlazeForms.Expressions.CalcOperand.Field.init -> void
+BlazeForms.Expressions.CalcOperand.Function.get -> BlazeForms.Expressions.CalcFunction?
+BlazeForms.Expressions.CalcOperand.Function.init -> void
+BlazeForms.Expressions.CalcOperand.Number.get -> decimal?
+BlazeForms.Expressions.CalcOperand.Number.init -> void
+BlazeForms.Expressions.CalcOperation
+BlazeForms.Expressions.CalcOperation.DateAddDays = 4 -> BlazeForms.Expressions.CalcOperation
+BlazeForms.Expressions.CalcOperation.DateDiffDays = 5 -> BlazeForms.Expressions.CalcOperation
+BlazeForms.Expressions.CalcOperation.Divide = 3 -> BlazeForms.Expressions.CalcOperation
+BlazeForms.Expressions.CalcOperation.Multiply = 2 -> BlazeForms.Expressions.CalcOperation
+BlazeForms.Expressions.CalcOperation.Subtract = 1 -> BlazeForms.Expressions.CalcOperation
+BlazeForms.Expressions.CalcOperation.Sum = 0 -> BlazeForms.Expressions.CalcOperation
+override BlazeForms.Expressions.CalcExpression.Equals(object? obj) -> bool
+override BlazeForms.Expressions.CalcExpression.GetHashCode() -> int
+override BlazeForms.Expressions.CalcExpression.ToString() -> string!
+override BlazeForms.Expressions.CalcOperand.Equals(object? obj) -> bool
+override BlazeForms.Expressions.CalcOperand.GetHashCode() -> int
+override BlazeForms.Expressions.CalcOperand.ToString() -> string!
+static BlazeForms.Expressions.CalcExpression.operator !=(BlazeForms.Expressions.CalcExpression? left, BlazeForms.Expressions.CalcExpression? right) -> bool
+static BlazeForms.Expressions.CalcExpression.operator ==(BlazeForms.Expressions.CalcExpression? left, BlazeForms.Expressions.CalcExpression? right) -> bool
+static BlazeForms.Expressions.CalcOperand.operator !=(BlazeForms.Expressions.CalcOperand? left, BlazeForms.Expressions.CalcOperand? right) -> bool
+static BlazeForms.Expressions.CalcOperand.operator ==(BlazeForms.Expressions.CalcOperand? left, BlazeForms.Expressions.CalcOperand? right) -> bool
+static BlazeForms.Serialization.FormJson.DeserializeCalcExpression(string! json) -> BlazeForms.Expressions.CalcExpression!
+static BlazeForms.Serialization.FormJson.SerializeCalcExpression(BlazeForms.Expressions.CalcExpression! expression) -> string!
+BlazeForms.Expressions.CalcEvaluator
+static BlazeForms.Expressions.CalcEvaluator.Evaluate(BlazeForms.Expressions.CalcExpression! expression, System.Collections.Generic.IReadOnlyDictionary<string!, object?>! values, System.DateOnly today) -> object?
+static BlazeForms.Expressions.CalcEvaluator.EvaluateAll(BlazeForms.Definitions.FormDefinition! definition, System.Collections.Generic.IReadOnlyDictionary<string!, object?>! values, System.DateOnly today) -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>!
+BlazeForms.Expressions.ReferenceKind.Calculation = 3 -> BlazeForms.Expressions.ReferenceKind
+const BlazeForms.Linting.LintRuleIds.Calc01 = "CALC-01" -> string!
+static BlazeForms.Expressions.ExpressionDependencyAnalysis.WouldCreateCalculationCycle(BlazeForms.Definitions.FormDefinition! definition, string! nodeId, BlazeForms.Expressions.CalcExpression! candidateCalculation, out System.Collections.Generic.IReadOnlyList<string!>! cyclePath) -> bool

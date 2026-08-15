@@ -5,8 +5,8 @@ namespace BlazeForms.Linting.Rules;
 /// <summary>
 /// FR-03 (Blocking): a rule may not reference a field that no longer exists (PRD §8). Deleting a
 /// referenced field is allowed — with a warning — so the dangling reference it leaves behind is
-/// what the linter catches, both in a node's visibility rule and in a cross-field validation
-/// rule.
+/// what the linter catches, in a node's visibility rule, in a cross-field validation rule, and in
+/// a calculation's operands.
 /// </summary>
 internal sealed class DanglingReferenceRule : ILintRule
 {
@@ -51,14 +51,23 @@ internal sealed class DanglingReferenceRule : ILintRule
 
         foreach (var node in definition.EnumerateNodes())
         {
-            if (node.VisibleWhen is null)
+            if (node.VisibleWhen is not null)
             {
-                continue;
+                foreach (var condition in node.VisibleWhen.Conditions)
+                {
+                    Check(condition.Field, node.Id);
+                }
             }
 
-            foreach (var condition in node.VisibleWhen.Conditions)
+            if (node.Calculation is not null)
             {
-                Check(condition.Field, node.Id);
+                foreach (var operand in node.Calculation.Operands)
+                {
+                    if (operand.Field is not null)
+                    {
+                        Check(operand.Field, node.Id);
+                    }
+                }
             }
         }
 

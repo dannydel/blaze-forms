@@ -121,15 +121,15 @@ public static class ConditionEvaluator
         // guarantee choice nodes rely on (PRD §5).
         if (IsNumber(answer))
         {
-            return TryAsDecimal(answer, out var answerNumber)
-                && TryAsDecimal(expected, out var expectedNumber)
+            return ValueCoercion.TryAsDecimal(answer, out var answerNumber)
+                && ValueCoercion.TryAsDecimal(expected, out var expectedNumber)
                 && answerNumber == expectedNumber;
         }
 
         if (IsDate(answer))
         {
-            return TryAsDate(answer, out var answerDate)
-                && TryAsDate(expected, out var expectedDate)
+            return ValueCoercion.TryAsDate(answer, out var answerDate)
+                && ValueCoercion.TryAsDate(expected, out var expectedDate)
                 && answerDate == expectedDate;
         }
 
@@ -161,7 +161,7 @@ public static class ConditionEvaluator
             default:
                 // A numeric answer is true when it is non-zero, matching how a host that stores a
                 // checkbox as 0/1 would expect it to read.
-                return TryAsDecimal(answer, out var number) ? number != 0m : null;
+                return ValueCoercion.TryAsDecimal(answer, out var number) ? number != 0m : null;
         }
     }
 
@@ -198,73 +198,17 @@ public static class ConditionEvaluator
             return null;
         }
 
-        if (TryAsDecimal(answer, out var answerNumber) && TryAsDecimal(expected, out var expectedNumber))
+        if (ValueCoercion.TryAsDecimal(answer, out var answerNumber) && ValueCoercion.TryAsDecimal(expected, out var expectedNumber))
         {
             return answerNumber.CompareTo(expectedNumber);
         }
 
-        if (TryAsDate(answer, out var answerDate) && TryAsDate(expected, out var expectedDate))
+        if (ValueCoercion.TryAsDate(answer, out var answerDate) && ValueCoercion.TryAsDate(expected, out var expectedDate))
         {
             return answerDate.CompareTo(expectedDate);
         }
 
         return null;
-    }
-
-    private static bool TryAsDecimal(object? value, out decimal number)
-    {
-        switch (value)
-        {
-            case decimal already:
-                number = already;
-                return true;
-            case int integer:
-                number = integer;
-                return true;
-            case long integer:
-                number = integer;
-                return true;
-            case double real:
-                number = (decimal)real;
-                return true;
-            case float real:
-                number = (decimal)real;
-                return true;
-            case string text:
-                return decimal.TryParse(
-                    text,
-                    NumberStyles.Number,
-                    CultureInfo.InvariantCulture,
-                    out number);
-            default:
-                number = 0m;
-                return false;
-        }
-    }
-
-    private static bool TryAsDate(object? value, out DateTimeOffset date)
-    {
-        switch (value)
-        {
-            case DateTimeOffset already:
-                date = already;
-                return true;
-            case DateOnly dateOnly:
-                date = new DateTimeOffset(dateOnly.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
-                return true;
-            case DateTime dateTime:
-                date = new DateTimeOffset(DateTime.SpecifyKind(dateTime, DateTimeKind.Utc));
-                return true;
-            case string text:
-                return DateTimeOffset.TryParse(
-                    text,
-                    CultureInfo.InvariantCulture,
-                    DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
-                    out date);
-            default:
-                date = default;
-                return false;
-        }
     }
 
     private static string? AsText(object? value) => value switch

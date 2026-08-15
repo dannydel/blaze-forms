@@ -56,12 +56,12 @@ public sealed class SerializationTests
     [Fact]
     public void SchemaVersionIsWrittenAndDefaultsToTheCurrentVersion()
     {
-        Assert.Equal(1, FormSchema.CurrentVersion);
+        Assert.Equal(2, FormSchema.CurrentVersion);
         Assert.Equal(FormSchema.CurrentVersion, TestDefinitions.RepresentativeDefinition.SchemaVersion);
 
         var json = FormJson.SerializeDefinition(TestDefinitions.RepresentativeDefinition);
 
-        Assert.StartsWith("{\"schemaVersion\":1,", json, StringComparison.Ordinal);
+        Assert.StartsWith("{\"schemaVersion\":2,", json, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -231,6 +231,89 @@ public sealed class SerializationTests
         var json = FormJson.SerializeConditionGroup(new ConditionGroup { Join = join });
 
         Assert.Contains($"\"join\":\"{expected}\"", json, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(CalcOperation.Sum, "sum")]
+    [InlineData(CalcOperation.Subtract, "subtract")]
+    [InlineData(CalcOperation.Multiply, "multiply")]
+    [InlineData(CalcOperation.Divide, "divide")]
+    [InlineData(CalcOperation.DateAddDays, "dateAddDays")]
+    [InlineData(CalcOperation.DateDiffDays, "dateDiffDays")]
+    public void EveryCalcOperationSerializesToItsDocumentedName(CalcOperation operation, string expected)
+    {
+        var json = FormJson.SerializeCalcExpression(new CalcExpression { Operation = operation });
+
+        Assert.Contains($"\"op\":\"{expected}\"", json, StringComparison.Ordinal);
+        Assert.Equal(operation, FormJson.DeserializeCalcExpression(json).Operation);
+    }
+
+    [Theory]
+    [InlineData(CalcFormat.Number, "number")]
+    [InlineData(CalcFormat.Integer, "integer")]
+    [InlineData(CalcFormat.Currency, "currency")]
+    [InlineData(CalcFormat.Date, "date")]
+    public void EveryCalcFormatSerializesToItsDocumentedName(CalcFormat format, string expected)
+    {
+        var json = FormJson.SerializeCalcExpression(new CalcExpression { Operation = CalcOperation.Sum, Format = format });
+
+        Assert.Contains($"\"format\":\"{expected}\"", json, StringComparison.Ordinal);
+        Assert.Equal(format, FormJson.DeserializeCalcExpression(json).Format);
+    }
+
+    [Fact]
+    public void TheCalcFunctionSerializesToItsDocumentedName()
+    {
+        var json = FormJson.SerializeCalcExpression(new CalcExpression
+        {
+            Operation = CalcOperation.Sum,
+            Operands = [new CalcOperand { Function = CalcFunction.Today }],
+        });
+
+        Assert.Contains("\"function\":\"today\"", json, StringComparison.Ordinal);
+        Assert.Equal(CalcFunction.Today, FormJson.DeserializeCalcExpression(json).Operands[0].Function);
+    }
+
+    [Fact]
+    public void ACalcOperandSerializesOnlyItsSetMember()
+    {
+        var expression = new CalcExpression
+        {
+            Operation = CalcOperation.Sum,
+            Operands =
+            [
+                new CalcOperand { Field = "node-fee" },
+                new CalcOperand { Number = 50m },
+                new CalcOperand { Function = CalcFunction.Today },
+            ],
+        };
+
+        var json = FormJson.SerializeCalcExpression(expression);
+
+        Assert.Equal("""{"op":"sum","operands":[{"field":"node-fee"},{"number":50},{"function":"today"}],"format":"number"}""", json);
+
+        var restored = FormJson.DeserializeCalcExpression(json);
+        Assert.Equal("node-fee", restored.Operands[0].Field);
+        Assert.Null(restored.Operands[0].Number);
+        Assert.Equal(50m, restored.Operands[1].Number);
+        Assert.Equal(CalcFunction.Today, restored.Operands[2].Function);
+    }
+
+    [Fact]
+    public void ACalcExpressionRoundTripsWithinADefinition()
+    {
+        var restored = FormJson.DeserializeDefinition(
+            FormJson.SerializeDefinition(TestDefinitions.RepresentativeDefinition));
+
+        var estimatedCost = restored.FindNode("node-estimated-cost");
+        Assert.NotNull(estimatedCost);
+        Assert.Equal(NodeType.Calc, estimatedCost!.Type);
+        Assert.NotNull(estimatedCost.Calculation);
+        Assert.Equal(CalcOperation.Sum, estimatedCost.Calculation!.Operation);
+        Assert.Equal(CalcFormat.Currency, estimatedCost.Calculation.Format);
+        Assert.Equal(2, estimatedCost.Calculation.Operands.Count);
+        Assert.Equal("node-annual-fee", estimatedCost.Calculation.Operands[0].Field);
+        Assert.Equal(50m, estimatedCost.Calculation.Operands[1].Number);
     }
 
     [Fact]
