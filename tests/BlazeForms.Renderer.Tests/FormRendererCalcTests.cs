@@ -150,6 +150,66 @@ public sealed class FormRendererCalcTests : RendererTestContext
         Assert.Equal(expected, output.TextContent);
     }
 
+    /// <summary>
+    /// The calc-announcer region (PRD §5, decision log D-E's "announce on commit" refinement)
+    /// stays silent through every intermediate keystroke and is refreshed only once the
+    /// dependency's own control commits (blur) — proving the visible <c>&lt;output&gt;</c>'s own
+    /// <c>aria-live="off"</c> (<see cref="CalcFieldTests"/>) is not the only place the settled
+    /// value ever reaches a screen reader.
+    /// </summary>
+    [Fact]
+    public void TheCalcAnnouncerStaysSilentOnEveryKeystrokeAndAnnouncesOnlyOnceTheChangeCommits()
+    {
+        var version = FormRendererTestFixtures.ToPublishedVersion(FormRendererTestFixtures.CalcDependsOnOneOfTwoFieldsDefinition);
+        var cut = Render<FormRenderer>(p => p.Add(f => f.Version, version));
+
+        var announcer = cut.Find("div.bf-calc-announcer");
+        Assert.Equal("polite", announcer.GetAttribute("aria-live"));
+        Assert.Equal("", announcer.TextContent);
+
+        var input = cut.Find("[id$='-a']");
+        input.Input("5");
+        input.Input("9");
+
+        // The visible total already reflects "9" -- SetValue recomputes on every oninput -- but
+        // the announcer has not been told about either keystroke yet.
+        Assert.Equal("9", cut.Find("[id$='-total']").TextContent);
+        Assert.Equal("", cut.Find("div.bf-calc-announcer").TextContent);
+
+        input.Blur();
+
+        var announcedText = cut.Find("div.bf-calc-announcer").TextContent;
+        Assert.Contains("Total", announcedText, StringComparison.Ordinal);
+        Assert.Contains("9", announcedText, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// A calc that lives on a page other than the one currently showing must never be named by
+    /// the announcer, even though it is still "visible" in the whole-definition sense and still
+    /// holds a real, non-blank value (code review fix #4) -- it is simply not on screen right now.
+    /// </summary>
+    [Fact]
+    public void TheAnnouncerNeverNamesACalcThatLivesOnAnotherPage()
+    {
+        var version = FormRendererTestFixtures.ToPublishedVersion(FormRendererTestFixtures.CalcOnSecondPageDefinition);
+        var cut = Render<FormRenderer>(p => p.Add(f => f.Version, version));
+
+        cut.FindAll("button")[1].Click(); // Next -- to page two, nothing required on page one.
+        cut.Find("[id$='-amount']").Input("5");
+        cut.Find("[id$='-amount']").Blur();
+
+        // Sanity: the happy path still announces "Total" while its own page is current.
+        Assert.Contains("Total", cut.Find("div.bf-calc-announcer").TextContent, StringComparison.Ordinal);
+
+        cut.FindAll("button")[0].Click(); // Previous -- back to page one.
+        cut.Find("[id$='-note']").Input("hi");
+        cut.Find("[id$='-note']").Blur();
+
+        // "total" still holds 5 and is still visible in the whole-definition sense, but it does
+        // not live on the CURRENT page -- the announcer goes silent rather than keep naming it.
+        Assert.Equal("", cut.Find("div.bf-calc-announcer").TextContent);
+    }
+
     [Fact]
     public void TypingInAFieldTheCalcDoesNotDependOnNeverRecomputesOrReRendersIt()
     {

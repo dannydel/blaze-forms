@@ -168,3 +168,19 @@ only for pre-engine / v1 envelopes. Drafts persist it harmlessly (overwritten on
   behavior with one adversarial test (calc → visibility → input chain).
 - **schemaVersion=2 is a public-contract event** — land it once (Increment A); anything else wanting
   a schema change rides the same bump.
+
+## Increment C — shipped
+
+`CalculationEditor` + `CalcOperandRow` + `CalculationSummaryFormatter` (`src/BlazeForms.Designer`),
+the `PropertiesPanel` calc group, `DeleteProtectionDialog`'s `ReferenceKind.Calculation` case, the
+sample enrollment form's real "Estimated annual total" calculation, and the Designer/Renderer test
+and E2E coverage described in this plan's own increment table all shipped as specified.
+
+One approved deviation from D-E #4's original "semantic `<output>`, implicit `role=status`" a11y
+contract: review of Increment B found that shape announces on every keystroke for a number/currency
+dependency (they recompute on `oninput`), which is disruptive rather than helpful. The refinement —
+"announce on commit" — keeps `<output>` as the visible control (still updating silently on every
+keystroke, `aria-live="off"` now stops that from also reaching a screen reader) and adds one
+visually-hidden, `aria-live="polite"` calc-announcer region on `FormRenderer` itself, refreshed only
+from the dependency's own commit (blur), not from every intermediate keystroke. See `CalcField`'s and
+`FormRenderer.RefreshCalcAnnouncement`'s own remarks for the exact contract.

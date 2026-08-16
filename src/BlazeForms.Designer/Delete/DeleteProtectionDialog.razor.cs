@@ -206,6 +206,11 @@ public partial class DeleteProtectionDialog : ComponentBase, IAsyncDisposable
                     ?? throw new InvalidOperationException($"No node '{site.ReferencingNodeId}' was found in the current draft.");
                 return Localizer["DeleteProtectionReferenceVisibility", NodeLabel(referencingNode)].Value;
 
+            case ReferenceKind.Calculation:
+                var calculatingNode = definition.FindNode(site.ReferencingNodeId!)
+                    ?? throw new InvalidOperationException($"No node '{site.ReferencingNodeId}' was found in the current draft.");
+                return Localizer["DeleteProtectionReferenceCalculation", NodeLabel(calculatingNode)].Value;
+
             case ReferenceKind.ValidationTarget:
                 return Localizer["DeleteProtectionReferenceValidationTarget", site.ReferencingRule!.Message].Value;
 

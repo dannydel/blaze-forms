@@ -363,6 +363,100 @@ public sealed class PropertiesPanelTests : DesignerTestContext
     }
 
     [Fact]
+    public async Task TheCalculationGroupRendersOnlyForCalcNodes()
+    {
+        await using var calcContext = CreateContext(DesignerTestFixtures.CalcNodeDefinition("form-1"));
+        Select(calcContext, "node-calc");
+        var calcCut = Render<PropertiesPanel>(p => p.Add(f => f.EditContext, calcContext));
+        Assert.NotEmpty(calcCut.FindAll("div.bf-props__calculation"));
+
+        await using var textContext = CreateContext(DesignerTestFixtures.OneFieldDefinition("form-1"));
+        Select(textContext, "first-name");
+        var textCut = Render<PropertiesPanel>(p => p.Add(f => f.EditContext, textContext));
+        Assert.Empty(textCut.FindAll("div.bf-props__calculation"));
+    }
+
+    [Fact]
+    public async Task CalculationShowsNoCalculationSetWithAnAddButtonWhenThereIsNone()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.CalcNodeDefinition("form-1"));
+        Select(context, "node-calc");
+        var cut = Render<PropertiesPanel>(p => p.Add(f => f.EditContext, context));
+
+        Assert.Contains("No calculation set", cut.Find("p.bf-props__calculation-summary").TextContent, StringComparison.Ordinal);
+        Assert.Single(cut.FindAll("div.bf-props__calculation-actions button"));
+    }
+
+    [Fact]
+    public async Task CalculationShowsTheRichSummaryWithEditAndRemoveButtonsWhenOneExists()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.CalcNodeWithExpressionDefinition("form-1"));
+        Select(context, "node-calc");
+        var cut = Render<PropertiesPanel>(p => p.Add(f => f.EditContext, context));
+
+        Assert.Contains("Sum of Field A", cut.Find("p.bf-props__calculation-summary").TextContent, StringComparison.Ordinal);
+        Assert.Equal(2, cut.FindAll("div.bf-props__calculation-actions button").Count);
+    }
+
+    [Fact]
+    public async Task ClickingAddCalculationOpensTheCalculationEditor()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.CalcNodeDefinition("form-1"));
+        Select(context, "node-calc");
+        var cut = Render<PropertiesPanel>(p => p.Add(f => f.EditContext, context));
+
+        await cut.Find("div.bf-props__calculation-actions button").ClickAsync(new MouseEventArgs());
+
+        Assert.NotEmpty(cut.FindAll("div.bf-calc-dialog"));
+        Assert.Null(context.Draft.Definition.FindNode("node-calc")!.Calculation);
+    }
+
+    [Fact]
+    public async Task ClickingEditCalculationOpensTheCalculationEditorForTheExistingCalculation()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.CalcNodeWithExpressionDefinition("form-1"));
+        Select(context, "node-calc");
+        var cut = Render<PropertiesPanel>(p => p.Add(f => f.EditContext, context));
+
+        var editButtons = cut.FindAll("div.bf-props__calculation-actions button");
+        await editButtons[0].ClickAsync(new MouseEventArgs());
+
+        var dialog = cut.Find("div.bf-calc-dialog");
+        Assert.Contains("node-calc", dialog.OuterHtml, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ClickingRemoveCalculationClearsItDirectlyWithoutOpeningTheEditor()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.CalcNodeWithExpressionDefinition("form-1"));
+        Select(context, "node-calc");
+        var cut = Render<PropertiesPanel>(p => p.Add(f => f.EditContext, context));
+
+        var removeButtons = cut.FindAll("div.bf-props__calculation-actions button");
+        await removeButtons[1].ClickAsync(new MouseEventArgs());
+
+        Assert.Empty(cut.FindAll("div.bf-calc-dialog"));
+        Assert.Null(context.Draft.Definition.FindNode("node-calc")!.Calculation);
+    }
+
+    [Fact]
+    public async Task ClosingTheCalculationEditorReturnsFocusToTheCalculationActionButton()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.CalcNodeDefinition("form-1"));
+        Select(context, "node-calc");
+        var cut = Render<PropertiesPanel>(p => p.Add(f => f.EditContext, context));
+
+        await cut.Find("div.bf-props__calculation-actions button").ClickAsync(new MouseEventArgs());
+        await cut.Find("button.bf-calc-dialog__button:not(.bf-calc-dialog__button--primary)").ClickAsync(new MouseEventArgs());
+
+        Assert.Empty(cut.FindAll("div.bf-calc-dialog"));
+
+        // Once for the dialog's own first-render focus (the Operation select), once more for
+        // the calculation action button regaining focus once the dialog closes.
+        JSInterop.VerifyFocusAsyncInvoke(calledTimes: 2);
+    }
+
+    [Fact]
     public async Task SelectingANewNodeWithNoFocusIntentMovesFocusToTheLabelInput()
     {
         await using var context = CreateContext(DesignerTestFixtures.TwoSectionDefinition("form-1"));

@@ -64,9 +64,12 @@ public partial class PropertiesPanel : ComponentBase, IAsyncDisposable
     private string? _lastFocusedNodeId;
     private bool _focusLabelOnNextRender;
     private bool _focusVisibilityActionOnNextRender;
+    private bool _focusCalculationActionOnNextRender;
     private ElementReference _labelElement;
     private ElementReference _visibilityActionElement;
+    private ElementReference _calculationActionElement;
     private string? _visibilityRuleEditorNodeId;
+    private string? _calculationEditorNodeId;
     private bool _disposed;
 
     /// <summary>
@@ -128,6 +131,12 @@ public partial class PropertiesPanel : ComponentBase, IAsyncDisposable
         {
             _focusVisibilityActionOnNextRender = false;
             await _visibilityActionElement.FocusAsync();
+        }
+
+        if (_focusCalculationActionOnNextRender)
+        {
+            _focusCalculationActionOnNextRender = false;
+            await _calculationActionElement.FocusAsync();
         }
     }
 
@@ -266,6 +275,31 @@ public partial class PropertiesPanel : ComponentBase, IAsyncDisposable
     /// dialog's own Apply step guards against, so there is nothing here for it to gate.
     /// </summary>
     private void RemoveVisibilityRule(FormNode node) => EditContext.UpdateNode(node with { VisibleWhen = null });
+
+    /// <summary>
+    /// Opens <see cref="CalculationEditor"/> for <paramref name="nodeId"/> — the Add and Edit
+    /// calculation buttons' shared path (PRD §4.1, §5, §13), mirroring
+    /// <see cref="OpenVisibilityRuleEditor"/>'s own "a fresh instance every open" pattern.
+    /// </summary>
+    private void OpenCalculationEditor(string nodeId) => _calculationEditorNodeId = nodeId;
+
+    /// <summary>
+    /// Closes <see cref="CalculationEditor"/> — after a successful apply or a cancel — and
+    /// re-requests focus for whichever calculation action button now renders, mirroring
+    /// <see cref="CloseVisibilityRuleEditor"/>'s own post-close focus return.
+    /// </summary>
+    private void CloseCalculationEditor()
+    {
+        _calculationEditorNodeId = null;
+        _focusCalculationActionOnNextRender = true;
+    }
+
+    /// <summary>
+    /// Clears a node's own calculation directly — the Remove button's path. Never opens
+    /// <see cref="CalculationEditor"/>: removing a calculation can never introduce the cycle that
+    /// dialog's own Apply step guards against, so there is nothing here for it to gate.
+    /// </summary>
+    private void RemoveCalculation(FormNode node) => EditContext.UpdateNode(node with { Calculation = null });
 
     private static string? NormalizeToNull(object? value)
     {

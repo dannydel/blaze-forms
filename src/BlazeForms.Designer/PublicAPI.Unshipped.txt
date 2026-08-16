@@ -194,6 +194,29 @@ BlazeForms.Properties.PropertiesPanel.DisposeAsync() -> System.Threading.Tasks.V
 BlazeForms.Properties.PropertiesPanel.EditContext.get -> BlazeForms.Designer.DesignerEditContext!
 BlazeForms.Properties.PropertiesPanel.EditContext.set -> void
 BlazeForms.Properties.PropertiesPanel.PropertiesPanel() -> void
+BlazeForms.Rules.CalcOperandRow
+BlazeForms.Rules.CalcOperandRow.CalcOperandRow() -> void
+BlazeForms.Rules.CalcOperandRow.Fields.get -> System.Collections.Generic.IReadOnlyList<BlazeForms.Definitions.FormNode!>!
+BlazeForms.Rules.CalcOperandRow.Fields.set -> void
+BlazeForms.Rules.CalcOperandRow.Operand.get -> BlazeForms.Expressions.CalcOperand!
+BlazeForms.Rules.CalcOperandRow.Operand.set -> void
+BlazeForms.Rules.CalcOperandRow.OperandChanged.get -> Microsoft.AspNetCore.Components.EventCallback<BlazeForms.Expressions.CalcOperand!>
+BlazeForms.Rules.CalcOperandRow.OperandChanged.set -> void
+BlazeForms.Rules.CalcOperandRow.OnRemove.get -> Microsoft.AspNetCore.Components.EventCallback
+BlazeForms.Rules.CalcOperandRow.OnRemove.set -> void
+BlazeForms.Rules.CalcOperandRow.RequestFocus.get -> bool
+BlazeForms.Rules.CalcOperandRow.RequestFocus.set -> void
+BlazeForms.Rules.CalcOperandRow.RowNumber.get -> int
+BlazeForms.Rules.CalcOperandRow.RowNumber.set -> void
+BlazeForms.Rules.CalculationEditor
+BlazeForms.Rules.CalculationEditor.CalculationEditor() -> void
+BlazeForms.Rules.CalculationEditor.DisposeAsync() -> System.Threading.Tasks.ValueTask
+BlazeForms.Rules.CalculationEditor.EditContext.get -> BlazeForms.Designer.DesignerEditContext!
+BlazeForms.Rules.CalculationEditor.EditContext.set -> void
+BlazeForms.Rules.CalculationEditor.NodeId.get -> string!
+BlazeForms.Rules.CalculationEditor.NodeId.set -> void
+BlazeForms.Rules.CalculationEditor.OnClosed.get -> Microsoft.AspNetCore.Components.EventCallback
+BlazeForms.Rules.CalculationEditor.OnClosed.set -> void
 BlazeForms.Rules.ConditionRow
 BlazeForms.Rules.ConditionRow.Condition.get -> BlazeForms.Expressions.Condition!
 BlazeForms.Rules.ConditionRow.Condition.set -> void
@@ -292,6 +315,11 @@ override BlazeForms.Properties.OptionsEditor.OnParametersSet() -> void
 override BlazeForms.Properties.PropertiesPanel.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
 override BlazeForms.Properties.PropertiesPanel.OnInitialized() -> void
 override BlazeForms.Properties.PropertiesPanel.OnParametersSet() -> void
+override BlazeForms.Rules.CalcOperandRow.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
+override BlazeForms.Rules.CalcOperandRow.OnParametersSet() -> void
+override BlazeForms.Rules.CalculationEditor.OnAfterRender(bool firstRender) -> void
+override BlazeForms.Rules.CalculationEditor.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
+override BlazeForms.Rules.CalculationEditor.OnInitialized() -> void
 override BlazeForms.Rules.ConditionRow.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
 override BlazeForms.Rules.ConditionRow.OnParametersSet() -> void
 override BlazeForms.Rules.ValidationRuleEditor.OnAfterRender(bool firstRender) -> void
@@ -331,6 +359,8 @@ static BlazeForms.Designer.DesignerSelection.operator ==(BlazeForms.Designer.Des
 ~override BlazeForms.Preview.PreviewPane.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Properties.OptionsEditor.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Properties.PropertiesPanel.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
+~override BlazeForms.Rules.CalcOperandRow.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
+~override BlazeForms.Rules.CalculationEditor.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Rules.ConditionRow.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Rules.ValidationRuleEditor.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Rules.VisibilityRuleEditor.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void

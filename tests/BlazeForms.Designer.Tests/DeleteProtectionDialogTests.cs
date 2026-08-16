@@ -42,6 +42,25 @@ public sealed class DeleteProtectionDialogTests : DesignerTestContext
         Assert.Contains(lines, line => line.Contains("Enter a value for 'Referenced field'.", StringComparison.Ordinal));
     }
 
+    /// <summary>
+    /// A field named only by a calc node's own calculation (<see cref="ReferenceKind.Calculation"/>)
+    /// is described by its own dedicated phrase — "used in '&lt;calc&gt;''s calculation" — not
+    /// generically folded into the visibility-rule line (calc-engine-plan.md, Increment C).
+    /// </summary>
+    [Fact]
+    public async Task RendersACalculationReferenceLine()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.CalcReferencedFieldDefinition("form-1"));
+        var cut = Render<DeleteProtectionDialog>(p => p.Add(d => d.EditContext, context).Add(d => d.NodeId, "node-referenced"));
+
+        var lines = cut.FindAll("ul.bf-delete-dialog__list li").Select(li => li.TextContent).ToArray();
+        Assert.Single(lines);
+
+        // Pins the exact rendered text -- a single apostrophe, never the doubled "Total''s"
+        // string.Format leaves behind if the resx literally quotes '{0}''s (code review fix #3).
+        Assert.Equal("Used in 'Total's calculation.", lines[0]);
+    }
+
     [Fact]
     public async Task DeleteAnywayDeletesTheNodeAndRaisesOnClosed()
     {

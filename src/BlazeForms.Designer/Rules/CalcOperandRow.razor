@@ -1,0 +1,52 @@
+<div class="bf-calc-operand-row">
+    <div class="bf-calc-operand-row__field">
+        <label class="bf-calc-operand-row__label" for="@KindSelectId">@Localizer["CalcOperandRowKindLabel", RowNumber].Value</label>
+        <select @ref="_kindSelectElement"
+                id="@KindSelectId"
+                class="bf-calc-operand-row__input"
+                @bind:get="Kind"
+                @bind:set="OnKindChangedAsync">
+            @foreach (var kind in AllKinds)
+            {
+                <option value="@kind">@Localizer[$"CalcOperandKind{kind}"].Value</option>
+            }
+        </select>
+    </div>
+    @if (Kind == OperandKind.Field)
+    {
+        <div class="bf-calc-operand-row__field">
+            <label class="bf-calc-operand-row__label" for="@FieldSelectId">@Localizer["CalcOperandRowFieldLabel", RowNumber].Value</label>
+            <select id="@FieldSelectId"
+                    class="bf-calc-operand-row__input"
+                    @bind:get="Operand.Field ?? string.Empty"
+                    @bind:set="OnFieldChangedAsync">
+                <option value="">@Localizer["CalcOperandRowFieldPlaceholder"].Value</option>
+                @foreach (var field in Fields)
+                {
+                    <option value="@field.Id">@FieldLabel(field)</option>
+                }
+            </select>
+        </div>
+    }
+    else if (Kind == OperandKind.Number)
+    {
+        <div class="bf-calc-operand-row__field">
+            <label class="bf-calc-operand-row__label" for="@NumberInputId">@Localizer["CalcOperandRowNumberLabel", RowNumber].Value</label>
+            <input id="@NumberInputId"
+                   type="number"
+                   step="any"
+                   inputmode="decimal"
+                   class="bf-calc-operand-row__input"
+                   value="@Operand.Number"
+                   @onchange="OnNumberTypedAsync" />
+        </div>
+    }
+    else
+    {
+        <p class="bf-calc-operand-row__today-note">@Localizer["CalcOperandKindTodayNote"].Value</p>
+    }
+    <button type="button"
+            class="bf-calc-operand-row__remove-button"
+            aria-label="@Localizer["CalcOperandRowRemoveButton", RowNumber].Value"
+            @onclick="OnRemoveAsync">@Localizer["CalcOperandRowRemoveText"].Value</button>
+</div>

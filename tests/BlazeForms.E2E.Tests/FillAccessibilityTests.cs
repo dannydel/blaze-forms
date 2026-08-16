@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using Microsoft.Playwright;
 
 namespace BlazeForms.E2E.Tests;
@@ -74,6 +75,28 @@ public sealed class FillAccessibilityTests : E2ETestBase
         Assert.True(targetExists, $"The error summary's first link points at \"#{targetId}\", which is not the id of any element on the page.");
 
         await AccessibilityAssertions.AssertNoViolationsAsync(Page, "/fill validation error summary");
+    }
+
+    /// <summary>
+    /// Drives the review page's "Estimated annual total" calc's own dependency — the coverage
+    /// selection page's income field — through every page of the fill, and asserts the calc's
+    /// <c>&lt;output&gt;</c> shows the computed text once the review page renders
+    /// (<c>calc-engine-plan.md</c>, Increment C), with the whole path staying axe-clean.
+    /// </summary>
+    [Fact]
+    public async Task FillingTheCalcsDependencyComputesTheDisplayedTotalAndStaysAccessible()
+    {
+        await SampleFormDriver.GotoFillAsync(Page, BaseUrl);
+        await SampleFormDriver.CompleteApplicantInformationPageAsync(Page);
+
+        await SampleFormDriver.FillEstimatedMonthlyIncomeAsync(Page, "1000");
+        await SampleFormDriver.CompleteCoverageSelectionPageAsync(Page);
+
+        var expectedTotal = (1000m * 12m).ToString("F2", CultureInfo.CurrentCulture);
+        var total = Page.GetByLabel("Estimated annual total");
+        await Assertions.Expect(total).ToHaveTextAsync(expectedTotal);
+
+        await AccessibilityAssertions.AssertNoViolationsAsync(Page, "/fill review page with a computed calc total");
     }
 
     [Fact]

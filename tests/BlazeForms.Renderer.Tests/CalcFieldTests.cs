@@ -62,6 +62,23 @@ public sealed class CalcFieldTests : BunitContext
     }
 
     [Fact]
+    public void TheVisibleOutputIsNotAPerKeystrokeLiveRegion()
+    {
+        // <output>'s implicit role is status (a polite live region); this pins the explicit
+        // override that stops it from announcing on every keystroke a number/currency dependency
+        // recomputes it on (PRD §5, decision log D-E's "announce on commit" refinement).
+        // FormRenderer's own visually-hidden calc-announcer region is the settled-value
+        // announcement's real home (FormRendererCalcTests).
+        var node = TestNodes.Create(NodeType.Calc, label: "Total");
+        var cut = Render<CalcField>(p => p
+            .Add(f => f.Node, node)
+            .Add(f => f.FieldId, "f1")
+            .Add(f => f.Value, "42"));
+
+        Assert.Equal("off", cut.Find("output").GetAttribute("aria-live"));
+    }
+
+    [Fact]
     public void IsNeverRequired()
     {
         var node = TestNodes.Create(NodeType.Calc, required: true);

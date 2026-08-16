@@ -407,4 +407,157 @@ internal static class DesignerTestFixtures
             },
         ],
     };
+
+    /// <summary>
+    /// A number field ("node-referenced") named by a calc node's own ("node-calc") calculation --
+    /// <c>DeleteProtectionDialog</c>'s own <see cref="ReferenceKind.Calculation"/> case
+    /// (calc-engine-plan.md, Increment C).
+    /// </summary>
+    internal static FormDefinition CalcReferencedFieldDefinition(string formId) => new()
+    {
+        Id = formId,
+        Name = "Calc referenced field form",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Nodes =
+                        [
+                            new FormNode { Id = "node-referenced", Type = NodeType.Number, Label = "Referenced field" },
+                            new FormNode
+                            {
+                                Id = "node-calc",
+                                Type = NodeType.Calc,
+                                Label = "Total",
+                                Calculation = new CalcExpression
+                                {
+                                    Operation = CalcOperation.Sum,
+                                    Operands = [new CalcOperand { Field = "node-referenced" }],
+                                    Format = CalcFormat.Number,
+                                },
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    };
+
+    /// <summary>
+    /// Two number fields ("node-a", "node-b") and an uncalculated calc node ("node-calc") --
+    /// <c>CalculationEditor</c>'s own candidate-field pool for the four numeric operations
+    /// (calc-engine-plan.md, Increment C).
+    /// </summary>
+    internal static FormDefinition CalcNodeDefinition(string formId) => new()
+    {
+        Id = formId,
+        Name = "Calc node form",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Nodes =
+                        [
+                            new FormNode { Id = "node-a", Type = NodeType.Number, Label = "Field A" },
+                            new FormNode { Id = "node-b", Type = NodeType.Number, Label = "Field B" },
+                            new FormNode { Id = "node-calc", Type = NodeType.Calc, Label = "Total" },
+                        ],
+                    },
+                ],
+            },
+        ],
+    };
+
+    /// <summary>
+    /// Same shape as <see cref="CalcNodeDefinition"/>, but "node-calc" already carries a Sum
+    /// calculation over "node-a" alone -- seeds <c>CalculationEditorTests</c>' "existing
+    /// calculation" cases.
+    /// </summary>
+    internal static FormDefinition CalcNodeWithExpressionDefinition(string formId)
+    {
+        var definition = CalcNodeDefinition(formId);
+        return definition with
+        {
+            Pages =
+            [
+                definition.Pages[0] with
+                {
+                    Sections =
+                    [
+                        definition.Pages[0].Sections[0] with
+                        {
+                            Nodes =
+                            [
+                                definition.Pages[0].Sections[0].Nodes[0],
+                                definition.Pages[0].Sections[0].Nodes[1],
+                                definition.Pages[0].Sections[0].Nodes[2] with
+                                {
+                                    Calculation = new CalcExpression
+                                    {
+                                        Operation = CalcOperation.Sum,
+                                        Operands = [new CalcOperand { Field = "node-a" }],
+                                        Format = CalcFormat.Number,
+                                    },
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        };
+    }
+
+    /// <summary>
+    /// Two calc nodes: "calc-b" already carries a calculation that reads "calc-a" -- giving
+    /// "calc-a" a calculation that reads "calc-b" would close calc-a -&gt; calc-b -&gt; calc-a,
+    /// <c>CalculationEditor</c>'s own cycle-rejection case, on the calculation graph rather than
+    /// the visibility one.
+    /// </summary>
+    internal static FormDefinition TwoCalcNodesDefinition(string formId) => new()
+    {
+        Id = formId,
+        Name = "Two calc nodes form",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Nodes =
+                        [
+                            new FormNode { Id = "calc-a", Type = NodeType.Calc, Label = "Calc A" },
+                            new FormNode
+                            {
+                                Id = "calc-b",
+                                Type = NodeType.Calc,
+                                Label = "Calc B",
+                                Calculation = new CalcExpression
+                                {
+                                    Operation = CalcOperation.Sum,
+                                    Operands = [new CalcOperand { Field = "calc-a" }],
+                                    Format = CalcFormat.Number,
+                                },
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    };
 }

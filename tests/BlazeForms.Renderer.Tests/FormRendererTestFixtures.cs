@@ -427,6 +427,55 @@ internal static class FormRendererTestFixtures
     };
 
     /// <summary>
+    /// Two pages: page one has one unrelated text field (<c>note</c>); page two has a number
+    /// field (<c>amount</c>) and a calc (<c>total</c>) that sums it -- for proving the calc
+    /// announcer only ever names a calc that lives on the CURRENT page (code review fix #4).
+    /// </summary>
+    internal static FormDefinition CalcOnSecondPageDefinition { get; } = new()
+    {
+        Id = "form-calc-second-page",
+        Name = "Calc on second page",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Title = "Page one",
+                Sections = [new FormSection { Id = "section-1", Title = "Section one", Nodes = [new FormNode { Id = "note", Type = NodeType.Text, Label = "Note" }] }],
+            },
+            new FormPage
+            {
+                Id = "page-2",
+                Title = "Page two",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-2",
+                        Title = "Section two",
+                        Nodes =
+                        [
+                            new FormNode { Id = "amount", Type = NodeType.Number, Label = "Amount" },
+                            new FormNode
+                            {
+                                Id = "total",
+                                Type = NodeType.Calc,
+                                Label = "Total",
+                                Calculation = new CalcExpression
+                                {
+                                    Operation = CalcOperation.Sum,
+                                    Operands = [new CalcOperand { Field = "amount" }],
+                                    Format = CalcFormat.Number,
+                                },
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    };
+
+    /// <summary>
     /// Two pages: page one has two required text fields (<c>first-name</c>, <c>last-name</c>),
     /// page two has one field nobody has to fill in (<c>notes</c>) — for required-blocks-advance,
     /// remedy-wording, and on-blur-validates-only-that-field tests (PRD §4.2, §6).

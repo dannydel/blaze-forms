@@ -50,6 +50,7 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     private bool _showSummary;
     private ElementReference _pageHeadingElement;
     private ElementReference _confirmationElement;
+    private string _calcAnnouncement = "";
     private ErrorSummary? _errorSummary;
     private FieldValidator _fieldValidator = default!;
     private DateTimeOffset _startedAt;
@@ -600,8 +601,10 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     /// <summary>
     /// Handles the blur of one field's control: validates that field alone and marks it
     /// validated, so its error (if any) becomes visible from this point on even though the
-    /// respondent has not yet advanced the page or submitted (PRD §4.2). Autosaves the draft
-    /// afterward (PRD §9).
+    /// respondent has not yet advanced the page or submitted (PRD §4.2), and refreshes the calc
+    /// announcer (<see cref="RefreshCalcAnnouncement"/>) — the point every field's control commits
+    /// its answer, whether that control recomputes live on <c>oninput</c> (number, currency, text)
+    /// or only on <c>onchange</c> (select, date, checkbox). Autosaves the draft afterward (PRD §9).
     /// </summary>
     [SuppressMessage(
         "Reliability",
@@ -618,6 +621,7 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
 
         _validatedNodeIds.Add(nodeId);
         ApplyFieldValidation(node);
+        RefreshCalcAnnouncement();
 
         await PersistDraftAsync();
     }
@@ -868,6 +872,46 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
         {
             _values[nodeId] = value;
         }
+    }
+
+    /// <summary>
+    /// Refreshes the visually-hidden, <c>aria-live="polite"</c> calc-announcer region
+    /// <c>FormRenderer.razor</c> renders, from every currently visible calc node that both lives on
+    /// <see cref="CurrentPage"/> and carries a calculation (PRD §5, decision log D-E's "announce on
+    /// commit" refinement). Scoped to <see cref="CurrentPage"/> — not every calc node in the whole
+    /// definition — because a calc that lives on some other page is not on screen at all right now;
+    /// announcing it anyway would tell a screen-reader user about a value they have no way to see or
+    /// relate to whatever field they just blurred (code review fix #4). Deliberately called only
+    /// from <see cref="HandleBlur"/> — the one point every field's control, regardless of whether it
+    /// recomputes live on <c>oninput</c> or only on <c>onchange</c>, reports that its answer is
+    /// settled — never from <see cref="SetValue"/> itself, so a calc's visible
+    /// <c>&lt;output&gt;</c> still updates on every keystroke (its own <c>aria-live="off"</c>
+    /// keeps that silent for assistive technology) while a screen reader hears the calc's own
+    /// label and settled value exactly once per commit, not once per keystroke.
+    /// </summary>
+    private void RefreshCalcAnnouncement()
+    {
+        var visibleNodeIds = GetVisibleNodeIds();
+        var announcements = new List<string>();
+        var currentPageNodes = CurrentPage?.Sections.SelectMany(section => section.EnumerateNodes()) ?? [];
+
+        foreach (var node in currentPageNodes)
+        {
+            if (node.Type != NodeType.Calc || node.Calculation is null || !visibleNodeIds.Contains(node.Id))
+            {
+                continue;
+            }
+
+            _values.TryGetValue(node.Id, out var computed);
+            var formatted = CalcDisplayFormatter.Format(computed, node.Calculation.Format);
+
+            if (formatted is not null)
+            {
+                announcements.Add(Localizer["CalcAnnouncementEntry", node.Label ?? node.Id, formatted].Value);
+            }
+        }
+
+        _calcAnnouncement = string.Join(" ", announcements);
     }
 
     /// <summary>

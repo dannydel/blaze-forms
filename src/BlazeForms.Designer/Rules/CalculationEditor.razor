@@ -1,0 +1,65 @@
+<div class="bf-calc-dialog-backdrop">
+    <div class="bf-calc-dialog"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="@TitleId"
+         @ref="_dialogElement"
+         @onkeydown="OnDialogKeyDown">
+        <h2 id="@TitleId" class="bf-calc-dialog__title">@Localizer["CalculationEditorTitle", NodeLabel].Value</h2>
+
+        @if (_cyclePath is { Count: > 0 } cyclePath)
+        {
+            <div role="alert" tabindex="-1" @ref="_alertElement" class="bf-calc-dialog__alert">
+                @Localizer["CalculationCycleRejected", CyclePathText(cyclePath)].Value
+            </div>
+        }
+
+        <div class="bf-calc-dialog__field">
+            <label class="bf-calc-dialog__label" for="@OperationSelectId">@Localizer["CalcOperationLabel"].Value</label>
+            <select @ref="_firstFocusElement"
+                    id="@OperationSelectId"
+                    class="bf-calc-dialog__input"
+                    @bind:get="_operation"
+                    @bind:set="OnOperationChanged">
+                @foreach (var op in AllOperations)
+                {
+                    <option value="@op">@Localizer[$"CalcOperationOption{op}"].Value</option>
+                }
+            </select>
+        </div>
+
+        <div class="bf-calc-dialog__field">
+            <label class="bf-calc-dialog__label" for="@FormatSelectId">@Localizer["CalcFormatLabel"].Value</label>
+            <select id="@FormatSelectId"
+                    class="bf-calc-dialog__input"
+                    @bind:get="_format"
+                    @bind:set="@(value => _format = value)">
+                @foreach (var format in AllFormats)
+                {
+                    <option value="@format">@Localizer[$"CalcFormatOption{format}"].Value</option>
+                }
+            </select>
+        </div>
+
+        <div class="bf-calc-dialog__rows">
+            @for (var i = 0; i < _operands.Count; i++)
+            {
+                var index = i;
+                <CalcOperandRow @key="index"
+                                Operand="_operands[index]"
+                                Fields="FieldsForOperand(_operands[index])"
+                                RowNumber="index + 1"
+                                OperandChanged="@(o => UpdateOperand(index, o))"
+                                OnRemove="@(() => RemoveOperand(index))"
+                                RequestFocus="@(_focusOperandIndex == index)" />
+            }
+        </div>
+
+        <button type="button" @ref="_addButtonElement" class="bf-calc-dialog__add-button" @onclick="AddOperand">@Localizer["CalcAddOperandButton"].Value</button>
+
+        <div class="bf-calc-dialog__actions">
+            <button type="button" class="bf-calc-dialog__button bf-calc-dialog__button--primary" @onclick="ApplyAsync">@Localizer["CalculationApplyButton"].Value</button>
+            <button type="button" class="bf-calc-dialog__button" @onclick="CancelAsync">@Localizer["CalculationCancelButton"].Value</button>
+        </div>
+    </div>
+</div>

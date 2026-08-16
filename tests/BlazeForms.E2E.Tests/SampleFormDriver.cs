@@ -65,4 +65,17 @@ internal static class SampleFormDriver
         await page.GetByLabel("Start date").FillAsync("2026-01-01").ConfigureAwait(false);
         await page.GetByLabel("End date").FillAsync("2026-12-31").ConfigureAwait(false);
     }
+
+    /// <summary>
+    /// Types <paramref name="amount"/> into "Estimated monthly household income" — the coverage
+    /// selection page's own income field, and the sole dependency of the review page's "Estimated
+    /// annual total" calc (<c>calc-engine-plan.md</c>, Increment C) — and commits it on blur, the
+    /// same way a respondent tabbing away from the field would.
+    /// </summary>
+    public static async Task FillEstimatedMonthlyIncomeAsync(IPage page, string amount)
+    {
+        var income = page.GetByLabel("Estimated monthly household income");
+        await income.FillAsync(amount).ConfigureAwait(false);
+        await income.BlurAsync().ConfigureAwait(false);
+    }
 }

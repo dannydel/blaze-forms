@@ -140,6 +140,13 @@
     <value>End date</value>
   </data>
 
+  <!-- FormRenderer's visually-hidden calc-announcer region (Increment C, PRD §5, decision log
+       D-E's "announce on commit" refinement): {0} is the calc node's own label, {1} its own
+       formatted, settled value. -->
+  <data name="CalcAnnouncementEntry" xml:space="preserve">
+    <value>{0} is now {1}.</value>
+  </data>
+
   <!-- FormSubmissionView chrome (PRD §4.3). -->
   <data name="SubmissionNotApplicable" xml:space="preserve">
     <value>Not applicable — hidden by logic at fill time</value>

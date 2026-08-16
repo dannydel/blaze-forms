@@ -105,6 +105,17 @@
     gap: var(--bf-space-2);
 }
 
+.bf-props__calculation-summary {
+    margin: 0;
+    color: var(--bf-color-muted);
+    font-size: var(--bf-font-size-sm);
+}
+
+.bf-props__calculation-actions {
+    display: flex;
+    gap: var(--bf-space-2);
+}
+
 .bf-props__button {
     min-block-size: var(--bf-touch-target);
     padding-inline: var(--bf-space-3);

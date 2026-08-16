@@ -150,6 +150,50 @@ public sealed class DesignAccessibilityTests : E2ETestBase
         await AccessibilityAssertions.AssertNoViolationsAsync(Page, "/design visibility rule editor open with one condition");
     }
 
+    /// <summary>
+    /// Opens <c>CalculationEditor</c> for a fresh calc node and authors a whole calculation —
+    /// Operation, Format, one operand, and Apply — using only the keyboard, scanning the dialog
+    /// itself while it is still open (<c>calc-engine-plan.md</c>, Increment C).
+    /// </summary>
+    [Fact]
+    public async Task AuthoringACalculationKeyboardOnlyHasNoAccessibilityViolations()
+    {
+        await DesignerDriver.GotoNewDesignAsync(Page, BaseUrl);
+        await DesignerDriver.AddPageAsync(Page);
+        await DesignerDriver.AddFieldFromPaletteAsync(Page, "Number");
+        await DesignerDriver.AddFieldFromPaletteAsync(Page, "Calculated value");
+
+        // "Calculated value" is the currently-selected field (added last); its properties panel
+        // offers "Add calculation" since it carries no calculation yet.
+        await Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Add calculation" }).ClickAsync();
+
+        var dialog = Page.GetByRole(AriaRole.Dialog, new PageGetByRoleOptions { Name = "Edit calculation for 'Untitled Calculated value'" });
+        await dialog.WaitForAsync();
+
+        // The dialog opens with real DOM focus already on the Operation select (its own first
+        // control) -- Tab twice reaches "Add operand" (past Operation, then Format) with no click.
+        Assert.True(await DesignerDriver.IsFocusedAsync(dialog.GetByLabel("Operation")));
+        await Page.Keyboard.PressAsync("Tab");
+        await Page.Keyboard.PressAsync("Tab");
+        Assert.True(await DesignerDriver.IsFocusedAsync(dialog.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Add operand" })));
+        await Page.Keyboard.PressAsync("Enter");
+
+        // The freshly added operand row defaults to Field kind against the only numeric
+        // candidate ("Untitled Number") -- a real operand row exercises the Kind/Field selects
+        // the empty dialog alone would not.
+        await Assertions.Expect(dialog.GetByLabel("Operand 1 field")).ToBeVisibleAsync();
+
+        await AccessibilityAssertions.AssertNoViolationsAsync(Page, "/design calculation editor open with one operand");
+
+        // Shift+Tab back to Apply and press Enter -- commits the whole calculation via keyboard.
+        var applyButton = dialog.GetByRole(AriaRole.Button, new LocatorGetByRoleOptions { Name = "Apply" });
+        Assert.True(await DesignerDriver.TabUntilFocusedAsync(Page, applyButton, forward: false));
+        await Page.Keyboard.PressAsync("Enter");
+
+        await dialog.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Hidden });
+        await Assertions.Expect(Page.GetByText("Sum of Untitled Number.")).ToBeVisibleAsync();
+    }
+
     [Fact]
     public async Task LinterDockJumpToNodeMovesFocusToTheOffendingRow()
     {

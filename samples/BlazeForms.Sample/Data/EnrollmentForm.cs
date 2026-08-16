@@ -23,9 +23,11 @@ internal static class EnrollmentForm
     /// </returns>
     public static FormDefinition Build()
     {
-        // Captured so the visibility rules below can reference the fields they depend on by id.
+        // Captured so the visibility rules below -- and the review page's calc -- can reference
+        // the fields they depend on by id.
         var dependentsId = FormIds.NewNodeId();
         var programTypeId = FormIds.NewNodeId();
+        var incomeId = FormIds.NewNodeId();
 
         return new FormDefinition
         {
@@ -37,8 +39,8 @@ internal static class EnrollmentForm
             Pages =
             [
                 BuildApplicantInformationPage(dependentsId),
-                BuildCoverageSelectionPage(programTypeId),
-                BuildReviewPage(),
+                BuildCoverageSelectionPage(programTypeId, incomeId),
+                BuildReviewPage(incomeId),
             ],
         };
     }
@@ -154,7 +156,7 @@ internal static class EnrollmentForm
         };
     }
 
-    private static FormPage BuildCoverageSelectionPage(string programTypeId)
+    private static FormPage BuildCoverageSelectionPage(string programTypeId, string incomeId)
     {
         var hardshipCertificationId = FormIds.NewNodeId();
         var hardshipDetailId = FormIds.NewNodeId();
@@ -218,7 +220,7 @@ internal static class EnrollmentForm
                         },
                         new FormNode
                         {
-                            Id = FormIds.NewNodeId(),
+                            Id = incomeId,
                             Type = NodeType.Currency,
                             Label = "Estimated monthly household income",
                             Min = 0,
@@ -263,7 +265,7 @@ internal static class EnrollmentForm
         };
     }
 
-    private static FormPage BuildReviewPage() => new()
+    private static FormPage BuildReviewPage(string incomeId) => new()
     {
         Id = FormIds.NewPageId(),
         Title = "Review and submit",
@@ -288,6 +290,15 @@ internal static class EnrollmentForm
                         Type = NodeType.Calc,
                         Label = "Estimated annual total",
                         Placeholder = "Calculated once your enrollment is processed",
+                        // Twelve times the monthly household income captured on the coverage
+                        // selection page -- a real, live calculation so /fill and /design both
+                        // show a working calc end to end (calc-engine-plan.md, Increment C).
+                        Calculation = new CalcExpression
+                        {
+                            Operation = CalcOperation.Multiply,
+                            Operands = [new CalcOperand { Field = incomeId }, new CalcOperand { Number = 12m }],
+                            Format = CalcFormat.Currency,
+                        },
                     },
                 ],
             },

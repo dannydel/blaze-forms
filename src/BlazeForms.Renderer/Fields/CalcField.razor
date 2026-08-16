@@ -3,6 +3,7 @@
     <label for="@FieldId">@Node.Label</label>
     <output id="@FieldId"
             class="bf-field__output"
+            aria-live="off"
             aria-describedby="@BuildDescribedBy()">@DisplayText</output>
     @if (HasHelp)
     {
