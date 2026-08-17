@@ -282,4 +282,34 @@ public sealed class FormRendererDraftTests : RendererTestContext
 
         Assert.Equal(1, store.LoadCount);
     }
+
+    [Fact]
+    public async Task ResumeRestoresAStoredDateValueIntoTheDateField()
+    {
+        var version = FormRendererTestFixtures.ToPublishedVersion(
+            FormRendererTestFixtures.CrossPageValidationDefinition);
+        var store = new RecordingDraftStore();
+        var key = new FormDraftKey(version.FormId, version.Version, "resp-1");
+
+        await store.SeedAsync(new FormDraft
+        {
+            Key = key,
+            StartedAt = DateTimeOffset.UtcNow.AddMinutes(-10),
+            UpdatedAt = DateTimeOffset.UtcNow.AddMinutes(-5),
+            Values = FormValues.ToJsonValues(new Dictionary<string, object?>
+            {
+                ["start-date"] = new DateOnly(2026, 6, 1),
+            }),
+            CurrentPageIndex = 0,
+        });
+        Services.AddSingleton<IFormDraftStore>(store);
+
+        var cut = Render<FormRenderer>(parameters => parameters
+            .Add(field => field.Version, version)
+            .Add(field => field.RespondentKey, "resp-1"));
+
+        var dateInput = cut.Find("input[type='date']");
+
+        Assert.Equal("2026-06-01", dateInput.GetAttribute("value"));
+    }
 }

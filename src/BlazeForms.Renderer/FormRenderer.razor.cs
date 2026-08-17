@@ -1,4 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Text.Json;
 using BlazeForms.Components;
 using BlazeForms.Definitions;
 using BlazeForms.Expressions;
@@ -17,24 +19,14 @@ namespace BlazeForms;
 /// <summary>
 /// Fills one published <see cref="FormVersion"/>: pages as steps behind a progress header,
 /// sections as <c>fieldset</c>/<c>legend</c>, and nodes through the registry-first component
-/// resolver (PRD §4.2, §5, §10). Conditional visibility (PRD §6) is evaluated live against the
+/// resolver. Conditional visibility is evaluated live against the
 /// respondent's in-progress answers on every render — a hidden node is simply never emitted, so
 /// it is excluded from the accessibility tree, from validation, and from the submission payload.
 /// Validation runs on blur, on page-advance, and on submit; a failed page-advance or submit
-/// renders a focusable error summary and blocks the corresponding action (PRD §4.2, §11). A
+/// renders a focusable error summary and blocks the corresponding action. A
 /// successful submit builds the submission envelope and hands it to
 /// <see cref="OnSubmitted"/> and, when the host registered one, its <c>IFormSubmissionSink</c>.
 /// </summary>
-/// <remarks>
-/// Fill drafts (<c>IFormDraftStore</c>, PRD §4.2, §9, D13) autosave on field blur and on every
-/// page change, and resume once, after interactivity, when the host both registers a store and
-/// supplies a non-<see langword="null"/> <see cref="RespondentKey"/> — an anonymous fill never
-/// touches the store at all. Setting <see cref="Ephemeral"/> goes further still: it turns off
-/// both optional host integrations (the draft store and the submission sink) unconditionally, so
-/// a design-time preview of an unpublished draft — <c>BlazeForms.Designer</c>'s own preview pane
-/// (PRD §4.1) — can render this exact component, with live logic and validation, over test data
-/// that never touches the host at all.
-/// </remarks>
 public partial class FormRenderer : ComponentBase, IAsyncDisposable
 {
     private readonly string _instanceId = "bf-renderer-" + Guid.NewGuid().ToString("n");
@@ -65,7 +57,7 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     /// <see cref="ServiceProvider"/> rather than through <c>[Inject]</c> directly — see the
     /// remarks on <see cref="ServiceProvider"/> for why. Invoked alongside
     /// <see cref="OnSubmitted"/> on a successful submit, never instead of it, so a host can rely
-    /// on either integration point without the other silently going unfired (PRD §9). Never
+    /// on either integration point without the other silently going unfired. Never
     /// resolved at all — stays <see langword="null"/> for this renderer's whole lifetime — when
     /// <see cref="Ephemeral"/> is <see langword="true"/>.
     /// </summary>
@@ -74,7 +66,7 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     /// <summary>
     /// The host's optional fill-draft store, resolved once in <see cref="OnInitialized"/> the
     /// same way as <see cref="_sink"/> — through <see cref="ServiceProvider"/> directly, never
-    /// <c>[Inject]</c>, because it is genuinely optional (PRD §4.2, §9). <see langword="null"/>
+    /// <c>[Inject]</c>, because it is genuinely optional. <see langword="null"/>
     /// turns drafts off entirely: no load, no autosave, no delete — the same outcome
     /// <see cref="Ephemeral"/> forces unconditionally, by simply never resolving this at all.
     /// </summary>
@@ -93,7 +85,7 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
 
     /// <summary>
     /// The published version to fill. The renderer holds this for the whole fill and never
-    /// swaps the definition mid-fill (PRD D13) — a newer version publishing while a respondent
+    /// swaps the definition mid-fill — a newer version publishing while a respondent
     /// is partway through never changes what they see or how it validates.
     /// </summary>
     [Parameter, EditorRequired]
@@ -109,7 +101,7 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
 
     /// <summary>
     /// The host's optional field component overrides, forwarded to the same registry-first
-    /// resolver the shipped field components resolve through (PRD §10). <see langword="null"/>
+    /// resolver the shipped field components resolve through. <see langword="null"/>
     /// renders every node with the shipped default component for its type.
     /// </summary>
     [Parameter]
@@ -124,19 +116,12 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     /// autosaved, or deleted, however long the preview fill runs or however many times it
     /// submits.
     /// </summary>
-    /// <remarks>
-    /// <see cref="OnSubmitted"/> and <see cref="ConfirmationTemplate"/> still fire and render
-    /// exactly as they would on a real fill — a preview still needs its own confirmation once its
-    /// test data "submits" (PRD §4.1); only the two optional host integrations are skipped.
-    /// Defaults to <see langword="false"/>, so every existing host that never sets this parameter
-    /// keeps behaving exactly as it always has.
-    /// </remarks>
     [Parameter]
     public bool Ephemeral { get; set; }
 
     /// <summary>
     /// Raised once, with the completed submission envelope, when the respondent submits a form
-    /// that passes validation (PRD §4.2, §9). This is the primary submission contract — a host
+    /// that passes validation. This is the primary submission contract — a host
     /// wires this up even when it has no <see cref="IFormSubmissionSink"/> registered in DI.
     /// </summary>
     [Parameter]
@@ -144,7 +129,7 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
 
     /// <summary>
     /// A host-templatable confirmation shown in place of the form once <see cref="OnSubmitted"/>
-    /// has fired (PRD §4.2). Receives the submission envelope. <see langword="null"/> renders the
+    /// has fired. Receives the submission envelope. <see langword="null"/> renders the
     /// shipped default confirmation text.
     /// </summary>
     [Parameter]
@@ -152,7 +137,7 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
 
     /// <summary>
     /// The renderer chrome's localizer — the internal, host-immune
-    /// <see cref="RendererLocalization.Shared"/> instance (PRD §12), not a DI-injected one (see
+    /// <see cref="RendererLocalization.Shared"/> instance, not a DI-injected one (see
     /// its remarks for why a DI-injected <c>IStringLocalizer&lt;RendererStrings&gt;</c> is unsafe
     /// against a host's own <c>LocalizationOptions.ResourcesPath</c>). Kept as a property, rather
     /// than referencing <see cref="RendererLocalization.Shared"/> at each call site, purely so
@@ -174,9 +159,9 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     /// <summary>
     /// This fill's draft key, or <see langword="null"/> when <see cref="RespondentKey"/> is
     /// unset — an anonymous fill has nothing to key a draft by, so it is never persisted
-    /// (PRD §4.2, §9). Always built from <see cref="Version"/>, which the renderer never swaps
+    /// Always built from <see cref="Version"/>, which the renderer never swaps.
     /// mid-fill, so <see cref="FormDraftKey.DefinitionVersion"/> stays pinned to the version this
-    /// fill started on even if a newer one publishes meanwhile (PRD D13).
+    /// fill started on even if a newer one publishes meanwhile.
     /// </summary>
     private FormDraftKey? DraftKey => RespondentKey is null
         ? null
@@ -207,7 +192,7 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     /// <summary>
     /// A page's title, falling back to a localized positional placeholder ("Page 2") when the
     /// author left <see cref="FormPage.Title"/> null — the same fallback
-    /// <see cref="FormSubmissionView"/> uses for the same case (PRD §12). Without this, an
+    /// <see cref="FormSubmissionView"/> uses for the same case. Without this, an
     /// untitled page would announce an empty step name and its progress-list entry and page
     /// heading would both render blank.
     /// </summary>
@@ -217,10 +202,10 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     /// <summary>
     /// The error summary's entries, in document order, built fresh from the current answers on
     /// every render — a node currently hidden never appears here even if it carries a stale error
-    /// from before it hid (PRD §6), and the anchors point at the same namespaced DOM id the
-    /// field itself rendered with (§10.6). Empty whenever <see cref="_showSummary"/> is
+    /// from before it hid, and the anchors point at the same namespaced DOM id the
+    /// field itself rendered with. Empty whenever <see cref="_showSummary"/> is
     /// <see langword="false"/>: a lone blur validates and reveals only its own field's inline
-    /// error (PRD §4.2) — the page-wide summary itself only ever appears as the direct result of
+    /// error — the page-wide summary itself only ever appears as the direct result of
     /// a failed page-advance or submit, never as a side effect of blurring one field.
     /// </summary>
     private IReadOnlyList<ErrorSummaryEntry> SummaryEntries
@@ -229,7 +214,7 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
         {
             if (!_showSummary)
             {
-                return [];
+                return Array.Empty<ErrorSummaryEntry>();
             }
 
             var visibleNodeIds = GetVisibleNodeIds();
@@ -246,6 +231,47 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
             return entries;
         }
     }
+
+    /// <summary>
+    /// Hydrates the raw values loaded from a draft store into CLR types suitable
+    /// for validation and eventual submission. A draft store always persists
+    /// raw JSON values, so a date field's value is a string in the store, but
+    /// it must be hydrated to a <see cref="DateOnly"/> for validation and submission.
+    /// </summary>
+    private Dictionary<string, object?> HydrateDraftValues(
+        IReadOnlyDictionary<string, JsonElement> values)
+    {
+        // Enumerate nodes on dictionary
+        var nodes = Definition.EnumerateNodes().ToDictionary(node => node.Id, StringComparer.Ordinal);
+
+        var rawValues = FormValues.FromJsonValues(values);
+        var hydratedValues = new Dictionary<string, object?>(StringComparer.Ordinal);
+
+        // Loop through and hydrate any that are present in the definition.
+        foreach(var pair in rawValues){
+            hydratedValues[pair.Key] = nodes.TryGetValue(pair.Key, out var node)
+                ? HydrateValue(node.Type, pair.Value)
+                : pair.Value;
+        }
+        return hydratedValues;
+    }
+
+    /// <summary>
+    /// Hydrates a single value from the draft store, if it is a type that needs hydration.
+    /// This is used when hydrating the entire draft values dictionary.
+    /// </summary>
+    private static object? HydrateValue(NodeType type, object? value) =>
+    type == NodeType.Date
+    && value is string text
+    && DateOnly.TryParseExact(
+        text,
+        "yyyy-MM-dd",
+        CultureInfo.InvariantCulture,
+        DateTimeStyles.None,
+        out var date)
+        ? date
+        : value;
+
 
     /// <inheritdoc />
     protected override void OnInitialized()
@@ -291,16 +317,7 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     {
         if (firstRender && !_draftLoadAttempted && !Ephemeral)
         {
-            // Loading here rather than in OnInitializedAsync is what keeps this prerender-safe:
-            // OnInitializedAsync runs twice under a prerender-then-resume host (once on the
-            // server-rendered pass, again once the circuit reconnects), which would load the
-            // draft twice and, worse, would run before there is any interactive circuit to
-            // eventually persist back to. The explicit flag is a second, belt-and-suspenders
-            // guard against ever awaiting LoadAsync more than once, on top of firstRender itself
-            // only ever being true for the very first call (PRD §4.2). The Ephemeral check is a
-            // second, belt-and-suspenders guard of its own on top of _draftStore already being
-            // null under Ephemeral (see OnInitialized) -- a preview fill never even attempts the
-            // call, rather than relying solely on LoadDraftAsync's own null-store guard.
+            // Loading here rather than in OnInitializedAsync is what keeps this prerender-safe.
             _draftLoadAttempted = true;
             await LoadDraftAsync();
         }
@@ -325,9 +342,6 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
         {
             _focusConfirmationOnNextRender = false;
 
-            // Only the shipped default confirmation renders `_confirmationElement` at all -- a
-            // host-supplied ConfirmationTemplate owns its own markup and its own focus
-            // management, exactly like a host-supplied field component owns its own a11y model.
             if (ConfirmationTemplate is null)
             {
                 await _confirmationElement.FocusAsync();
@@ -339,7 +353,7 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     /// Moves to the previous step, unguarded — nothing blocks moving backward. Moves focus to
     /// the new step's heading once it has rendered, so the step change is announced to
     /// assistive technology at the same moment the visible content changes. Autosaves the draft
-    /// afterward (PRD §4.2, §9), same as <see cref="GoToNextPage"/>.
+    /// afterward, same as <see cref="GoToNextPage"/>.
     /// </summary>
     [SuppressMessage(
         "Reliability",
@@ -349,7 +363,7 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
 
     /// <summary>
     /// Validates the current page's visible input nodes and, only if every one passes, moves to
-    /// the next step and autosaves the draft (PRD §4.2, §9). A failure renders the error summary
+    /// the next step and autosaves the draft. A failure renders the error summary
     /// and moves focus to it instead of advancing, and never touches the draft.
     /// </summary>
     [SuppressMessage(
@@ -376,8 +390,8 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     /// <summary>
     /// Validates every visible input node across every page plus the cross-field rules and,
     /// only if all of it passes, builds the submission envelope and dispatches it to
-    /// <see cref="OnSubmitted"/> and <see cref="_sink"/> before showing the confirmation
-    /// (PRD §4.2, §9). A failure navigates to the page holding the first offending field (if it
+    /// <see cref="OnSubmitted"/> and <see cref="_sink"/> before showing the confirmation.
+    /// A failure navigates to the page holding the first offending field (if it
     /// is not already the current one) and renders the error summary there. Re-entrant while a
     /// prior call is still in flight — a fast double-click delivers two <c>onclick</c> dispatches
     /// before the first has re-rendered the button away — is a no-op: the guard on
@@ -385,16 +399,6 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     /// run again, so a second call can never build a second envelope or fire
     /// <see cref="OnSubmitted"/>/<see cref="_sink"/> a second time.
     /// </summary>
-    /// <remarks>
-    /// <c>internal</c>, not <c>private</c>, solely so <c>FormRendererSubmissionTests</c> can call
-    /// it directly and deterministically prove the re-entry guard: the guard flag is set
-    /// synchronously before the first genuine <c>await</c>, so calling this method a second time
-    /// while the first call is still executing (even if the first has not itself completed) is
-    /// guaranteed to observe it already set, regardless of the host's <see cref="OnSubmitted"/>
-    /// handler timing — reproducing that race through the DOM alone would depend on exactly when
-    /// the button element is removed relative to a second dispatched click, which bUnit cannot
-    /// control deterministically.
-    /// </remarks>
     [SuppressMessage(
         "Reliability",
         "CA2007:Consider calling ConfigureAwait on the awaited task",
@@ -426,15 +430,12 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
             await _sink.SubmitAsync(envelope);
         }
 
-        // A completed fill leaves no resumable draft behind (PRD §4.2, §9) -- only when a store
-        // and a respondent key both exist; DeleteDraftAsync is itself a no-op otherwise, same as
-        // every other draft operation here.
         await DeleteDraftAsync();
     }
 
     /// <summary>
     /// Moves to <paramref name="pageIndex"/>, same bounds/no-op rules as before, then autosaves
-    /// the draft (PRD §4.2, §9) so a page change — forward, backward, or the error-navigation
+    /// the draft so a page change — forward, backward, or the error-navigation
     /// path a failed submit takes — never leaves the store holding a stale page index.
     /// </summary>
     [SuppressMessage(
@@ -466,7 +467,7 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     /// <summary>
     /// Validates every visible input node in <see cref="CurrentPage"/>, marking each one
     /// validated so its error (if any) becomes visible even though the respondent never blurred
-    /// it directly (PRD §4.2).
+    /// it directly.
     /// </summary>
     /// <returns>
     /// <see langword="true"/> when none of the current page's visible input nodes carry an
@@ -501,7 +502,7 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
 
     /// <summary>
     /// Validates every visible input node across every page, then the cross-field rules whose
-    /// target is visible (PRD §4.2, §6). Cross-field rules run only here — a page-advance checks
+    /// target is visible. Cross-field rules run only here — a page-advance checks
     /// per-field validity alone.
     /// </summary>
     /// <returns>
@@ -545,7 +546,7 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
 
     /// <summary>
     /// Drops every error whose node is not currently visible — a hidden node carries no
-    /// validation state at all (PRD §6), so a field that hid after it last failed must not go on
+    /// validation state at all, so a field that hid after it last failed must not go on
     /// counting toward "the form has an error" or lingering in the summary.
     /// </summary>
     private void PruneHiddenErrors(HashSet<string> visibleNodeIds)
@@ -601,10 +602,10 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     /// <summary>
     /// Handles the blur of one field's control: validates that field alone and marks it
     /// validated, so its error (if any) becomes visible from this point on even though the
-    /// respondent has not yet advanced the page or submitted (PRD §4.2), and refreshes the calc
+    /// respondent has not yet advanced the page or submitted, and refreshes the calc
     /// announcer (<see cref="RefreshCalcAnnouncement"/>) — the point every field's control commits
     /// its answer, whether that control recomputes live on <c>oninput</c> (number, currency, text)
-    /// or only on <c>onchange</c> (select, date, checkbox). Autosaves the draft afterward (PRD §9).
+    /// or only on <c>onchange</c> (select, date, checkbox). Autosaves the draft afterward.
     /// </summary>
     [SuppressMessage(
         "Reliability",
@@ -652,7 +653,11 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
             return;
         }
 
-        foreach (var pair in FormValues.FromJsonValues(draft.Values))
+        // Changing from just the FormValues.FormJsonValues dictionary to a hydrated one so that
+        // this preserves the generic JSON behavior for submission viewing while restoring DateOnly
+        // exactly where DateField and FieldValidator require it.
+        // DateRange already restores as string arrays and needs no change.
+        foreach (var pair in HydrateDraftValues(draft.Values))
         {
             _values[pair.Key] = pair.Value;
         }
@@ -677,7 +682,7 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
 
     /// <summary>
     /// Autosaves the in-progress fill, keyed by <see cref="DraftKey"/>, whenever a store is
-    /// registered and the fill is not anonymous (PRD §4.2, §9). Persists the raw, unfiltered
+    /// registered and the fill is not anonymous. Persists the raw, unfiltered
     /// answers — including an answer to a field currently hidden by logic — so resuming restores
     /// exactly what the respondent typed; only the eventual submission envelope filters a hidden
     /// answer out (<see cref="BuildSubmissionEnvelope"/>).
@@ -706,7 +711,7 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     }
 
     /// <summary>
-    /// Discards the draft once a fill completes (PRD §4.2, §9), so a submitted fill leaves no
+    /// Discards the draft once a fill completes, so a submitted fill leaves no
     /// resumable draft behind. A no-op under the same conditions <see cref="PersistDraftAsync"/>
     /// and <see cref="LoadDraftAsync"/> are.
     /// </summary>
@@ -732,7 +737,7 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
 
     /// <summary>
     /// The stable DOM id a field renders its primary control with, namespaced to this renderer
-    /// instance (§10.6) so two <see cref="FormRenderer"/> instances of the same definition on one
+    /// instance so two <see cref="FormRenderer"/> instances of the same definition on one
     /// page never collide on <c>id</c>. <see cref="_values"/> and the submission envelope stay
     /// keyed by the raw <paramref name="nodeId"/> — only the DOM id is namespaced.
     /// </summary>
@@ -744,15 +749,6 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     /// never reimplements condition logic; it only decides which of the current page's nodes to
     /// emit against this set.
     /// </summary>
-    /// <remarks>
-    /// Visibility is settled to a fixed point via
-    /// <see cref="VisibilityEvaluator.FilterToVisible"/> before the visible-node set is taken,
-    /// because <see cref="_values"/> is only ever written, never pruned when a field hides. A raw
-    /// pass would let a stale answer to a now-hidden field keep a field whose rule points at it
-    /// visible — a chain a → b → c would leak c into the DOM and the accessibility tree after a
-    /// hides b, exactly the leak PRD §6 forbids. Settling first also keeps what the respondent
-    /// sees identical to what the submission payload will contain.
-    /// </remarks>
     private HashSet<string> GetVisibleNodeIds()
     {
         var settledValues = VisibilityEvaluator.FilterToVisible(Definition, _values);
@@ -774,7 +770,7 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     /// <see cref="Fields.Internal.CalcDisplayFormatter"/> — but never
     /// <see cref="FormFieldBase.ValueChanged"/>, <see cref="FormFieldBase.OnBlur"/>, or
     /// <see cref="FormFieldBase.Error"/>, since nothing the respondent does to a read-only
-    /// calculated field is ever an answer to validate (PRD §5, decision log D-E, #5).
+    /// calculated field is ever an answer to validate.
     /// </summary>
     private Dictionary<string, object> BuildFieldParameters(FormNode node)
     {
@@ -806,7 +802,7 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     /// The error currently attached to a node, or <see langword="null"/> when it has none or the
     /// respondent has not yet had it validated — a field the respondent has not blurred, and that
     /// no page-advance or submit has checked yet, never shows an error even if answering it would
-    /// fail (PRD §4.2).
+    /// fail.
     /// </summary>
     private string? GetFieldError(string nodeId) =>
         _validatedNodeIds.Contains(nodeId) ? _errors.GetValueOrDefault(nodeId) : null;
