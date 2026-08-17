@@ -2,6 +2,54 @@
 {
     <p class="bf-canvas__empty">@Localizer["CanvasNoPageSelectedText"].Value</p>
 }
+else if (ScopeGroup is { } scopeGroup && ScopeRealSection is { } scopeRealSection)
+{
+    @* The drill-in scope (repeating-groups-plan.md, Increment C, PRD §4.1, §11): the breadcrumb
+       back button sits outside the role="listbox" root below -- a listbox's own accessible
+       children are constrained to role="group"/"option" (the same reason CanvasSection's own
+       title and description carry aria-hidden), so a real, Tab-reachable <button> can never be
+       one of its own descendants. *@
+    <div class="bf-canvas__breadcrumb">
+        <button type="button" class="bf-canvas__back-button" @onclick="ExitScope">
+            @Localizer["CanvasScopeBackButton", SectionTitleFor(scopeRealSection)].Value
+        </button>
+    </div>
+
+    <div class="bf-canvas"
+         role="listbox"
+         aria-label="@Localizer["CanvasRegionLabel"].Value"
+         tabindex="-1"
+         @ref="_canvasElement"
+         @onkeydown="OnKeyDown">
+        <CanvasSection Section="BuildScopeSection(scopeGroup, scopeRealSection)" RequestFocus="@IsSectionFocusPending(scopeRealSection.Id)">
+            @if (scopeGroup.Children.Count == 0)
+            {
+                <p class="bf-canvas__scope-empty">@Localizer["CanvasScopeEmptyText"].Value</p>
+            }
+            @foreach (var node in scopeGroup.Children)
+            {
+                @* A scoped row never wires OnDragStart/OnDropped/OnDragEnd -- drag-and-drop is
+                   pointer sugar this scope does not offer at all (Alt+↑/↓ is its own, sole
+                   reorder path; see OnKeyDown's own remarks), so a drop landing here is always
+                   the harmless, nothing-actually-dragged no-op every drop handler already
+                   guarantees. *@
+                <CanvasNodeRow @key="node.Id"
+                               Node="node"
+                               IsActive="@IsRowActive(node.Id)"
+                               IsSelected="@IsRowSelected(node.Id)"
+                               RequestFocus="@IsFocusPending(node.Id)"
+                               LogicSummary="@GetLogicSummary(node)"
+                               LintFindings="@GetFindingsForNode(node.Id)"
+                               OnActivate="@GetActivateCallback(node.Id)" />
+            }
+        </CanvasSection>
+    </div>
+
+    @if (_showDeleteDialog && _deleteDialogNodeId is not null)
+    {
+        <DeleteProtectionDialog EditContext="EditContext" NodeId="@_deleteDialogNodeId" OnClosed="CloseDeleteDialog" />
+    }
+}
 else
 {
     <div class="bf-canvas"

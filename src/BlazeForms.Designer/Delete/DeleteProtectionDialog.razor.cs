@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using BlazeForms.Definitions;
 using BlazeForms.Designer;
+using BlazeForms.Designer.Internal;
 using BlazeForms.Expressions;
 using BlazeForms.Internal;
 using BlazeForms.Resources;
@@ -106,7 +107,7 @@ public partial class DeleteProtectionDialog : ComponentBase, IAsyncDisposable
             ?? throw new InvalidOperationException($"No node '{NodeId}' was found in the current draft.");
 
         _nodeLabel = NodeLabel(node);
-        _referenceDescriptions = [.. ExpressionDependencyAnalysis.ReferencesTo(definition, NodeId).Select(site => Describe(site, definition))];
+        _referenceDescriptions = [.. GroupDeleteReferences.ReferencesTo(definition, node).Select(site => Describe(site, definition))];
     }
 
     /// <inheritdoc/>

@@ -5,9 +5,10 @@ namespace BlazeForms.Sample.Data;
 
 /// <summary>
 /// Builds the sample's reference benefits-enrollment form: three pages, two conditional-visibility
-/// branches, and a spread across all 18 P1 node types (PRD §5, §14 success criterion #2). This is
-/// the form the Playwright + axe CI gate exercises against real inputs, so every field here is one
-/// a respondent could plausibly answer, not a placeholder.
+/// branches, a "Household members" repeating group (repeating-groups-plan.md, Increment C), and a
+/// spread across every addable node type (PRD §5, §14 success criterion #2). This is the form the
+/// Playwright + axe CI gate exercises against real inputs, so every field here is one a respondent
+/// could plausibly answer, not a placeholder.
 /// </summary>
 internal static class EnrollmentForm
 {
@@ -150,7 +151,88 @@ internal static class EnrollmentForm
                             Type = NodeType.Callout,
                             Content = "We keep your household information confidential and use it only to determine benefit eligibility.",
                         },
+                        BuildHouseholdMembersGroup(),
                     ],
+                },
+            ],
+        };
+    }
+
+    /// <summary>
+    /// Builds the "Household members" repeating group (repeating-groups-plan.md, Increment C): a
+    /// respondent adds one row per additional household member, each with a full name, date of
+    /// birth, relationship, and weekly income, plus a per-row calc -- "Estimated annual income" --
+    /// a real, live line-total computed from that same row's own weekly income, exercising a
+    /// working group end to end on both <c>/design</c> and <c>/fill</c> (D-4). <see cref="FormNode.MinRows"/>
+    /// stays at 0 -- adding a household member is optional -- so no existing fill flow that never
+    /// touches this group needs to change to keep advancing past this page.
+    /// </summary>
+    private static FormNode BuildHouseholdMembersGroup()
+    {
+        var weeklyIncomeId = FormIds.NewNodeId();
+
+        return new FormNode
+        {
+            Id = FormIds.NewNodeId(),
+            Type = NodeType.Repeating,
+            Label = "Household members",
+            Help = "Add one row for each additional person living in your household.",
+            ItemLabel = "Member",
+            MinRows = 0,
+            MaxRows = 8,
+            Children =
+            [
+                new FormNode
+                {
+                    Id = FormIds.NewNodeId(),
+                    Type = NodeType.Text,
+                    Label = "Full name",
+                    Required = true,
+                },
+                new FormNode
+                {
+                    Id = FormIds.NewNodeId(),
+                    Type = NodeType.Date,
+                    Label = "Date of birth",
+                },
+                new FormNode
+                {
+                    Id = FormIds.NewNodeId(),
+                    Type = NodeType.Select,
+                    Label = "Relationship to applicant",
+                    Required = true,
+                    Options =
+                    [
+                        new FormOption { Value = "spouse", Label = "Spouse" },
+                        new FormOption { Value = "child", Label = "Child" },
+                        new FormOption { Value = "parent", Label = "Parent" },
+                        new FormOption { Value = "other", Label = "Other" },
+                    ],
+                },
+                new FormNode
+                {
+                    Id = weeklyIncomeId,
+                    Type = NodeType.Currency,
+                    Label = "Weekly income",
+                    Min = 0,
+                    Half = true,
+                },
+                new FormNode
+                {
+                    Id = FormIds.NewNodeId(),
+                    Type = NodeType.Calc,
+                    Label = "Estimated annual income",
+                    Half = true,
+                    // A per-row line total: this row's own weekly income times 52 weeks --
+                    // resolved against the row-scoped merged view (repeating-groups-plan.md's
+                    // "Reference semantics"), so each row's calc reads that same row's own field,
+                    // never a sibling row's.
+                    Calculation = new CalcExpression
+                    {
+                        Operation = CalcOperation.Multiply,
+                        Operands = [new CalcOperand { Field = weeklyIncomeId }, new CalcOperand { Number = 52m }],
+                        Format = CalcFormat.Currency,
+                    },
                 },
             ],
         };

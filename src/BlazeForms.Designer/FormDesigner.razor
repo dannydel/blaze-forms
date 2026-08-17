@@ -25,7 +25,7 @@
         <section class="bf-designer__pane bf-designer__pane--palette" role="region" aria-label="@Localizer["PaneTitlePalette"].Value">
             <h2 class="bf-designer__pane-heading">@Localizer["PaneTitlePalette"].Value</h2>
             <div class="bf-designer__pane-body">
-                <FieldPalette OnAddRequested="OnPaletteAddRequested" />
+                <FieldPalette OnAddRequested="OnPaletteAddRequested" IsInsideRepeatingGroup="@(ActiveScopeGroupId is not null)" />
             </div>
         </section>
 

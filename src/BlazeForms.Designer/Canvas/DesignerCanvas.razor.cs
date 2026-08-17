@@ -117,6 +117,7 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
     private ElementReference _canvasElement;
     private IJSObjectReference? _module;
     private IJSObjectReference? _scrollSuppressionHandle;
+    private string? _scrollSuppressionElementKey;
     private string? _activeNodeId;
     private string? _pendingFocusNodeId;
     private string? _pendingFocusSectionId;
@@ -169,6 +170,41 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
     private FormPage? ActivePage => ActivePageId is null
         ? null
         : EditContext.Draft.Definition.Pages.FirstOrDefault(page => string.Equals(page.Id, ActivePageId, StringComparison.Ordinal));
+
+    /// <summary>
+    /// The repeating group this canvas is currently drilled into (repeating-groups-plan.md,
+    /// Increment C), or <see langword="null"/> at the top level. Derived straight from
+    /// <see cref="DesignerEditContext.Selection"/>'s own <see cref="DesignerSelection.GroupId"/>
+    /// rather than a field this component owns -- the single source of truth every
+    /// scope-restoring undo/redo (a whole-definition memento carries the selection, GroupId
+    /// included) and jump-to-node action already updates for free, with no extra bookkeeping here.
+    /// Also requires <see cref="DesignerSelection.PageId"/> to still match <see cref="ActivePageId"/>
+    /// -- an author switching page tabs while scoped lands back at that new page's own top level,
+    /// never showing a stale scope that belongs to the page just left.
+    /// </summary>
+    private string? ScopeGroupId => EditContext.Selection.GroupId is { } groupId
+        && string.Equals(EditContext.Selection.PageId, ActivePageId, StringComparison.Ordinal)
+        ? groupId
+        : null;
+
+    /// <summary>
+    /// <see cref="ScopeGroupId"/>'s own node, or <see langword="null"/> when nothing is scoped
+    /// (or, defensively, a scoped group id that no longer resolves -- unreachable through this
+    /// component's own affordances, since nothing ever deletes a group while its own scope is
+    /// showing, but never trusted blindly).
+    /// </summary>
+    private FormNode? ScopeGroup => ScopeGroupId is { } groupId ? EditContext.Draft.Definition.FindNode(groupId) : null;
+
+    private bool IsScoped => ScopeGroup is not null;
+
+    /// <summary>
+    /// The roving cursor's own current node -- a top-level row, or, while scoped, one of
+    /// <see cref="ScopeGroup"/>'s own children. Resolved through <see cref="FormDefinitionExtensions.FindNode"/>
+    /// directly (which already descends into every node's own <see cref="FormNode.Children"/>)
+    /// rather than re-deriving which list <see cref="_activeNodeId"/> lives in here -- node ids
+    /// are globally unique (AGENTS.md invariant #5), so this is correct regardless of scope.
+    /// </summary>
+    private FormNode? ActiveNode => _activeNodeId is null ? null : EditContext.Draft.Definition.FindNode(_activeNodeId);
 
     /// <inheritdoc/>
     protected override void OnParametersSet()
@@ -225,9 +261,14 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
     /// showing a real row list and nothing is attached yet -- and detaches it the moment
     /// <see cref="ActivePage"/> goes back to <see langword="null"/> (the empty state has no
     /// <c>bf-canvas</c> element for a stale reference to keep pointing at). A page switching back
-    /// and forth between "has content" and "no page selected" re-attaches against whichever new
-    /// DOM element <c>@ref</c> most recently captured, since the <c>@if</c> in
-    /// <c>DesignerCanvas.razor</c> tears the element down and recreates it on each switch.
+    /// and forth between "has content" and "no page selected", or -- Increment C -- into and out
+    /// of a repeating group's own drill-in scope, re-attaches against whichever new DOM element
+    /// <c>@ref</c> most recently captured: <c>DesignerCanvas.razor</c>'s own <c>@if</c>/
+    /// <c>else if</c>/<c>else</c> tears the element down and recreates it on every one of those
+    /// switches, since the scoped and unscoped branches are two different render fragments even
+    /// though both happen to carry the exact same <c>@ref</c>. <see cref="_scrollSuppressionElementKey"/>
+    /// is what notices that: it changes whenever <see cref="ActivePageId"/> or
+    /// <see cref="ScopeGroupId"/> does, which is exactly when the rendered element is a fresh one.
     /// </summary>
     [SuppressMessage(
         "Reliability",
@@ -260,16 +301,21 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
             return;
         }
 
-        if (ActivePage is not null && _scrollSuppressionHandle is null)
+        var elementKey = ActivePage is null ? null : $"{ActivePageId}|{ScopeGroupId}";
+
+        if (_scrollSuppressionHandle is not null && !string.Equals(_scrollSuppressionElementKey, elementKey, StringComparison.Ordinal))
+        {
+            var staleHandle = _scrollSuppressionHandle;
+            _scrollSuppressionHandle = null;
+            await staleHandle.InvokeVoidAsync("dispose");
+            await staleHandle.DisposeAsync();
+        }
+
+        _scrollSuppressionElementKey = elementKey;
+
+        if (elementKey is not null && _scrollSuppressionHandle is null)
         {
             _scrollSuppressionHandle = await _module.InvokeAsync<IJSObjectReference>("attachScrollSuppression", _canvasElement);
-        }
-        else if (ActivePage is null && _scrollSuppressionHandle is not null)
-        {
-            var handle = _scrollSuppressionHandle;
-            _scrollSuppressionHandle = null;
-            await handle.InvokeVoidAsync("dispose");
-            await handle.DisposeAsync();
         }
     }
 
@@ -346,6 +392,62 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
     /// see <see cref="CanvasSection.RequestFocus"/>.
     /// </summary>
     private bool IsSectionFocusPending(string sectionId) => string.Equals(_pendingFocusSectionId, sectionId, StringComparison.Ordinal);
+
+    /// <summary>
+    /// <see cref="ScopeGroup"/>'s own real, top-level enclosing section -- the section its own
+    /// row actually lives in, as distinct from <see cref="BuildScopeSection"/>'s synthetic
+    /// stand-in the scoped render feeds <see cref="CanvasSection"/>. <see langword="null"/> only
+    /// when <see cref="ScopeGroup"/> itself is (defensively; see that property's own remarks).
+    /// </summary>
+    private FormSection? ScopeRealSection
+    {
+        get
+        {
+            if (ScopeGroup is not { } group)
+            {
+                return null;
+            }
+
+            var located = DefinitionMutations.FindNodeLocation(EditContext.Draft.Definition, group.Id);
+            return located is { } location ? EditContext.Draft.Definition.Pages[location.PageIndex].Sections[location.SectionIndex] : null;
+        }
+    }
+
+    /// <summary>
+    /// Builds the synthetic <see cref="FormSection"/> the scoped render feeds
+    /// <see cref="CanvasSection"/> in place of a real one (repeating-groups-plan.md, Increment C):
+    /// <paramref name="realSection"/> itself, but with its own <see cref="FormSection.Title"/>
+    /// replaced by the group-scope heading -- reusing <paramref name="realSection"/>'s own
+    /// <see cref="FormSection.Id"/> via <c>with</c> is exactly what keeps
+    /// <see cref="IsSectionFocusPending"/> matching it for free, with no scope-specific focus
+    /// field of this component's own to keep in sync. Never rendered on screen itself (only
+    /// <see cref="CanvasSection"/>'s own <c>aria-hidden</c> heading reads it), so
+    /// <see cref="FormSection.Description"/> is cleared rather than carried over -- the real
+    /// section's own description describes that section's top-level content, not this group's.
+    /// </summary>
+    private static FormSection BuildScopeSection(FormNode group, FormSection realSection) => realSection with
+    {
+        Title = Localizer["CanvasScopeHeading", NodeDisplayLabel(group)].Value,
+        Description = null,
+    };
+
+    /// <summary>
+    /// Leaves <see cref="ScopeGroup"/>'s own scope -- the breadcrumb back button's path, the
+    /// pointer-and-keyboard-both counterpart to <c>Esc</c>'s own handling in
+    /// <see cref="OnKeyDown"/>.
+    /// </summary>
+    private void ExitScope()
+    {
+        if (ScopeGroupId is { } groupId)
+        {
+            GroupScopeNavigation.Exit(EditContext, groupId);
+        }
+    }
+
+    private static string NodeDisplayLabel(FormNode node) =>
+        node.Label ?? Localizer["UntitledNodeLabel", Localizer[$"NodeType{node.Type}"].Value].Value;
+
+    private static string SectionTitleFor(FormSection section) => section.Title ?? Localizer["UntitledSectionName"].Value;
 
     /// <summary>
     /// The plain-language description of <paramref name="node"/>'s own
@@ -556,19 +658,46 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
     }
 
     /// <summary>
-    /// Dispatches every keyboard command this canvas recognizes -- <c>Ctrl+M</c>'s move-to-position
-    /// dialog, <c>Ctrl+Shift+Z</c>/<c>Ctrl+Z</c> redo/undo (checked in that order, since
+    /// Dispatches every keyboard command this canvas recognizes -- <c>Esc</c>'s scope exit (only
+    /// while scoped, checked first so it fires even for an empty group's own zero-row scope),
+    /// <c>Ctrl+M</c>'s move-to-position dialog (a no-op while scoped -- see this method's own
+    /// remarks below), <c>Ctrl+Shift+Z</c>/<c>Ctrl+Z</c> redo/undo (checked in that order, since
     /// <c>Ctrl+Z</c> alone is a strict subset of <c>Ctrl+Shift+Z</c>'s own key combination),
     /// <c>Ctrl+D</c> duplicate, the two <c>Alt+</c>-modified reorder paths
-    /// (<see cref="HandleAltArrow"/>), and finally plain roving-cursor movement plus
-    /// <c>Delete</c> -- in that priority order, so an author holding <c>Alt</c> or <c>Ctrl</c> for
-    /// one of those never also falls through to the unmodified handling below (PRD §4.1, §11).
+    /// (<see cref="HandleAltArrow"/>), and finally plain roving-cursor movement, <c>→</c>'s scope
+    /// entry, and <c>Delete</c> -- in that priority order, so an author holding <c>Alt</c> or
+    /// <c>Ctrl</c> for one of those never also falls through to the unmodified handling below
+    /// (PRD §4.1, §11).
     /// </summary>
+    /// <remarks>
+    /// <b>The drill-in scope's own reorder path (repeating-groups-plan.md, Increment C).</b> Only
+    /// <c>Alt+↑/↓</c> (<see cref="HandleAltArrow"/>, unchanged -- it already only ever needs
+    /// <see cref="_activeNodeId"/>, and <see cref="DesignerEditContext.MoveNodeWithinSection"/>
+    /// itself now reorders within whichever container a node actually sits in) works while
+    /// scoped: a group's own scope has exactly one container, so <c>Alt+←/→</c> (which moves to an
+    /// <em>adjacent section</em>), the <c>Ctrl+M</c> dialog (which <em>picks</em> a section to move
+    /// into), and drag-and-drop (this canvas never wires a scoped row's own drag callbacks at all
+    /// -- see <c>DesignerCanvas.razor</c>'s own remarks) have nothing left to offer there that
+    /// <c>Alt+↑/↓</c> does not already cover, so this method disables <c>Ctrl+M</c> outright while
+    /// scoped and leaves <c>Alt+←/→</c> to its own existing no-op guard (it already bails the
+    /// moment <see cref="DefinitionMutations.FindNodeLocation"/> -- top-level only -- cannot find
+    /// a scoped child).
+    /// </remarks>
     private void OnKeyDown(KeyboardEventArgs e)
     {
+        if (IsScoped && string.Equals(e.Key, "Escape", StringComparison.Ordinal))
+        {
+            GroupScopeNavigation.Exit(EditContext, ScopeGroupId!);
+            return;
+        }
+
         if (e.CtrlKey && string.Equals(e.Key, "m", StringComparison.OrdinalIgnoreCase))
         {
-            OpenMoveDialog();
+            if (!IsScoped)
+            {
+                OpenMoveDialog();
+            }
+
             return;
         }
 
@@ -622,6 +751,13 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
                 break;
             case "ArrowUp":
                 MoveActive(flatNodeIds, -1);
+                break;
+            case "ArrowRight":
+                if (!IsScoped && ActiveNode is { Type: NodeType.Repeating } activeGroup)
+                {
+                    GroupScopeNavigation.Enter(EditContext, activeGroup.Id);
+                }
+
                 break;
             case "Home":
                 SetActive(flatNodeIds[0]);
@@ -755,7 +891,16 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
     /// </summary>
     private void RequestDelete(string nodeId)
     {
-        var references = ExpressionDependencyAnalysis.ReferencesTo(EditContext.Draft.Definition, nodeId);
+        var definition = EditContext.Draft.Definition;
+        var node = definition.FindNode(nodeId);
+
+        // A node this canvas is actively showing always resolves, but this stays defensive
+        // rather than asserting it, the same "never trust a stale click blindly" caution
+        // RequestDelete's own callers already carry -- ExpressionDependencyAnalysis.ReferencesTo
+        // is exactly as safe to call by bare id if it somehow does not.
+        var references = node is null
+            ? ExpressionDependencyAnalysis.ReferencesTo(definition, nodeId)
+            : GroupDeleteReferences.ReferencesTo(definition, node);
 
         if (references.Count == 0)
         {
@@ -814,21 +959,46 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
     /// </summary>
     private void Activate(string nodeId)
     {
-        var located = DefinitionMutations.FindNodeLocation(EditContext.Draft.Definition, nodeId);
+        if (ActivePageId is null)
+        {
+            return;
+        }
 
-        if (located is null || ActivePageId is null)
+        // A scoped row's own top-level container is its own group's -- FindNodeLocation only
+        // ever finds a section's own top-level nodes, so the anchor to search by is the group's
+        // id, not the child's own, while scoped.
+        var anchorId = ScopeGroupId ?? nodeId;
+        var located = DefinitionMutations.FindNodeLocation(EditContext.Draft.Definition, anchorId);
+
+        if (located is null)
         {
             return;
         }
 
         var section = EditContext.Draft.Definition.Pages[located.Value.PageIndex].Sections[located.Value.SectionIndex];
         _activeNodeId = nodeId;
-        EditContext.Select(DesignerSelection.ForNode(nodeId, ActivePageId, section.Id, DesignerFocusIntent.None));
+        var selection = DesignerSelection.ForNode(nodeId, ActivePageId, section.Id, DesignerFocusIntent.None);
+
+        if (ScopeGroupId is { } groupId)
+        {
+            selection = selection with { GroupId = groupId };
+        }
+
+        EditContext.Select(selection);
     }
 
-    private List<string> BuildFlatNodeIds() => ActivePage is null
-        ? []
-        : [.. ActivePage.Sections.SelectMany(section => section.Nodes).Select(node => node.Id)];
+    /// <summary>
+    /// The roving cursor's own flat id list: <see cref="ScopeGroup"/>'s own children while
+    /// scoped, or every node on <see cref="ActivePage"/> otherwise -- the one list ↑/↓/Home/End
+    /// and the roving cursor itself all work over, regardless of which one it is (the scope is
+    /// just a different node list, per D-4's own "every existing affordance applies to the
+    /// children unchanged").
+    /// </summary>
+    private List<string> BuildFlatNodeIds() => ScopeGroup is { } group
+        ? [.. group.Children.Select(child => child.Id)]
+        : ActivePage is null
+            ? []
+            : [.. ActivePage.Sections.SelectMany(section => section.Nodes).Select(node => node.Id)];
 
     /// <summary>
     /// The tail of <see cref="OnParametersSet"/>'s page-changed branch: picks which node the
@@ -887,22 +1057,27 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
     /// that method's own remarks).
     /// </summary>
     /// <remarks>
-    /// <b>Node-less restore fallback (WCAG 2.4.3).</b> <see cref="DesignerEditContext.Undo"/> and
-    /// <see cref="DesignerEditContext.Redo"/> tag their restored selection
-    /// <see cref="DesignerFocusIntent.Restored"/> regardless of what it names -- unlike every
-    /// other mutation, which always lands on a real node (PRD §11's other intents). A restored
-    /// selection can legitimately name no node at all: <see cref="DesignerSelection.None"/> itself
-    /// (undoing the only add a still-empty section or page ever had), or a section it names but
-    /// that section (still, or once again) has no rows of its own. With nothing to hand a
+    /// <b>Node-less fallback (WCAG 2.4.3).</b> Two mutations can tag a selection that names no
+    /// node at all, tagged with an intent other than <see cref="DesignerFocusIntent.None"/> so
+    /// focus still moves somewhere sensible: <see cref="DesignerEditContext.Undo"/>/
+    /// <see cref="DesignerEditContext.Redo"/> tag <see cref="DesignerFocusIntent.Restored"/>
+    /// regardless of what they restore -- <see cref="DesignerSelection.None"/> itself (undoing the
+    /// only add a still-empty section or page ever had), or a section that (still, or once again)
+    /// has no rows of its own -- and <c>GroupScopeNavigation.Enter</c> tags
+    /// <see cref="DesignerFocusIntent.JumpedTo"/> when the group being drilled into has no fields
+    /// yet (repeating-groups-plan.md, Increment C). With nothing to hand a
     /// <see cref="CanvasNodeRow"/>, real DOM focus would otherwise stay exactly where it was --
     /// typically nowhere, once whatever row or dialog last held it has left the DOM -- stranding
     /// it on <c>&lt;body&gt;</c> even though <see cref="DesignerEditContext.Announced"/> still
-    /// speaks the undo/redo. This falls back to the named section's own group element
-    /// (<see cref="CanvasSection.RequestFocus"/>) when the restored selection still anchors one,
-    /// or this canvas's own listbox root when it does not. <see cref="DesignerSelection.PageId"/>
-    /// is <see langword="null"/> for <see cref="DesignerSelection.None"/> itself, so the same
-    /// page-match this method's node branch requires would otherwise reject it outright even
-    /// though undo/redo only ever concerns whichever page this canvas is already showing.
+    /// speaks the change. This falls back to the named section's own group element
+    /// (<see cref="CanvasSection.RequestFocus"/>) when the selection still anchors one -- the
+    /// scoped-empty case's own synthetic scope section reuses its real enclosing section's own
+    /// id for exactly this reason, so <see cref="IsSectionFocusPending"/> matches it with no
+    /// scope-specific field of its own -- or this canvas's own listbox root when it does not.
+    /// <see cref="DesignerSelection.PageId"/> is <see langword="null"/> for
+    /// <see cref="DesignerSelection.None"/> itself, so the same page-match this method's node
+    /// branch requires would otherwise reject it outright even though undo/redo only ever
+    /// concerns whichever page this canvas is already showing.
     /// </remarks>
     private void OnEditContextStateChanged() => InvokeAsync(() =>
     {
@@ -918,11 +1093,22 @@ public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
                 _pendingFocusNodeId = nodeId;
             }
         }
-        else if (isThisPage && selection.Intent == DesignerFocusIntent.Restored)
+        else if (isThisPage && selection.Intent is DesignerFocusIntent.Restored or DesignerFocusIntent.JumpedTo)
         {
+            // Every other node-less intent (NewNode's own AddSection/AddPage, for instance) is a
+            // live commit whose focus destination is a later phase's own concern, not this
+            // fallback's -- only Restored (undo/redo) and JumpedTo (this scope's own empty-group
+            // entry) ever need it here.
             _pendingFocusSectionId = selection.SectionId;
             _pendingFocusCanvasRoot = selection.SectionId is null;
         }
+
+        // Scoping in or out is a view change, not a mutation LintResults itself reacts to
+        // (Increment C) -- OnParametersSet's own pageChanged/lintResultsChanged gate never fires
+        // for it, so a mutation-free scope exit needs its own rebuild here, or the page's
+        // top-level rows would keep showing whichever findings _findingsByNode last held while
+        // scoped (a stale group's own children's) until the next real lint pass happened to tick.
+        RebuildFindingsByNode();
 
         StateHasChanged();
     });

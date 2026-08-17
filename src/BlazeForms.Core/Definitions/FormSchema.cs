@@ -24,9 +24,11 @@ public static class FormSchema
         NodeType.Divider,
     ];
 
+    // NodeType.Repeating un-reserved for the repeating-groups Designer slice
+    // (repeating-groups-plan.md, Increment C): the Core answer model, row-scoped evaluation, and
+    // fillable Renderer group all shipped in Increments A and B, so a P1 author can now place one.
     private static readonly NodeType[] ReservedNodeTypesBacking =
     [
-        NodeType.Repeating,
         NodeType.File,
         NodeType.Lookup,
     ];
@@ -35,7 +37,10 @@ public static class FormSchema
         [.. Enum.GetValues<NodeType>().Where(nodeType => !ReservedNodeTypesBacking.Contains(nodeType))];
 
     /// <summary>
-    /// The 18 node types a P1 designer can place on a canvas.
+    /// The 19 node types a P1 designer can place on a canvas -- every <see cref="NodeType"/>
+    /// except <see cref="ReservedNodeTypes"/>. <see cref="NodeType.Repeating"/> joined this set in
+    /// the repeating-groups Designer slice; the name stays <c>PhaseOneNodeTypes</c> since it is
+    /// public API, even though a "phase" is no longer a fixed count.
     /// </summary>
     public static IReadOnlyList<NodeType> PhaseOneNodeTypes => PhaseOneNodeTypesBacking;
 
@@ -80,7 +85,7 @@ public static class FormSchema
     /// The node type to classify.
     /// </param>
     /// <returns>
-    /// <see langword="true"/> for the repeating, file, and lookup types.
+    /// <see langword="true"/> for the file and lookup types.
     /// </returns>
     public static bool IsReservedForLaterPhase(NodeType nodeType) => ReservedNodeTypesBacking.Contains(nodeType);
 }

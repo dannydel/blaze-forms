@@ -21,7 +21,7 @@ public sealed class FieldPaletteTests : DesignerTestContext
     }
 
     [Fact]
-    public void EighteenPhaseOneTypesRenderAddableAndNotDisabled()
+    public void NineteenPhaseOneTypesRenderAddableAndNotDisabled()
     {
         var cut = Render<FieldPalette>();
 
@@ -45,12 +45,31 @@ public sealed class FieldPaletteTests : DesignerTestContext
             addableTypes.OrderBy(t => t).ToArray());
     }
 
+    /// <summary>
+    /// <see cref="NodeType.Repeating"/> is addable, not reserved (repeating-groups-plan.md,
+    /// Increment C) -- pins the un-reservation directly, independent of the reverse-direction
+    /// assertion <see cref="NineteenPhaseOneTypesRenderAddableAndNotDisabled"/> already covers.
+    /// </summary>
     [Fact]
-    public void ThreeReservedTypesRenderDisabledWithAPhaseBadgeAndAreAriaDisabled()
+    public void RepeatingIsAddableAndNotDisabled()
+    {
+        NodeType? requested = null;
+        var cut = Render<FieldPalette>(p => p.Add(f => f.OnAddRequested, type => requested = type));
+
+        var button = FindButton(cut, ExpectedLabel(NodeType.Repeating));
+        Assert.False(button.HasAttribute("disabled"));
+        Assert.False(button.HasAttribute("aria-disabled"));
+
+        button.Click();
+        Assert.Equal(NodeType.Repeating, requested);
+    }
+
+    [Fact]
+    public void TwoReservedTypesRenderDisabledWithAPhaseBadgeAndAreAriaDisabled()
     {
         var cut = Render<FieldPalette>();
 
-        Assert.Equal(3, FormSchema.ReservedNodeTypes.Count);
+        Assert.Equal(2, FormSchema.ReservedNodeTypes.Count);
 
         foreach (var reserved in FormSchema.ReservedNodeTypes)
         {
@@ -66,7 +85,7 @@ public sealed class FieldPaletteTests : DesignerTestContext
     }
 
     [Fact]
-    public void ReservedTypesLiveInTheAdvancedGroupAlongsideCalc()
+    public void RepeatingAndTheReservedTypesLiveInTheAdvancedGroupAlongsideCalc()
     {
         var cut = Render<FieldPalette>();
 
@@ -76,13 +95,35 @@ public sealed class FieldPaletteTests : DesignerTestContext
             .Select(span => span.TextContent)
             .ToArray();
 
-        Assert.Equal(1 + FormSchema.ReservedNodeTypes.Count, advancedLabels.Length);
+        Assert.Equal(2 + FormSchema.ReservedNodeTypes.Count, advancedLabels.Length);
         Assert.Contains(ExpectedLabel(NodeType.Calc), advancedLabels);
+        Assert.Contains(ExpectedLabel(NodeType.Repeating), advancedLabels);
 
         foreach (var reserved in FormSchema.ReservedNodeTypes)
         {
             Assert.Contains(ExpectedLabel(reserved), advancedLabels);
         }
+    }
+
+    /// <summary>
+    /// While the canvas is scoped inside a repeating group (repeating-groups-plan.md, Increment
+    /// C's "no repeating inside a repeating" rule), the palette drops
+    /// <see cref="NodeType.Repeating"/> from the Advanced group entirely -- not merely disabling
+    /// it, since <see cref="Internal.DefinitionMutations.InsertChildNode"/> throws for one, so
+    /// there is no legitimate reason to show it at all.
+    /// </summary>
+    [Fact]
+    public void IsInsideRepeatingGroupHidesRepeatingFromTheAdvancedGroup()
+    {
+        var cut = Render<FieldPalette>(p => p.Add(f => f.IsInsideRepeatingGroup, true));
+
+        var labels = cut.FindAll("span.bf-palette__item-label").Select(span => span.TextContent).ToArray();
+        Assert.DoesNotContain(ExpectedLabel(NodeType.Repeating), labels);
+
+        // Every other Advanced entry, and every P1 group's own entries, are unaffected.
+        Assert.Contains(ExpectedLabel(NodeType.Calc), labels);
+        Assert.Contains(ExpectedLabel(NodeType.Text), labels);
+        Assert.Equal(Enum.GetValues<NodeType>().Length - 1, labels.Length);
     }
 
     [Fact]
@@ -140,7 +181,7 @@ public sealed class FieldPaletteTests : DesignerTestContext
     {
         var raised = false;
         var cut = Render<FieldPalette>(p => p.Add(f => f.OnAddRequested, _ => raised = true));
-        var button = FindButton(cut, ExpectedLabel(NodeType.Repeating));
+        var button = FindButton(cut, ExpectedLabel(NodeType.File));
 
         // A disabled native <button> never gets an @onclick handler wired to it in the first
         // place -- bUnit refuses to dispatch a click at all, which is stronger proof of

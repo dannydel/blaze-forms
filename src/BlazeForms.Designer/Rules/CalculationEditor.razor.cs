@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using BlazeForms.Definitions;
 using BlazeForms.Designer;
+using BlazeForms.Designer.Internal;
 using BlazeForms.Expressions;
 using BlazeForms.Internal;
 using BlazeForms.Resources;
@@ -352,18 +353,20 @@ public partial class CalculationEditor : ComponentBase, IAsyncDisposable
     /// <summary>
     /// Every input node whose own answer shape matches <paramref name="operation"/>'s own operand
     /// typing (PRD §13): number/currency/calc-of-number fields for the four numeric operations,
-    /// date/calc-of-date fields for the two date operations.
+    /// date/calc-of-date fields for the two date operations -- further narrowed to
+    /// <see cref="NodeId"/>'s own repeating-group boundary (repeating-groups-plan.md, Increment
+    /// C): a calc inside a group offers its own siblings plus every top-level field; a top-level
+    /// calc excludes every group's children, matching the linter's own blocking FR-04 rule.
     /// </summary>
     private IReadOnlyList<FormNode> CandidateFieldsFor(CalcOperation operation)
     {
         var wantsDateFields = IsDateOperation(operation);
 
-        return
-        [
-            .. EditContext.Draft.Definition.EnumerateNodes()
-                .Where(node => FormSchema.IsInputNode(node.Type))
-                .Where(node => wantsDateFields ? IsDateField(node) : IsNumericField(node)),
-        ];
+        var typedCandidates = EditContext.Draft.Definition.EnumerateNodes()
+            .Where(node => FormSchema.IsInputNode(node.Type))
+            .Where(node => wantsDateFields ? IsDateField(node) : IsNumericField(node));
+
+        return RuleFieldBoundary.Filter(EditContext.Draft.Definition, NodeId, typedCandidates);
     }
 
     private static bool IsDateOperation(CalcOperation operation) =>

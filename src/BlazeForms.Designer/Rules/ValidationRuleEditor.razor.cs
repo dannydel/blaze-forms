@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using BlazeForms.Definitions;
 using BlazeForms.Designer;
+using BlazeForms.Designer.Internal;
 using BlazeForms.Expressions;
 using BlazeForms.Internal;
 using BlazeForms.Resources;
@@ -67,6 +68,22 @@ public partial class ValidationRuleEditor : ComponentBase, IAsyncDisposable
 
     private IReadOnlyList<FormNode> InputFields =>
         [.. EditContext.Draft.Definition.EnumerateNodes().Where(node => FormSchema.IsInputNode(node.Type))];
+
+    /// <summary>
+    /// The condition-row field candidates for <paramref name="rule"/> -- <see cref="InputFields"/>
+    /// filtered to <paramref name="rule"/>'s own boundary (repeating-groups-plan.md, Increment C):
+    /// a rule targeting a repeating group's own child may reference that child's siblings and
+    /// every top-level field; a rule targeting a top-level field excludes every group's children.
+    /// Matches the linter's own FR-04 rule exactly -- both key off
+    /// <see cref="ExpressionDependencyAnalysis.GetRepeatingGroupOf"/> against
+    /// <see cref="ValidationRule.Target"/>. <see cref="Rules.ConditionRow.Fields"/> is the picker
+    /// this feeds; <see cref="InputFields"/> itself stays unfiltered for the Target select, since a
+    /// rule's own target is not itself scoped by anything.
+    /// </summary>
+    private IReadOnlyList<FormNode> ConditionFieldsFor(ValidationRule rule) =>
+        string.IsNullOrWhiteSpace(rule.Target)
+            ? InputFields
+            : RuleFieldBoundary.Filter(EditContext.Draft.Definition, rule.Target, InputFields);
 
     /// <inheritdoc/>
     protected override void OnParametersSet()
@@ -218,7 +235,8 @@ public partial class ValidationRuleEditor : ComponentBase, IAsyncDisposable
     private void AddCondition(int index)
     {
         var rule = Rules[index];
-        var fallbackField = InputFields.Count > 0 ? InputFields[0].Id : string.Empty;
+        var candidates = ConditionFieldsFor(rule);
+        var fallbackField = candidates.Count > 0 ? candidates[0].Id : string.Empty;
         var condition = new Condition { Field = fallbackField, Operator = ConditionOperator.Is };
         _focusConditionCoordinate = (index, rule.Expression.Conditions.Count);
         ReplaceRule(index, rule with { Expression = rule.Expression with { Conditions = [.. rule.Expression.Conditions, condition] } });

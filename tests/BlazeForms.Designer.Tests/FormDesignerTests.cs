@@ -472,6 +472,67 @@ public sealed class FormDesignerTests : DesignerTestContext
         Assert.NotNull(firstNameNode);
     }
 
+    [Fact]
+    public async Task PaletteAddWhileScopedIntoAGroupOnTheSamePageStillTargetsThatGroupsOwnChildren()
+    {
+        var store = new InMemoryFormDefinitionStore();
+        const string formId = "form-1";
+        await store.SaveDraftAsync(FormLifecycle.CreateDraft(DesignerTestFixtures.TwoPageRepeatingGroupDefinition(formId)));
+        Services.AddSingleton<IFormDefinitionStore>(store);
+
+        var cut = Render<FormDesigner>(p => p.Add(f => f.FormId, formId));
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Instance.EditContext));
+        var editContext = cut.Instance.EditContext!;
+
+        // Drill into "group-1" on its own page -- the canvas now shows the scoped view (its back
+        // button proves it), and the palette hides Repeating (no nesting) while genuinely scoped.
+        editContext.Select(DesignerSelection.ForNode("child-a", "page-1", "section-1", DesignerFocusIntent.None) with { GroupId = "group-1" });
+        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("button.bf-canvas__back-button")));
+        Assert.DoesNotContain(cut.FindAll("span.bf-palette__item-label"), span => span.TextContent == "Repeating group");
+
+        await FindPaletteButton(cut, "Email").ClickAsync(new MouseEventArgs());
+
+        // The add landed in the group's own Children, not the page's top-level section.
+        var group = editContext.Draft.Definition.FindNode("group-1")!;
+        Assert.Equal(3, group.Children.Count);
+        Assert.Equal(NodeType.Email, group.Children[^1].Type);
+        Assert.Equal(2, editContext.Draft.Definition.Pages[0].Sections[0].Nodes.Count);
+    }
+
+    [Fact]
+    public async Task PaletteAddAfterSwitchingPagesWhileScopedTargetsTheNewPageNotTheStaleGroupOnThePageLeft()
+    {
+        var store = new InMemoryFormDefinitionStore();
+        const string formId = "form-1";
+        await store.SaveDraftAsync(FormLifecycle.CreateDraft(DesignerTestFixtures.TwoPageRepeatingGroupDefinition(formId)));
+        Services.AddSingleton<IFormDefinitionStore>(store);
+
+        var cut = Render<FormDesigner>(p => p.Add(f => f.FormId, formId));
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Instance.EditContext));
+        var editContext = cut.Instance.EditContext!;
+
+        // Scope into "group-1" on page-1...
+        editContext.Select(DesignerSelection.ForNode("child-a", "page-1", "section-1", DesignerFocusIntent.None) with { GroupId = "group-1" });
+        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("button.bf-canvas__back-button")));
+
+        // ...then switch to page-2. The selection still carries GroupId "group-1" (a page switch is
+        // pure view state, not a mutation), but the scope belongs to the page just left, so the
+        // canvas drops it and shows page-2's own top level.
+        await cut.FindAll("button.bf-page-tabs__tab").Single(b => b.TextContent == "Coverage page").ClickAsync(new MouseEventArgs());
+        cut.WaitForAssertion(() => Assert.Empty(cut.FindAll("button.bf-canvas__back-button")));
+
+        // Repeating is addable again on page-2's top level -- the stale scope must not keep it hidden.
+        Assert.NotNull(FindPaletteButton(cut, "Repeating group"));
+
+        await FindPaletteButton(cut, "Email").ClickAsync(new MouseEventArgs());
+
+        // The field landed in page-2's own section, NOT in the page-1 group's Children.
+        Assert.Equal(2, editContext.Draft.Definition.FindNode("group-1")!.Children.Count);
+        var page2Section = editContext.Draft.Definition.Pages[1].Sections[0];
+        Assert.Equal(2, page2Section.Nodes.Count);
+        Assert.Equal(NodeType.Email, page2Section.Nodes[^1].Type);
+    }
+
     private static AngleSharp.Dom.IElement FindPaletteButton(IRenderedComponent<FormDesigner> cut, string label) =>
         cut.FindAll("span.bf-palette__item-label")
             .Single(span => span.TextContent == label)

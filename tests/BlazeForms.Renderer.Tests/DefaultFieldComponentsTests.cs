@@ -116,10 +116,17 @@ public sealed class DefaultFieldComponentsTests
         Assert.Equal(typeof(FakeFieldComponent), resolved);
     }
 
+    /// <summary>
+    /// Every addable type resolves to a real <see cref="FormFieldBase"/> subclass here, except
+    /// <see cref="NodeType.Repeating"/> -- addable since the repeating-groups Designer slice
+    /// (repeating-groups-plan.md, Increment C), but never resolved through this class at all (see
+    /// <see cref="ThrowsForRepeatingWithNoRegistryOverrideSinceItIsResolvedStructurallyNotHere"/>'s
+    /// own remarks on its structural, section-loop-only rendering path).
+    /// </summary>
     [Fact]
     public void EveryPhaseOneNodeTypeResolvesToADefaultFormFieldBaseSubclass()
     {
-        foreach (var nodeType in FormSchema.PhaseOneNodeTypes)
+        foreach (var nodeType in FormSchema.PhaseOneNodeTypes.Where(nodeType => nodeType != NodeType.Repeating))
         {
             var resolved = DefaultFieldComponents.Resolve(nodeType, registry: null);
             Assert.True(typeof(FormFieldBase).IsAssignableFrom(resolved), $"{nodeType} resolved to {resolved}.");

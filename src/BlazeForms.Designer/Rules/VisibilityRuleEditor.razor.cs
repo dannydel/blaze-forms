@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using BlazeForms.Definitions;
 using BlazeForms.Designer;
+using BlazeForms.Designer.Internal;
 using BlazeForms.Expressions;
 using BlazeForms.Internal;
 using BlazeForms.Resources;
@@ -108,7 +109,13 @@ public partial class VisibilityRuleEditor : ComponentBase, IAsyncDisposable
         var node = RequireNode();
         _join = node.VisibleWhen?.Join ?? ConditionJoin.All;
         _conditions = [.. node.VisibleWhen?.Conditions ?? []];
-        _fields = [.. EditContext.Draft.Definition.EnumerateNodes().Where(candidate => FormSchema.IsInputNode(candidate.Type))];
+
+        // Boundary-aware (repeating-groups-plan.md, Increment C): a child inside a repeating
+        // group offers its own siblings plus every top-level field; a top-level node excludes
+        // every group's children entirely -- the authoring-time counterpart to the linter's
+        // blocking FR-04 rule.
+        var inputFields = EditContext.Draft.Definition.EnumerateNodes().Where(candidate => FormSchema.IsInputNode(candidate.Type));
+        _fields = RuleFieldBoundary.Filter(EditContext.Draft.Definition, NodeId, inputFields);
     }
 
     /// <summary>

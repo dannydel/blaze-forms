@@ -183,10 +183,47 @@ public sealed class DesignerEditContext : IAsyncDisposable
     }
 
     /// <summary>
+    /// Adds a new node to a repeating group's own <see cref="FormNode.Children"/> -- the palette
+    /// add path while the canvas is scoped into a group (repeating-groups-plan.md, Increment C).
+    /// The child-aware counterpart to <see cref="AddNode"/>, which targets a section directly.
+    /// </summary>
+    /// <param name="type">
+    /// The kind of node to add. Never <see cref="NodeType.Repeating"/> --
+    /// <see cref="Internal.DefinitionMutations.InsertChildNode"/> throws if it is (the "no
+    /// repeating inside a repeating" guard); the field palette's own <c>IsInsideRepeatingGroup</c>
+    /// gate is what keeps an author from reaching this call with one in the first place.
+    /// </param>
+    /// <param name="groupId">
+    /// The identifier of the <see cref="NodeType.Repeating"/> node to add into.
+    /// </param>
+    /// <param name="index">
+    /// The zero-based position within the group's own children to insert at.
+    /// <see langword="null"/> appends to the end.
+    /// </param>
+    public void AddChildNode(NodeType type, string groupId, int? index = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(groupId);
+
+        var node = new FormNode { Id = FormIds.NewNodeId(), Type = type };
+        var updated = DefinitionMutations.InsertChildNode(Draft.Definition, groupId, node, index);
+        var located = DefinitionMutations.FindNodeLocation(updated, groupId)!.Value;
+        var page = updated.Pages[located.PageIndex];
+        var section = page.Sections[located.SectionIndex];
+        var group = section.Nodes[located.NodeIndex];
+
+        var selection = DesignerSelection.ForNode(node.Id, page.Id, section.Id, DesignerFocusIntent.NewNode) with { GroupId = groupId };
+        var message = Localizer["AnnouncementNodeAdded", NodeTypeLabel(type), DescribeNode(group)].Value;
+
+        Commit(updated, selection, message);
+    }
+
+    /// <summary>
     /// Replaces a node's content in place -- everything a properties-panel edit touches (label,
-    /// help, required, options, and so on). Never changes <see cref="FormNode.Id"/> or an
-    /// existing <see cref="FormOption.Value"/> (AGENTS.md invariant #5); the caller is responsible
-    /// for not attempting to.
+    /// help, required, options, and so on) -- within its own section, or, when it is a repeating
+    /// group's own child, within that group's <see cref="FormNode.Children"/> (see
+    /// <see cref="Internal.DefinitionMutations"/>'s own remarks). Never changes
+    /// <see cref="FormNode.Id"/> or an existing <see cref="FormOption.Value"/> (AGENTS.md
+    /// invariant #5); the caller is responsible for not attempting to.
     /// </summary>
     /// <param name="updated">
     /// The replacement node. <see cref="FormNode.Id"/> selects which existing node it replaces.
@@ -196,14 +233,13 @@ public sealed class DesignerEditContext : IAsyncDisposable
         ArgumentNullException.ThrowIfNull(updated);
 
         var newDefinition = DefinitionMutations.UpdateNode(Draft.Definition, updated);
-        var located = DefinitionMutations.FindNodeLocation(newDefinition, updated.Id)!.Value;
-        var page = newDefinition.Pages[located.PageIndex];
-        var section = page.Sections[located.SectionIndex];
+        var groupId = ExpressionDependencyAnalysis.GetRepeatingGroupOf(newDefinition, updated.Id);
+        var (page, section) = LocateContainerFor(newDefinition, updated.Id, groupId);
 
         // Editing a field's properties never moves focus away from wherever the author is
         // already editing -- there is nothing new to point focus at, unlike every other
         // mutation.
-        var selection = DesignerSelection.ForNode(updated.Id, page.Id, section.Id, DesignerFocusIntent.None);
+        var selection = DesignerSelection.ForNode(updated.Id, page.Id, section.Id, DesignerFocusIntent.None) with { GroupId = groupId };
         var message = Localizer["AnnouncementNodeUpdated", DescribeNode(updated)].Value;
 
         Commit(newDefinition, selection, message);
@@ -211,7 +247,8 @@ public sealed class DesignerEditContext : IAsyncDisposable
 
     /// <summary>
     /// Deletes a node. Focus falls back to its next sibling, its previous sibling if it was last,
-    /// or the owning section itself if it was the section's only node (PRD §4.1, §11).
+    /// or the owning section's (or, for a repeating group's own child, the group's own scope's)
+    /// empty selection if it was the only node there (PRD §4.1, §11).
     /// </summary>
     /// <param name="nodeId">
     /// The node to delete.
@@ -220,23 +257,28 @@ public sealed class DesignerEditContext : IAsyncDisposable
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(nodeId);
 
-        var located = DefinitionMutations.FindNodeLocation(Draft.Definition, nodeId)
-            ?? throw new ArgumentException($"No node '{nodeId}' was found in the current draft.", nameof(nodeId));
+        var definition = Draft.Definition;
+        var groupId = ExpressionDependencyAnalysis.GetRepeatingGroupOf(definition, nodeId);
+        var (page, section) = LocateContainerFor(definition, nodeId, groupId);
+        var siblings = groupId is null ? section.Nodes : definition.FindNode(groupId)!.Children;
+        var nodeIndex = siblings.ToList().FindIndex(sibling => string.Equals(sibling.Id, nodeId, StringComparison.Ordinal));
+        var deletedNode = siblings[nodeIndex];
 
-        var page = Draft.Definition.Pages[located.PageIndex];
-        var section = page.Sections[located.SectionIndex];
-        var siblings = section.Nodes;
-        var deletedNode = siblings[located.NodeIndex];
+        var updated = DefinitionMutations.RemoveNode(definition, nodeId);
 
-        var updated = DefinitionMutations.RemoveNode(Draft.Definition, nodeId);
+        DesignerSelection selection;
 
-        var selection = siblings.Count == 1
-            ? DesignerSelection.ForSection(page.Id, section.Id, DesignerFocusIntent.Neighbour)
-            : DesignerSelection.ForNode(
-                siblings[located.NodeIndex < siblings.Count - 1 ? located.NodeIndex + 1 : located.NodeIndex - 1].Id,
-                page.Id,
-                section.Id,
-                DesignerFocusIntent.Neighbour);
+        if (siblings.Count > 1)
+        {
+            var neighbourId = siblings[nodeIndex < siblings.Count - 1 ? nodeIndex + 1 : nodeIndex - 1].Id;
+            selection = DesignerSelection.ForNode(neighbourId, page.Id, section.Id, DesignerFocusIntent.Neighbour) with { GroupId = groupId };
+        }
+        else
+        {
+            selection = groupId is null
+                ? DesignerSelection.ForSection(page.Id, section.Id, DesignerFocusIntent.Neighbour)
+                : DesignerSelection.ForGroupScope(page.Id, section.Id, groupId, DesignerFocusIntent.Neighbour);
+        }
 
         var message = Localizer["AnnouncementNodeDeleted", DescribeNode(deletedNode)].Value;
 
@@ -244,8 +286,9 @@ public sealed class DesignerEditContext : IAsyncDisposable
     }
 
     /// <summary>
-    /// Duplicates a node, inserting the copy immediately after the original in the same section
-    /// and selecting the copy.
+    /// Duplicates a node, inserting the copy immediately after the original -- in the same
+    /// section, or, when it is a repeating group's own child, within that same group's own
+    /// <see cref="FormNode.Children"/> -- and selecting the copy.
     /// </summary>
     /// <param name="nodeId">
     /// The node to duplicate.
@@ -254,15 +297,15 @@ public sealed class DesignerEditContext : IAsyncDisposable
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(nodeId);
 
-        var original = Draft.Definition.FindNode(nodeId)
+        var definition = Draft.Definition;
+        var original = definition.FindNode(nodeId)
             ?? throw new ArgumentException($"No node '{nodeId}' was found in the current draft.", nameof(nodeId));
+        var groupId = ExpressionDependencyAnalysis.GetRepeatingGroupOf(definition, nodeId);
 
-        var (updated, duplicate) = DefinitionMutations.DuplicateNode(Draft.Definition, nodeId);
-        var located = DefinitionMutations.FindNodeLocation(updated, duplicate.Id)!.Value;
-        var page = updated.Pages[located.PageIndex];
-        var section = page.Sections[located.SectionIndex];
+        var (updated, duplicate) = DefinitionMutations.DuplicateNode(definition, nodeId);
+        var (page, section) = LocateContainerFor(updated, duplicate.Id, groupId);
 
-        var selection = DesignerSelection.ForNode(duplicate.Id, page.Id, section.Id, DesignerFocusIntent.NewNode);
+        var selection = DesignerSelection.ForNode(duplicate.Id, page.Id, section.Id, DesignerFocusIntent.NewNode) with { GroupId = groupId };
         var message = Localizer["AnnouncementNodeDuplicated", DescribeNode(original)].Value;
 
         Commit(updated, selection, message);
@@ -546,6 +589,16 @@ public sealed class DesignerEditContext : IAsyncDisposable
         CommitMoveIfChanged(updated, nodeId);
     }
 
+    /// <summary>
+    /// The shared tail of <see cref="MoveNodeCore"/> (always a top-level move) and
+    /// <see cref="MoveNodeWithinSection"/> (top-level or, for a repeating group's own child,
+    /// within that same group's <see cref="FormNode.Children"/>) once
+    /// <see cref="Internal.DefinitionMutations"/> has already applied the move -- resolves
+    /// whichever container <paramref name="nodeId"/> now sits in and announces its new position
+    /// there, naming the group when it is one (PRD §11's "Moved to position {0} of {1} in
+    /// '{2}'.", reused verbatim so a child move sounds exactly like a top-level one, just against
+    /// the group's own label instead of a section's).
+    /// </summary>
     private void CommitMoveIfChanged(FormDefinition updated, string nodeId)
     {
         if (ReferenceEquals(updated, Draft.Definition))
@@ -553,14 +606,33 @@ public sealed class DesignerEditContext : IAsyncDisposable
             return;
         }
 
-        var located = DefinitionMutations.FindNodeLocation(updated, nodeId)!.Value;
-        var page = updated.Pages[located.PageIndex];
-        var section = page.Sections[located.SectionIndex];
+        var groupId = ExpressionDependencyAnalysis.GetRepeatingGroupOf(updated, nodeId);
+        var (page, section) = LocateContainerFor(updated, nodeId, groupId);
+        var siblings = groupId is null ? section.Nodes : updated.FindNode(groupId)!.Children;
+        var nodeIndex = siblings.ToList().FindIndex(sibling => string.Equals(sibling.Id, nodeId, StringComparison.Ordinal));
+        var containerLabel = groupId is null ? SectionTitle(section) : DescribeNode(updated.FindNode(groupId)!);
 
-        var selection = DesignerSelection.ForNode(nodeId, page.Id, section.Id, DesignerFocusIntent.Moved);
-        var message = Localizer["AnnouncementNodeMoved", located.NodeIndex + 1, section.Nodes.Count, SectionTitle(section)].Value;
+        var selection = DesignerSelection.ForNode(nodeId, page.Id, section.Id, DesignerFocusIntent.Moved) with { GroupId = groupId };
+        var message = Localizer["AnnouncementNodeMoved", nodeIndex + 1, siblings.Count, containerLabel].Value;
 
         Commit(updated, selection, message);
+    }
+
+    /// <summary>
+    /// Resolves the page and section a node's own top-level container lives in -- whether the
+    /// node itself is top-level, or, when <paramref name="groupId"/> names its enclosing
+    /// repeating group, that group's own top-level location (a group's own children are never
+    /// searched directly, since <see cref="Internal.DefinitionMutations.FindNodeLocation"/> --
+    /// the only lookup this can use -- only ever finds a section's own top-level nodes).
+    /// </summary>
+    private static (FormPage Page, FormSection Section) LocateContainerFor(FormDefinition definition, string nodeId, string? groupId)
+    {
+        var anchorId = groupId ?? nodeId;
+        var located = DefinitionMutations.FindNodeLocation(definition, anchorId)!.Value;
+        var page = definition.Pages[located.PageIndex];
+        var section = page.Sections[located.SectionIndex];
+
+        return (page, section);
     }
 
     /// <summary>

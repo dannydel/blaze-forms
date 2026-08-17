@@ -51,7 +51,14 @@ else
                           @bind:get="node.Help"
                           @bind:set="@(value => CommitHelpAsync(node, value))" />
             </div>
+        }
 
+        @* Required has no meaning for a repeating group -- MinRows >= 1 is the one mechanism for
+           "at least one row" (repeating-groups-plan.md's Resolved decision #4), so this whole
+           input-only trio (placeholder, required, required-while-visible, half-width) is scoped
+           to every other input type instead of FormSchema.IsInputNode alone. *@
+        @if (FormSchema.IsInputNode(node.Type) && node.Type != NodeType.Repeating)
+        {
             <div class="bf-props__field">
                 <label class="bf-props__label" for="@IdFor(node, "placeholder")">@Localizer["PropPlaceholderLabel"].Value</label>
                 <input id="@IdFor(node, "placeholder")"
@@ -85,6 +92,58 @@ else
                        checked="@node.Half"
                        @onchange="@(e => CommitHalf(node, e))" />
                 <label for="@IdFor(node, "half")">@Localizer["PropHalfWidthLabel"].Value</label>
+            </div>
+        }
+
+        @if (node.Type == NodeType.Repeating)
+        {
+            var rowsWarningId = IdFor(node, "rows-warning");
+            var showRowsWarning = ShowRowsBoundsWarning(node);
+
+            <div class="bf-props__field bf-props__repeating">
+                <div class="bf-props__field">
+                    <label class="bf-props__label" for="@IdFor(node, "item-label")">@Localizer["PropItemLabelLabel"].Value</label>
+                    <input id="@IdFor(node, "item-label")"
+                           type="text"
+                           class="bf-props__input"
+                           value="@node.ItemLabel"
+                           @onchange="@(e => CommitItemLabel(node, e))" />
+                </div>
+
+                <div class="bf-props__field">
+                    <label class="bf-props__label" for="@IdFor(node, "min-rows")">@Localizer["PropMinRowsLabel"].Value</label>
+                    <input id="@IdFor(node, "min-rows")"
+                           type="number"
+                           min="0"
+                           inputmode="numeric"
+                           class="bf-props__input"
+                           value="@node.MinRows"
+                           aria-invalid="@(showRowsWarning ? "true" : "false")"
+                           aria-describedby="@(showRowsWarning ? rowsWarningId : null)"
+                           @onchange="@(e => CommitMinRows(node, e))" />
+                </div>
+
+                <div class="bf-props__field">
+                    <label class="bf-props__label" for="@IdFor(node, "max-rows")">@Localizer["PropMaxRowsLabel"].Value</label>
+                    <input id="@IdFor(node, "max-rows")"
+                           type="number"
+                           min="0"
+                           inputmode="numeric"
+                           class="bf-props__input"
+                           value="@node.MaxRows"
+                           aria-invalid="@(showRowsWarning ? "true" : "false")"
+                           aria-describedby="@(showRowsWarning ? rowsWarningId : null)"
+                           @onchange="@(e => CommitMaxRows(node, e))" />
+                </div>
+
+                @if (showRowsWarning)
+                {
+                    <p id="@rowsWarningId" class="bf-props__warning">@Localizer["PropRowsBoundsWarning"].Value</p>
+                }
+
+                <button type="button" class="bf-props__button" @onclick="@(() => EnterGroupScope(node))">
+                    @Localizer["PropEditGroupFieldsButton", node.Children.Count].Value
+                </button>
             </div>
         }
 

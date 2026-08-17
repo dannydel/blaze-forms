@@ -16,3 +16,30 @@
 .bf-canvas__empty {
     color: var(--bf-color-muted);
 }
+
+/* The drill-in scope's own breadcrumb (repeating-groups-plan.md, Increment C): sits outside the
+ * role="listbox" root above it (see DesignerCanvas.razor's own remarks on why), so it needs its
+ * own small gap below before the scoped rows begin. */
+.bf-canvas__breadcrumb {
+    margin-block-end: var(--bf-space-2);
+}
+
+.bf-canvas__back-button {
+    padding-inline: var(--bf-space-3);
+    padding-block: var(--bf-space-2);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+    background-color: var(--bf-color-bg);
+    color: var(--bf-color-text);
+    font: inherit;
+    cursor: pointer;
+}
+
+.bf-canvas__back-button:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}
+
+.bf-canvas__scope-empty {
+    color: var(--bf-color-muted);
+}

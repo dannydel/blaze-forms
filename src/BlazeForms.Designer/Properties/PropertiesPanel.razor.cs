@@ -248,6 +248,40 @@ public partial class PropertiesPanel : ComponentBase, IAsyncDisposable
     private void CommitOptions(FormNode node, IReadOnlyList<FormOption> options) =>
         EditContext.UpdateNode(node with { Options = options });
 
+    private void CommitItemLabel(FormNode node, ChangeEventArgs e) =>
+        EditContext.UpdateNode(node with { ItemLabel = NormalizeToNull(e.Value) });
+
+    private void CommitMinRows(FormNode node, ChangeEventArgs e) =>
+        EditContext.UpdateNode(node with { MinRows = ParseInt(e.Value) });
+
+    private void CommitMaxRows(FormNode node, ChangeEventArgs e) =>
+        EditContext.UpdateNode(node with { MaxRows = ParseInt(e.Value) });
+
+    /// <summary>
+    /// Whether <paramref name="node"/>'s own <see cref="FormNode.MinRows"/> and
+    /// <see cref="FormNode.MaxRows"/> are both set and out of order -- mirrors the linter's own
+    /// advisory REP-01 rule inline, the same "warn here too, even though the linter already will"
+    /// convention <see cref="ShowEmptyLabelWarning"/> follows for A11Y-01.
+    /// </summary>
+    private static bool ShowRowsBoundsWarning(FormNode node) =>
+        node.MinRows is { } min && node.MaxRows is { } max && min > max;
+
+    /// <summary>
+    /// Drills the canvas into <paramref name="node"/>'s own scope -- the "Edit group fields"
+    /// button's path (repeating-groups-plan.md, Increment C), the properties-panel counterpart to
+    /// <c>DesignerCanvas</c>'s own <c>→</c> canvas command. Moving real DOM focus there is
+    /// <c>DesignerCanvas</c>'s own job once its <see cref="DesignerEditContext.Selection"/>
+    /// carries the scope (<see cref="GroupScopeNavigation.Enter"/>'s own <see cref="DesignerFocusIntent.JumpedTo"/>
+    /// tag reaches it through the shared <see cref="DesignerEditContext.StateChanged"/> event),
+    /// so this panel has nothing further to do once it calls through.
+    /// </summary>
+    private void EnterGroupScope(FormNode node) => GroupScopeNavigation.Enter(EditContext, node.Id);
+
+    private static int? ParseInt(object? value) =>
+        int.TryParse(value?.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed)
+            ? parsed
+            : null;
+
     /// <summary>
     /// Opens <see cref="VisibilityRuleEditor"/> for <paramref name="nodeId"/> -- the Add and Edit
     /// rule buttons' shared path (PRD §4.1, §6). A fresh instance mounts for every open, the same

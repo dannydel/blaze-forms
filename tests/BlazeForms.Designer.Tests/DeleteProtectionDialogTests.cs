@@ -81,6 +81,58 @@ public sealed class DeleteProtectionDialogTests : DesignerTestContext
         Assert.Contains(lint, r => r.RuleId == LintRuleIds.Fr03);
     }
 
+    /// <summary>
+    /// Deleting a repeating group aggregates references to the group itself AND to every one of
+    /// its own children (repeating-groups-plan.md, Increment C) -- a group deletes its whole
+    /// subtree, so a reference to any child is exactly as much a live reference as one to the
+    /// group's own id.
+    /// </summary>
+    [Fact]
+    public async Task DeletingARepeatingGroupNamesReferencesToItsOwnChildrenToo()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.RepeatingGroupWithReferencedChildDefinition("form-1"));
+        var cut = Render<DeleteProtectionDialog>(p => p.Add(d => d.EditContext, context).Add(d => d.NodeId, "group-1"));
+
+        var lines = cut.FindAll("ul.bf-delete-dialog__list li").Select(li => li.TextContent).ToArray();
+        Assert.Single(lines);
+        Assert.Contains(lines, line => line.Contains("Date of birth", StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// Deleting a group's own child works exactly as today -- <c>ExpressionDependencyAnalysis.ReferencesTo</c>
+    /// already finds a sibling's own reference by walking <see cref="FormNode.Children"/>
+    /// (<c>EnumerateNodes</c> descends), so this is unchanged by Increment C, pinned here so a
+    /// future regression in the group-vs-child dispatch above cannot silently break it.
+    /// </summary>
+    /// <summary>
+    /// Deleting a repeating group lists each referencing site once, even when a single rule names
+    /// two of the group's own children at the same time (repeating-groups-plan.md, Increment C).
+    /// "child-c"'s own <see cref="FormNode.VisibleWhen"/> references both "child-a" and "child-b",
+    /// so aggregating <c>ReferencesTo</c> per deleted id would surface it twice without the dedup
+    /// -- the warning must name that one broken rule once, not once per member it reads.
+    /// </summary>
+    [Fact]
+    public async Task DeletingAGroupWhoseOneRuleNamesTwoChildrenListsThatReferenceOnce()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.RepeatingGroupWithRuleReferencingTwoChildrenDefinition("form-1"));
+        var cut = Render<DeleteProtectionDialog>(p => p.Add(d => d.EditContext, context).Add(d => d.NodeId, "group-1"));
+
+        var lines = cut.FindAll("ul.bf-delete-dialog__list li").Select(li => li.TextContent).ToArray();
+        Assert.Single(lines);
+        Assert.Contains(lines, line => line.Contains("Notes", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task DeletingAGroupsOwnChildNamesOnlyThatChildsOwnReferences()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.RepeatingGroupWithReferencedChildDefinition("form-1"));
+        var cut = Render<DeleteProtectionDialog>(p => p.Add(d => d.EditContext, context).Add(d => d.NodeId, "child-a"));
+
+        var lines = cut.FindAll("ul.bf-delete-dialog__list li").Select(li => li.TextContent).ToArray();
+        Assert.Single(lines);
+        Assert.Contains(lines, line => line.Contains("Date of birth", StringComparison.Ordinal));
+    }
+
     [Fact]
     public async Task EscCancelsWithoutTouchingTheDraftAndRaisesOnClosed()
     {

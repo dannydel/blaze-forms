@@ -66,7 +66,7 @@
                         var conditionIndex = c;
                         <ConditionRow @key="conditionIndex"
                                       Condition="rule.Expression.Conditions[conditionIndex]"
-                                      Fields="InputFields"
+                                      Fields="ConditionFieldsFor(rule)"
                                       RowNumber="conditionIndex + 1"
                                       ConditionChanged="@(condition => CommitCondition(index, conditionIndex, condition))"
                                       OnRemove="@(() => RemoveCondition(index, conditionIndex))"

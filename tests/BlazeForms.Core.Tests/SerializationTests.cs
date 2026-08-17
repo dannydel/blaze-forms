@@ -177,15 +177,22 @@ public sealed class SerializationTests
         Assert.Equal(nodeType, FormJson.DeserializeDefinition(json).FindNode("n")!.Type);
     }
 
+    /// <summary>
+    /// <see cref="NodeType.Repeating"/> was un-reserved in the repeating-groups Designer slice
+    /// (repeating-groups-plan.md, Increment C): the Core answer model, row-scoped evaluation, and
+    /// fillable Renderer group all shipped in Increments A and B, so it now joins
+    /// <see cref="FormSchema.PhaseOneNodeTypes"/> alongside the original 18, leaving only File and
+    /// Lookup reserved for a later phase.
+    /// </summary>
     [Fact]
-    public void TheSchemaCoversEveryPhaseOneNodeTypeAndReservesThePhaseTwoTypes()
+    public void TheSchemaCoversEveryAddableNodeTypeAndReservesTheRemainingTwo()
     {
-        Assert.Equal(18, FormSchema.PhaseOneNodeTypes.Count);
-        Assert.Equal(3, FormSchema.ReservedNodeTypes.Count);
+        Assert.Equal(19, FormSchema.PhaseOneNodeTypes.Count);
+        Assert.Equal(2, FormSchema.ReservedNodeTypes.Count);
         Assert.Equal(
             Enum.GetValues<NodeType>().Length,
             FormSchema.PhaseOneNodeTypes.Count + FormSchema.ReservedNodeTypes.Count);
-        Assert.Contains(NodeType.Repeating, FormSchema.ReservedNodeTypes);
+        Assert.Contains(NodeType.Repeating, FormSchema.PhaseOneNodeTypes);
         Assert.Contains(NodeType.File, FormSchema.ReservedNodeTypes);
         Assert.Contains(NodeType.Lookup, FormSchema.ReservedNodeTypes);
         Assert.DoesNotContain(NodeType.Divider, FormSchema.ReservedNodeTypes);

@@ -122,6 +122,77 @@ public sealed class PropertiesPanelTests : DesignerTestContext
         Assert.Equal(5m, context.Draft.Definition.FindNode("node-numeric")!.Min);
     }
 
+    // -- The repeating-group-only properties block (repeating-groups-plan.md, Increment C, PRD
+    // §4.1, §5): ItemLabel/MinRows/MaxRows and the "Edit group fields" entry point, with Required
+    // hidden entirely (MinRows >= 1 expresses it instead).
+
+    [Fact]
+    public async Task ItemLabelMinRowsAndMaxRowsShowOnlyForRepeatingNodesAndRequiredNeverDoes()
+    {
+        await using var groupContext = CreateContext(DesignerTestFixtures.RepeatingGroupDefinition("form-1"));
+        Select(groupContext, "group-1");
+        var groupCut = Render<PropertiesPanel>(p => p.Add(f => f.EditContext, groupContext));
+        Assert.NotEmpty(groupCut.FindAll("input#bf-props-group-1-item-label"));
+        Assert.NotEmpty(groupCut.FindAll("input#bf-props-group-1-min-rows"));
+        Assert.NotEmpty(groupCut.FindAll("input#bf-props-group-1-max-rows"));
+        Assert.Empty(groupCut.FindAll("input#bf-props-group-1-required"));
+        Assert.Empty(groupCut.FindAll("input#bf-props-group-1-placeholder"));
+
+        await using var textContext = CreateContext(DesignerTestFixtures.OneFieldDefinition("form-1"));
+        Select(textContext, "first-name");
+        var textCut = Render<PropertiesPanel>(p => p.Add(f => f.EditContext, textContext));
+        Assert.Empty(textCut.FindAll("input#bf-props-first-name-item-label"));
+        Assert.Empty(textCut.FindAll("input#bf-props-first-name-min-rows"));
+        Assert.NotEmpty(textCut.FindAll("input#bf-props-first-name-required"));
+    }
+
+    [Fact]
+    public async Task EditingItemLabelMinRowsAndMaxRowsCommitsThem()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.RepeatingGroupDefinition("form-1"));
+        Select(context, "group-1");
+        var cut = Render<PropertiesPanel>(p => p.Add(f => f.EditContext, context));
+
+        await cut.Find("input#bf-props-group-1-item-label").ChangeAsync(new ChangeEventArgs { Value = "Dependent" });
+        await cut.Find("input#bf-props-group-1-min-rows").ChangeAsync(new ChangeEventArgs { Value = "1" });
+        await cut.Find("input#bf-props-group-1-max-rows").ChangeAsync(new ChangeEventArgs { Value = "3" });
+
+        var updated = context.Draft.Definition.FindNode("group-1")!;
+        Assert.Equal("Dependent", updated.ItemLabel);
+        Assert.Equal(1, updated.MinRows);
+        Assert.Equal(3, updated.MaxRows);
+    }
+
+    [Fact]
+    public async Task MinRowsGreaterThanMaxRowsShowsTheAccessibleBoundsWarning()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.RepeatingGroupDefinition("form-1"));
+        Select(context, "group-1");
+        var cut = Render<PropertiesPanel>(p => p.Add(f => f.EditContext, context));
+
+        await cut.Find("input#bf-props-group-1-min-rows").ChangeAsync(new ChangeEventArgs { Value = "10" });
+
+        var warning = cut.Find("p#bf-props-group-1-rows-warning");
+        Assert.Equal("Minimum rows must not be greater than maximum rows.", warning.TextContent);
+        Assert.Equal("true", cut.Find("input#bf-props-group-1-min-rows").GetAttribute("aria-invalid"));
+    }
+
+    [Fact]
+    public async Task EditGroupFieldsButtonNamesTheChildCountAndDrillsTheSelectionIntoTheGroupsScope()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.RepeatingGroupDefinition("form-1"));
+        Select(context, "group-1");
+        var cut = Render<PropertiesPanel>(p => p.Add(f => f.EditContext, context));
+
+        var button = cut.FindAll("button.bf-props__button").Single(b => b.TextContent.Contains("Edit group fields", StringComparison.Ordinal));
+        Assert.Equal("Edit group fields (2)", button.TextContent);
+
+        await button.ClickAsync(new MouseEventArgs());
+
+        Assert.Equal("group-1", context.Selection.GroupId);
+        Assert.Equal("child-a", context.Selection.NodeId);
+    }
+
     [Fact]
     public async Task LevelSelectShowsOnlyForHeadingNodes()
     {

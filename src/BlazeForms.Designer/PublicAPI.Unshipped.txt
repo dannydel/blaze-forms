@@ -87,6 +87,7 @@ BlazeForms.Designer.DesignerAnnouncement.Message.init -> void
 BlazeForms.Designer.DesignerAnnouncement.Politeness.get -> BlazeForms.Designer.AriaLivePoliteness
 BlazeForms.Designer.DesignerAnnouncement.Politeness.init -> void
 BlazeForms.Designer.DesignerEditContext
+BlazeForms.Designer.DesignerEditContext.AddChildNode(BlazeForms.Definitions.NodeType type, string! groupId, int? index = null) -> void
 BlazeForms.Designer.DesignerEditContext.AddNode(BlazeForms.Definitions.NodeType type, string! targetSectionId, int? index = null) -> void
 BlazeForms.Designer.DesignerEditContext.AddPage() -> void
 BlazeForms.Designer.DesignerEditContext.AddSection(string! pageId) -> void
@@ -122,6 +123,8 @@ BlazeForms.Designer.DesignerSelection
 BlazeForms.Designer.DesignerSelection.<Clone>$() -> BlazeForms.Designer.DesignerSelection!
 BlazeForms.Designer.DesignerSelection.DesignerSelection() -> void
 BlazeForms.Designer.DesignerSelection.Equals(BlazeForms.Designer.DesignerSelection? other) -> bool
+BlazeForms.Designer.DesignerSelection.GroupId.get -> string?
+BlazeForms.Designer.DesignerSelection.GroupId.init -> void
 BlazeForms.Designer.DesignerSelection.Intent.get -> BlazeForms.Designer.DesignerFocusIntent
 BlazeForms.Designer.DesignerSelection.Intent.init -> void
 BlazeForms.Designer.DesignerSelection.NodeId.get -> string?
@@ -175,6 +178,8 @@ BlazeForms.Linting.LinterDock.ResultsChanged.get -> Microsoft.AspNetCore.Compone
 BlazeForms.Linting.LinterDock.ResultsChanged.set -> void
 BlazeForms.Palette.FieldPalette
 BlazeForms.Palette.FieldPalette.FieldPalette() -> void
+BlazeForms.Palette.FieldPalette.IsInsideRepeatingGroup.get -> bool
+BlazeForms.Palette.FieldPalette.IsInsideRepeatingGroup.set -> void
 BlazeForms.Palette.FieldPalette.OnAddRequested.get -> Microsoft.AspNetCore.Components.EventCallback<BlazeForms.Definitions.NodeType>
 BlazeForms.Palette.FieldPalette.OnAddRequested.set -> void
 BlazeForms.Preview.PreviewPane
@@ -335,6 +340,7 @@ override BlazeForms.Versioning.VersionHistory.OnAfterRenderAsync(bool firstRende
 override BlazeForms.Versioning.VersionHistory.OnInitializedAsync() -> System.Threading.Tasks.Task!
 static BlazeForms.Designer.DesignerAnnouncement.operator !=(BlazeForms.Designer.DesignerAnnouncement? left, BlazeForms.Designer.DesignerAnnouncement? right) -> bool
 static BlazeForms.Designer.DesignerAnnouncement.operator ==(BlazeForms.Designer.DesignerAnnouncement? left, BlazeForms.Designer.DesignerAnnouncement? right) -> bool
+static BlazeForms.Designer.DesignerSelection.ForGroupScope(string! pageId, string! sectionId, string! groupId, BlazeForms.Designer.DesignerFocusIntent intent) -> BlazeForms.Designer.DesignerSelection!
 static BlazeForms.Designer.DesignerSelection.ForNode(string! nodeId, string! pageId, string! sectionId, BlazeForms.Designer.DesignerFocusIntent intent) -> BlazeForms.Designer.DesignerSelection!
 static BlazeForms.Designer.DesignerSelection.ForPage(string! pageId, BlazeForms.Designer.DesignerFocusIntent intent) -> BlazeForms.Designer.DesignerSelection!
 static BlazeForms.Designer.DesignerSelection.ForSection(string! pageId, string! sectionId, BlazeForms.Designer.DesignerFocusIntent intent) -> BlazeForms.Designer.DesignerSelection!

@@ -7,8 +7,14 @@ namespace BlazeForms.Designer.Tests;
 /// <summary>
 /// Covers <see cref="DefinitionMutations"/> in isolation: every rebuild returns a new
 /// <see cref="FormDefinition"/> while leaving the one passed in byte-for-byte unchanged
-/// (AGENTS.md invariant #3), stable identifiers survive a duplicate untouched (invariant #5), and
-/// every move clamps rather than throwing on an out-of-range index.
+/// (AGENTS.md invariant #3), stable identifiers survive a duplicate untouched (invariant #5),
+/// every move clamps rather than throwing on an out-of-range index, and -- repeating-groups-plan.md,
+/// Increment C -- <see cref="DefinitionMutations.RemoveNode"/>/<see cref="DefinitionMutations.UpdateNode"/>/
+/// <see cref="DefinitionMutations.DuplicateNode"/>/<see cref="DefinitionMutations.MoveNodeWithinSection"/>
+/// apply exactly the same way to a repeating group's own child as to any other node, while
+/// <see cref="DefinitionMutations.InsertChildNode"/> guards against a nested repeating group and
+/// <see cref="DefinitionMutations.MoveNode"/> stays section-only (a cross-container move for a
+/// child is out of this slice).
 /// </summary>
 public sealed class DefinitionMutationsTests
 {
@@ -311,6 +317,145 @@ public sealed class DefinitionMutationsTests
         var definition = DesignerTestFixtures.OneFieldDefinition("form-1");
 
         Assert.Null(DefinitionMutations.FindNodeLocation(definition, "no-such-node"));
+    }
+
+    // -- Child-aware mutations (repeating-groups-plan.md, Increment C): every method below that
+    // already applies to a top-level node now also applies, unchanged in shape, to a repeating
+    // group's own child -- see this class's own remarks.
+
+    [Fact]
+    public void InsertChildNodeAppendsIntoTheGroupsOwnChildrenWithoutMutatingTheOriginalDefinition()
+    {
+        var original = DesignerTestFixtures.RepeatingGroupDefinition("form-1");
+        var node = new FormNode { Id = "child-new", Type = NodeType.Text };
+
+        var updated = DefinitionMutations.InsertChildNode(original, "group-1", node, index: null);
+
+        Assert.Equal(2, original.Pages[0].Sections[0].Nodes[0].Children.Count);
+        var updatedGroup = updated.Pages[0].Sections[0].Nodes[0];
+        Assert.Equal(3, updatedGroup.Children.Count);
+        Assert.Equal("child-new", updatedGroup.Children[2].Id);
+    }
+
+    [Fact]
+    public void InsertChildNodeClampsAnOutOfRangeIndex()
+    {
+        var original = DesignerTestFixtures.RepeatingGroupDefinition("form-1");
+        var node = new FormNode { Id = "child-new", Type = NodeType.Text };
+
+        var updated = DefinitionMutations.InsertChildNode(original, "group-1", node, index: 99);
+
+        Assert.Equal(2, updated.Pages[0].Sections[0].Nodes[0].Children.ToList().IndexOf(node));
+    }
+
+    [Fact]
+    public void InsertChildNodeThrowsWhenTheGroupDoesNotExist()
+    {
+        var original = DesignerTestFixtures.RepeatingGroupDefinition("form-1");
+        var node = new FormNode { Id = "child-new", Type = NodeType.Text };
+
+        Assert.Throws<ArgumentException>(() => DefinitionMutations.InsertChildNode(original, "no-such-group", node, null));
+    }
+
+    /// <summary>
+    /// The no-nested-repeating guard (repeating-groups-plan.md, Increment C's "one nesting level
+    /// this slice" rule): defensive, since the field palette's own <c>IsInsideRepeatingGroup</c>
+    /// gate already keeps an author from reaching this call with a <see cref="NodeType.Repeating"/>
+    /// node while scoped.
+    /// </summary>
+    [Fact]
+    public void InsertChildNodeThrowsForARepeatingNode()
+    {
+        var original = DesignerTestFixtures.RepeatingGroupDefinition("form-1");
+        var nested = new FormNode { Id = "nested-group", Type = NodeType.Repeating };
+
+        Assert.Throws<ArgumentException>(() => DefinitionMutations.InsertChildNode(original, "group-1", nested, null));
+    }
+
+    [Fact]
+    public void RemoveNodeRemovesAGroupsOwnChildWithoutMutatingTheOriginalDefinition()
+    {
+        var original = DesignerTestFixtures.RepeatingGroupDefinition("form-1");
+
+        var updated = DefinitionMutations.RemoveNode(original, "child-a");
+
+        Assert.Equal(2, original.Pages[0].Sections[0].Nodes[0].Children.Count);
+        var updatedGroup = updated.Pages[0].Sections[0].Nodes[0];
+        Assert.Single(updatedGroup.Children);
+        Assert.Equal("child-b", updatedGroup.Children[0].Id);
+    }
+
+    [Fact]
+    public void RemoveNodeStillRemovesTheWholeGroupIncludingItsChildren()
+    {
+        var original = DesignerTestFixtures.RepeatingGroupDefinition("form-1");
+
+        var updated = DefinitionMutations.RemoveNode(original, "group-1");
+
+        Assert.DoesNotContain(updated.Pages[0].Sections[0].Nodes, n => n.Id == "group-1");
+        Assert.Null(updated.FindNode("child-a"));
+        Assert.Null(updated.FindNode("child-b"));
+    }
+
+    [Fact]
+    public void UpdateNodeReplacesAGroupsOwnChildInPlaceWithoutMutatingTheOriginalDefinition()
+    {
+        var original = DesignerTestFixtures.RepeatingGroupDefinition("form-1");
+        var replacement = original.FindNode("child-a")! with { Label = "Given name" };
+
+        var updated = DefinitionMutations.UpdateNode(original, replacement);
+
+        Assert.Equal("Full name", original.FindNode("child-a")!.Label);
+        var updatedChild = updated.Pages[0].Sections[0].Nodes[0].Children[0];
+        Assert.Equal("Given name", updatedChild.Label);
+        Assert.Equal("child-a", updatedChild.Id);
+    }
+
+    [Fact]
+    public void DuplicateNodeDuplicatesAGroupsOwnChildWithinThatSameGroupWithAFreshId()
+    {
+        var original = DesignerTestFixtures.RepeatingGroupDefinition("form-1");
+
+        var (updated, duplicate) = DefinitionMutations.DuplicateNode(original, "child-a");
+
+        Assert.Equal(2, original.Pages[0].Sections[0].Nodes[0].Children.Count);
+        var children = updated.Pages[0].Sections[0].Nodes[0].Children;
+        Assert.Equal(3, children.Count);
+        Assert.Equal("child-a", children[0].Id);
+        Assert.Equal(duplicate.Id, children[1].Id);
+        Assert.NotEqual("child-a", duplicate.Id);
+        Assert.Equal("Full name", duplicate.Label);
+    }
+
+    [Theory]
+    [InlineData(1, 1)] // child-a moves later, past child-b -> becomes last (index 1)
+    [InlineData(-1, 0)] // already first -> clamped, no-op position
+    public void MoveNodeWithinSectionReordersAGroupsOwnChildren(int delta, int expectedIndex)
+    {
+        var original = DesignerTestFixtures.RepeatingGroupDefinition("form-1");
+
+        var updated = DefinitionMutations.MoveNodeWithinSection(original, "child-a", delta);
+
+        var children = updated.Pages[0].Sections[0].Nodes[0].Children;
+        Assert.Equal(expectedIndex, children.ToList().FindIndex(n => n.Id == "child-a"));
+    }
+
+    [Fact]
+    public void MoveNodeWithinSectionIsANoOpAtTheGroupsOwnStartMovingEarlier()
+    {
+        var original = DesignerTestFixtures.RepeatingGroupDefinition("form-1");
+
+        var updated = DefinitionMutations.MoveNodeWithinSection(original, "child-a", -1);
+
+        Assert.Same(original, updated);
+    }
+
+    [Fact]
+    public void MoveNodeThrowsWhenTheNodeIsAGroupsOwnChildSinceCrossContainerMovesAreOutOfScope()
+    {
+        var original = DesignerTestFixtures.RepeatingGroupDefinition("form-1");
+
+        Assert.Throws<ArgumentException>(() => DefinitionMutations.MoveNode(original, "child-a", "section-1", 0));
     }
 
     [Fact]

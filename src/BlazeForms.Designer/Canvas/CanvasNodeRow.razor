@@ -21,6 +21,10 @@
         {
             <span class="bf-canvas-row__chip bf-canvas-row__chip--half">@Localizer["RowHalfWidthChip"].Value</span>
         }
+        @if (Node.Type == NodeType.Repeating)
+        {
+            <span class="bf-canvas-row__chip bf-canvas-row__chip--fields">@Localizer["RowFieldCountChip", Node.Children.Count].Value</span>
+        }
         @if (Node.VisibleWhen is not null)
         {
             <span class="bf-canvas-row__chip bf-canvas-row__chip--logic">@(LogicSummary ?? Localizer["RowVisibilityRuleChip"].Value)</span>

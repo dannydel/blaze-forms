@@ -60,6 +60,136 @@ public sealed class DesignerEditContextTests
         Assert.Throws<ArgumentException>(() => context.AddNode(NodeType.Text, "no-such-section"));
     }
 
+    // -- Group-scoped mutations (repeating-groups-plan.md, Increment C): AddChildNode, and every
+    // other mutation method's own generalized behaviour once the node in question is a repeating
+    // group's own child.
+
+    [Fact]
+    public async Task AddChildNodeInsertsIntoTheGroupsChildrenAndSelectsItScopedWithNewNodeIntent()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.RepeatingGroupDefinition("form-1"));
+        DesignerAnnouncement? announcement = null;
+        context.Announced += a => announcement = a;
+
+        context.AddChildNode(NodeType.Select, "group-1");
+
+        var group = context.Draft.Definition.FindNode("group-1")!;
+        Assert.Equal(3, group.Children.Count);
+        var added = group.Children[2];
+        Assert.Equal(NodeType.Select, added.Type);
+
+        Assert.Equal(added.Id, context.Selection.NodeId);
+        Assert.Equal("group-1", context.Selection.GroupId);
+        Assert.Equal("section-1", context.Selection.SectionId);
+        Assert.Equal(DesignerFocusIntent.NewNode, context.Selection.Intent);
+
+        var expected = Localizer["AnnouncementNodeAdded", "Dropdown", "Household members"].Value;
+        Assert.Equal(expected, announcement!.Message);
+    }
+
+    [Fact]
+    public async Task AddChildNodeThrowsWhenTheGroupDoesNotExist()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.RepeatingGroupDefinition("form-1"));
+
+        Assert.Throws<ArgumentException>(() => context.AddChildNode(NodeType.Text, "no-such-group"));
+    }
+
+    [Fact]
+    public async Task AddChildNodeThrowsForARepeatingType()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.RepeatingGroupDefinition("form-1"));
+
+        Assert.Throws<ArgumentException>(() => context.AddChildNode(NodeType.Repeating, "group-1"));
+    }
+
+    [Fact]
+    public async Task UpdateNodeReplacesAGroupsOwnChildAndKeepsTheSelectionScoped()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.RepeatingGroupDefinition("form-1"));
+        var original = context.Draft.Definition.FindNode("child-a")!;
+
+        context.UpdateNode(original with { Label = "Given name" });
+
+        var updated = context.Draft.Definition.FindNode("child-a")!;
+        Assert.Equal("Given name", updated.Label);
+        Assert.Equal("child-a", context.Selection.NodeId);
+        Assert.Equal("group-1", context.Selection.GroupId);
+        Assert.Equal(DesignerFocusIntent.None, context.Selection.Intent);
+    }
+
+    [Fact]
+    public async Task DeleteNodeOnAGroupsOwnChildSelectsTheNextSiblingStillScoped()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.RepeatingGroupDefinition("form-1"));
+
+        context.DeleteNode("child-a");
+
+        Assert.Null(context.Draft.Definition.FindNode("child-a"));
+        Assert.Equal("child-b", context.Selection.NodeId);
+        Assert.Equal("group-1", context.Selection.GroupId);
+        Assert.Equal(DesignerFocusIntent.Neighbour, context.Selection.Intent);
+    }
+
+    /// <summary>
+    /// Deleting a group's only remaining child selects the group's own scope, node-less, rather
+    /// than falling all the way back out to the group's own top-level row -- the child-scoped
+    /// counterpart to <see cref="DeleteNodeSelectsTheOwningSectionWhenItWasTheOnlyNode"/>.
+    /// </summary>
+    [Fact]
+    public async Task DeleteNodeOnAGroupsOnlyChildSelectsTheGroupsOwnEmptyScope()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.RepeatingGroupDefinition("form-1"));
+
+        context.DeleteNode("child-a");
+        context.DeleteNode("child-b");
+
+        Assert.Empty(context.Draft.Definition.FindNode("group-1")!.Children);
+        Assert.Null(context.Selection.NodeId);
+        Assert.Equal("group-1", context.Selection.GroupId);
+        Assert.Equal("section-1", context.Selection.SectionId);
+        Assert.Equal(DesignerFocusIntent.Neighbour, context.Selection.Intent);
+    }
+
+    [Fact]
+    public async Task DuplicateNodeOnAGroupsOwnChildInsertsWithinThatSameGroupStillScoped()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.RepeatingGroupDefinition("form-1"));
+
+        context.DuplicateNode("child-a");
+
+        var children = context.Draft.Definition.FindNode("group-1")!.Children;
+        Assert.Equal(3, children.Count);
+        Assert.Equal(children[1].Id, context.Selection.NodeId);
+        Assert.Equal("group-1", context.Selection.GroupId);
+        Assert.Equal(DesignerFocusIntent.NewNode, context.Selection.Intent);
+    }
+
+    /// <summary>
+    /// A move within a group announces the group's own label in place of a section's title --
+    /// <c>AnnouncementNodeMoved</c>'s resx template is generic enough to reuse verbatim for
+    /// either (repeating-groups-plan.md, Increment C's own "Moved to position {0} of {1} in
+    /// '{2}'." example).
+    /// </summary>
+    [Fact]
+    public async Task MoveNodeWithinSectionOnAGroupsOwnChildAnnouncesTheGroupsOwnLabel()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.RepeatingGroupDefinition("form-1"));
+        DesignerAnnouncement? announcement = null;
+        context.Announced += a => announcement = a;
+
+        context.MoveNodeWithinSection("child-a", +1);
+
+        var children = context.Draft.Definition.FindNode("group-1")!.Children;
+        Assert.Equal("child-a", children[1].Id);
+        Assert.Equal("child-a", context.Selection.NodeId);
+        Assert.Equal("group-1", context.Selection.GroupId);
+        Assert.Equal(DesignerFocusIntent.Moved, context.Selection.Intent);
+
+        var expected = Localizer["AnnouncementNodeMoved", 2, 2, "Household members"].Value;
+        Assert.Equal(expected, announcement!.Message);
+    }
+
     [Fact]
     public async Task UpdateNodeReplacesContentKeepsTheIdAndDoesNotMoveFocus()
     {

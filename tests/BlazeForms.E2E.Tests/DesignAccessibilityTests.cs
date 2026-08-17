@@ -194,6 +194,59 @@ public sealed class DesignAccessibilityTests : E2ETestBase
         await Assertions.Expect(Page.GetByText("Sum of Untitled Number.")).ToBeVisibleAsync();
     }
 
+    /// <summary>
+    /// Drives the repeating group's own drill-in scope keyboard-only (repeating-groups-plan.md,
+    /// Increment C): adds a Repeating group from the palette, drills into its scope with
+    /// <c>→</c>, adds a child field from the (now Repeating-free) palette, sets the group's own
+    /// <c>ItemLabel</c>/<c>MinRows</c> via the properties panel, then leaves the scope with
+    /// <c>Esc</c> -- scanning the scoped canvas and the properties panel along the way.
+    /// </summary>
+    [Fact]
+    public async Task DrillingIntoARepeatingGroupsScopeAddingAChildFieldAndSettingGroupPropertiesStaysAccessible()
+    {
+        await DesignerDriver.GotoNewDesignAsync(Page, BaseUrl);
+        await DesignerDriver.AddPageAsync(Page);
+        await DesignerDriver.AddFieldFromPaletteAsync(Page, "Repeating group");
+
+        var rows = DesignerDriver.CanvasRows(Page);
+        await Assertions.Expect(rows).ToHaveCountAsync(1);
+        Assert.True(await DesignerDriver.WaitForFocusAsync(rows.First));
+
+        await AccessibilityAssertions.AssertNoViolationsAsync(Page, "/design with a fresh repeating group added");
+
+        // Drill into the group's own scope via the canvas's own → command -- the roving cursor
+        // already sits on the group's row from the palette add's own NewNode focus intent.
+        await Page.Keyboard.PressAsync("ArrowRight");
+
+        var backButton = Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Back to" });
+        await backButton.WaitForAsync();
+        await Assertions.Expect(Page.GetByText("This group has no fields yet.")).ToBeVisibleAsync();
+
+        // Add a child field -- the palette no longer offers "Repeating group" while scoped.
+        await Assertions.Expect(Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Repeating group", Exact = true })).Not.ToBeVisibleAsync();
+        await DesignerDriver.AddFieldFromPaletteAsync(Page, "Text");
+
+        var scopedRows = DesignerDriver.CanvasRows(Page);
+        await Assertions.Expect(scopedRows).ToHaveCountAsync(1);
+        Assert.True(await DesignerDriver.WaitForFocusAsync(scopedRows.First));
+
+        await AccessibilityAssertions.AssertNoViolationsAsync(Page, "/design scoped canvas with a child field added");
+
+        // Back out to the top level and set the group's own ItemLabel/MinRows via the properties
+        // panel -- the group is still the committed selection from before the drill-in.
+        await Page.Keyboard.PressAsync("Escape");
+        Assert.True(await DesignerDriver.WaitForFocusAsync(rows.First));
+
+        await Page.GetByLabel("Item label").FillAsync("Member");
+        await Page.Keyboard.PressAsync("Tab");
+        await Page.GetByLabel("Minimum rows").FillAsync("1");
+        await Page.Keyboard.PressAsync("Tab");
+
+        await Assertions.Expect(Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Edit group fields (1)" })).ToBeVisibleAsync();
+
+        await AccessibilityAssertions.AssertNoViolationsAsync(Page, "/design repeating group properties set after leaving scope");
+    }
+
     [Fact]
     public async Task LinterDockJumpToNodeMovesFocusToTheOffendingRow()
     {

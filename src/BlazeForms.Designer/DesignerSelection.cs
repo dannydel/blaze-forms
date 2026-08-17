@@ -33,6 +33,19 @@ public sealed record DesignerSelection
     public string? NodeId { get; init; }
 
     /// <summary>
+    /// The identifier of the repeating group the canvas is currently drilled into
+    /// (repeating-groups-plan.md, Increment C's canvas drill-in scope) --
+    /// <see langword="null"/> at the top level. When set alongside <see cref="NodeId"/>, that node
+    /// is one of the group's own <c>Children</c>; when set with <see cref="NodeId"/>
+    /// <see langword="null"/>, the scope is drilled in but has no child to select yet (an empty
+    /// group), and a canvas reads that combination as "focus the scope's own heading". Carried on
+    /// every <see cref="EditSnapshot"/> the same as every other property here, so undoing or
+    /// redoing into a mutation made while scoped restores the scoped view, not just the
+    /// definition (D-4's "the selection/scope snapshot must restore the right view").
+    /// </summary>
+    public string? GroupId { get; init; }
+
+    /// <summary>
     /// Why focus landed here -- the signal a later phase's canvas uses to decide whether (and
     /// how) to move real DOM focus.
     /// </summary>
@@ -97,6 +110,31 @@ public sealed record DesignerSelection
     /// </returns>
     public static DesignerSelection ForPage(string pageId, DesignerFocusIntent intent) =>
         new() { PageId = pageId, Intent = intent };
+
+    /// <summary>
+    /// Selects a repeating group's own drill-in scope with no child selected yet -- an empty
+    /// group's own "Edit group fields" entry point, or the fallback a child delete leaves behind
+    /// once no sibling survives it (repeating-groups-plan.md, Increment C). A canvas reads
+    /// <see cref="NodeId"/> being <see langword="null"/> here as "focus the scope's own heading",
+    /// the group-scoped counterpart of <see cref="ForSection"/>'s own node-less fallback.
+    /// </summary>
+    /// <param name="pageId">
+    /// The identifier of the page the group's section belongs to.
+    /// </param>
+    /// <param name="sectionId">
+    /// The identifier of the section the group belongs to.
+    /// </param>
+    /// <param name="groupId">
+    /// The repeating group's own identifier.
+    /// </param>
+    /// <param name="intent">
+    /// Why focus is landing on this scope.
+    /// </param>
+    /// <returns>
+    /// A selection anchored to the group's own scope, with no child node selected.
+    /// </returns>
+    public static DesignerSelection ForGroupScope(string pageId, string sectionId, string groupId, DesignerFocusIntent intent) =>
+        new() { SectionId = sectionId, PageId = pageId, GroupId = groupId, Intent = intent };
 }
 
 /// <summary>

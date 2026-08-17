@@ -1,4 +1,6 @@
+using BlazeForms.Canvas;
 using BlazeForms.Definitions;
+using BlazeForms.Designer.Internal;
 using BlazeForms.Expressions;
 
 namespace BlazeForms.Designer.Tests;
@@ -520,6 +522,220 @@ internal static class DesignerTestFixtures
     }
 
     /// <summary>
+    /// One page, one section holding a <see cref="NodeType.Repeating"/> group with two children
+    /// ("child-a", "child-b") plus a sibling top-level field ("node-outside") -- the base fixture
+    /// every group-scoping test (repeating-groups-plan.md, Increment C) starts from:
+    /// <see cref="DefinitionMutations"/>'s child-aware mutations, <see cref="Canvas.DesignerCanvas"/>'s
+    /// drill-in scope, and the boundary-aware rule editors all need at least one group with more
+    /// than one child to exercise reordering, deletion neighbours, and sibling-vs-outside field
+    /// picking.
+    /// </summary>
+    internal static FormDefinition RepeatingGroupDefinition(string formId) => new()
+    {
+        Id = formId,
+        Name = "Repeating group form",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Title = "Details",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Title = "Household",
+                        Nodes =
+                        [
+                            new FormNode
+                            {
+                                Id = "group-1",
+                                Type = NodeType.Repeating,
+                                Label = "Household members",
+                                ItemLabel = "Member",
+                                MinRows = 0,
+                                MaxRows = 5,
+                                Children =
+                                [
+                                    new FormNode { Id = "child-a", Type = NodeType.Text, Label = "Full name" },
+                                    new FormNode { Id = "child-b", Type = NodeType.Date, Label = "Date of birth" },
+                                ],
+                            },
+                            new FormNode { Id = "node-outside", Type = NodeType.Text, Label = "Outside field" },
+                        ],
+                    },
+                ],
+            },
+        ],
+    };
+
+    /// <summary>
+    /// The same shape as <see cref="TwoRepeatingGroupsDefinition"/>, but "group-1" also carries an
+    /// uncalculated <see cref="NodeType.Calc"/> child ("calc-in-group") -- <c>CalculationEditor</c>'s
+    /// own boundary-aware operand-field-picker fixture (repeating-groups-plan.md, Increment C):
+    /// its candidate fields must offer "child-a2" (a numeric sibling) and "node-outside" (top-level)
+    /// but never "child-c" (a different group's own child).
+    /// </summary>
+    internal static FormDefinition TwoRepeatingGroupsWithCalcDefinition(string formId)
+    {
+        var definition = TwoRepeatingGroupsDefinition(formId);
+        return definition with
+        {
+            Pages =
+            [
+                definition.Pages[0] with
+                {
+                    Sections =
+                    [
+                        definition.Pages[0].Sections[0] with
+                        {
+                            Nodes =
+                            [
+                                definition.Pages[0].Sections[0].Nodes[0] with
+                                {
+                                    Children =
+                                    [
+                                        .. definition.Pages[0].Sections[0].Nodes[0].Children,
+                                        new FormNode { Id = "calc-in-group", Type = NodeType.Calc, Label = "Calc in group" },
+                                    ],
+                                },
+                                definition.Pages[0].Sections[0].Nodes[1],
+                                definition.Pages[0].Sections[0].Nodes[2],
+                            ],
+                        },
+                    ],
+                },
+            ],
+        };
+    }
+
+    /// <summary>
+    /// The same shape as <see cref="RepeatingGroupDefinition"/>, but "child-a" is named by
+    /// "child-b"'s own <see cref="FormNode.VisibleWhen"/> -- a sibling-within-the-same-group
+    /// reference, legal under FR-04 -- so deleting the whole group (<c>group-1</c>) exercises
+    /// <c>DeleteProtectionDialog</c>'s own descendant aggregation (repeating-groups-plan.md,
+    /// Increment C): the warning must name that reference even though it names neither the
+    /// group's own id nor "child-a" directly by a top-level rule.
+    /// </summary>
+    internal static FormDefinition RepeatingGroupWithReferencedChildDefinition(string formId)
+    {
+        var definition = RepeatingGroupDefinition(formId);
+        return definition with
+        {
+            Pages =
+            [
+                definition.Pages[0] with
+                {
+                    Sections =
+                    [
+                        definition.Pages[0].Sections[0] with
+                        {
+                            Nodes =
+                            [
+                                definition.Pages[0].Sections[0].Nodes[0] with
+                                {
+                                    Children =
+                                    [
+                                        definition.Pages[0].Sections[0].Nodes[0].Children[0],
+                                        definition.Pages[0].Sections[0].Nodes[0].Children[1] with
+                                        {
+                                            VisibleWhen = new ConditionGroup
+                                            {
+                                                Conditions = [new Condition { Field = "child-a", Operator = ConditionOperator.IsNotBlank }],
+                                            },
+                                        },
+                                    ],
+                                },
+                                definition.Pages[0].Sections[0].Nodes[1],
+                            ],
+                        },
+                    ],
+                },
+            ],
+        };
+    }
+
+    /// <summary>
+    /// Two repeating groups ("group-1" with children "child-a"/"child-a2", "group-2" with child
+    /// "child-c") plus a top-level field ("node-outside") -- the boundary-aware field pickers' own
+    /// fixture (repeating-groups-plan.md, Increment C): editing "child-a" must offer its sibling
+    /// "child-a2" and "node-outside", but never "child-c" (a different group's child); editing
+    /// "node-outside" must exclude every child of either group.
+    /// </summary>
+    internal static FormDefinition TwoRepeatingGroupsDefinition(string formId) => new()
+    {
+        Id = formId,
+        Name = "Two repeating groups form",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Nodes =
+                        [
+                            new FormNode
+                            {
+                                Id = "group-1",
+                                Type = NodeType.Repeating,
+                                Label = "Group one",
+                                Children =
+                                [
+                                    new FormNode { Id = "child-a", Type = NodeType.Text, Label = "Child A" },
+                                    new FormNode { Id = "child-a2", Type = NodeType.Number, Label = "Child A2" },
+                                ],
+                            },
+                            new FormNode
+                            {
+                                Id = "group-2",
+                                Type = NodeType.Repeating,
+                                Label = "Group two",
+                                Children = [new FormNode { Id = "child-c", Type = NodeType.Number, Label = "Child C" }],
+                            },
+                            new FormNode { Id = "node-outside", Type = NodeType.Number, Label = "Outside field" },
+                        ],
+                    },
+                ],
+            },
+        ],
+    };
+
+    /// <summary>
+    /// The same shape as <see cref="RepeatingGroupDefinition"/>, but the group has no children at
+    /// all yet -- <see cref="Canvas.DesignerCanvas"/>'s own empty-scope state (repeating-groups-plan.md,
+    /// Increment C).
+    /// </summary>
+    internal static FormDefinition EmptyRepeatingGroupDefinition(string formId)
+    {
+        var definition = RepeatingGroupDefinition(formId);
+        return definition with
+        {
+            Pages =
+            [
+                definition.Pages[0] with
+                {
+                    Sections =
+                    [
+                        definition.Pages[0].Sections[0] with
+                        {
+                            Nodes =
+                            [
+                                definition.Pages[0].Sections[0].Nodes[0] with { Children = [] },
+                                definition.Pages[0].Sections[0].Nodes[1],
+                            ],
+                        },
+                    ],
+                },
+            ],
+        };
+    }
+
+    /// <summary>
     /// Two calc nodes: "calc-b" already carries a calculation that reads "calc-a" -- giving
     /// "calc-a" a calculation that reads "calc-b" would close calc-a -&gt; calc-b -&gt; calc-a,
     /// <c>CalculationEditor</c>'s own cycle-rejection case, on the calculation graph rather than
@@ -560,4 +776,123 @@ internal static class DesignerTestFixtures
             },
         ],
     };
+
+    /// <summary>
+    /// Two pages: page-1 holds a repeating group ("group-1", children "child-a"/"child-b") plus a
+    /// top-level field ("solo-1") in "section-1"; page-2 holds a single top-level field ("solo-2")
+    /// in "section-2". The regression fixture for the stale-scope palette-routing guard
+    /// (repeating-groups-plan.md, Increment C): scoping into "group-1" on page-1 and then switching
+    /// to page-2 must add to page-2's own section, never into the page-1 group left behind.
+    /// </summary>
+    internal static FormDefinition TwoPageRepeatingGroupDefinition(string formId) => new()
+    {
+        Id = formId,
+        Name = "Two page repeating group form",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Title = "Household page",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Title = "Household",
+                        Nodes =
+                        [
+                            new FormNode
+                            {
+                                Id = "group-1",
+                                Type = NodeType.Repeating,
+                                Label = "Household members",
+                                ItemLabel = "Member",
+                                MinRows = 0,
+                                MaxRows = 5,
+                                Children =
+                                [
+                                    new FormNode { Id = "child-a", Type = NodeType.Text, Label = "Full name" },
+                                    new FormNode { Id = "child-b", Type = NodeType.Date, Label = "Date of birth" },
+                                ],
+                            },
+                            new FormNode { Id = "solo-1", Type = NodeType.Text, Label = "Page one field" },
+                        ],
+                    },
+                ],
+            },
+            new FormPage
+            {
+                Id = "page-2",
+                Title = "Coverage page",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-2",
+                        Title = "Coverage",
+                        Nodes =
+                        [
+                            new FormNode { Id = "solo-2", Type = NodeType.Text, Label = "Page two field" },
+                        ],
+                    },
+                ],
+            },
+        ],
+    };
+
+    /// <summary>
+    /// The same shape as <see cref="RepeatingGroupDefinition"/>, but "group-1" gains a third child
+    /// ("child-c") whose own <see cref="FormNode.VisibleWhen"/> names BOTH "child-a" and "child-b"
+    /// in one rule -- a single referencing site that points at two members of the same group. The
+    /// regression fixture for the delete-protection dedup guard (repeating-groups-plan.md, Increment
+    /// C): deleting the whole group must list "child-c"'s reference exactly once, not once per
+    /// member it happens to name.
+    /// </summary>
+    internal static FormDefinition RepeatingGroupWithRuleReferencingTwoChildrenDefinition(string formId)
+    {
+        var definition = RepeatingGroupDefinition(formId);
+        return definition with
+        {
+            Pages =
+            [
+                definition.Pages[0] with
+                {
+                    Sections =
+                    [
+                        definition.Pages[0].Sections[0] with
+                        {
+                            Nodes =
+                            [
+                                definition.Pages[0].Sections[0].Nodes[0] with
+                                {
+                                    Children =
+                                    [
+                                        definition.Pages[0].Sections[0].Nodes[0].Children[0],
+                                        definition.Pages[0].Sections[0].Nodes[0].Children[1],
+                                        new FormNode
+                                        {
+                                            Id = "child-c",
+                                            Type = NodeType.Text,
+                                            Label = "Notes",
+                                            VisibleWhen = new ConditionGroup
+                                            {
+                                                Join = ConditionJoin.All,
+                                                Conditions =
+                                                [
+                                                    new Condition { Field = "child-a", Operator = ConditionOperator.IsNotBlank },
+                                                    new Condition { Field = "child-b", Operator = ConditionOperator.IsNotBlank },
+                                                ],
+                                            },
+                                        },
+                                    ],
+                                },
+                                definition.Pages[0].Sections[0].Nodes[1],
+                            ],
+                        },
+                    ],
+                },
+            ],
+        };
+    }
 }

@@ -80,6 +80,45 @@ public sealed class VisibilityRuleEditorTests : DesignerTestContext
         Assert.Equal("Active", condition.Value);
     }
 
+    /// <summary>
+    /// The authoring-time counterpart to the linter's blocking FR-04 rule (repeating-groups-plan.md,
+    /// Increment C): editing a repeating group's own child offers its own sibling and every
+    /// top-level field, but never a different group's own child.
+    /// </summary>
+    [Fact]
+    public async Task FieldPickerForAGroupsChildOffersSiblingsAndTopLevelFieldsButNotAnotherGroupsChildren()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.TwoRepeatingGroupsDefinition("form-1"));
+        var cut = Render<VisibilityRuleEditor>(p => p.Add(d => d.EditContext, context).Add(d => d.NodeId, "child-a"));
+
+        await cut.Find("button.bf-visibility-dialog__add-button").ClickAsync(new MouseEventArgs());
+        var options = cut.Find("div.bf-condition-row").QuerySelector("select")!
+            .QuerySelectorAll("option").Select(o => o.GetAttribute("value")).ToArray();
+
+        Assert.Contains("child-a2", options);
+        Assert.Contains("node-outside", options);
+        Assert.DoesNotContain("child-c", options);
+    }
+
+    /// <summary>
+    /// The reverse boundary (repeating-groups-plan.md, Increment C): editing a top-level field
+    /// excludes every repeating group's own children entirely.
+    /// </summary>
+    [Fact]
+    public async Task FieldPickerForATopLevelNodeExcludesEveryGroupsChildren()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.TwoRepeatingGroupsDefinition("form-1"));
+        var cut = Render<VisibilityRuleEditor>(p => p.Add(d => d.EditContext, context).Add(d => d.NodeId, "node-outside"));
+
+        await cut.Find("button.bf-visibility-dialog__add-button").ClickAsync(new MouseEventArgs());
+        var options = cut.Find("div.bf-condition-row").QuerySelector("select")!
+            .QuerySelectorAll("option").Select(o => o.GetAttribute("value")).ToArray();
+
+        Assert.DoesNotContain("child-a", options);
+        Assert.DoesNotContain("child-a2", options);
+        Assert.DoesNotContain("child-c", options);
+    }
+
     [Fact]
     public async Task SwitchingToAnyRoundTripsTheJoin()
     {

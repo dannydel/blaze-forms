@@ -99,6 +99,56 @@ public sealed class FillAccessibilityTests : E2ETestBase
         await AccessibilityAssertions.AssertNoViolationsAsync(Page, "/fill review page with a computed calc total");
     }
 
+    /// <summary>
+    /// Drives the "Household members" repeating group (repeating-groups-plan.md, Increment C)
+    /// keyboard-only: adds a row, fills its fields, adds a second row via keyboard, reorders it,
+    /// then removes a row -- staying axe-clean throughout. Add/Remove/Move are all native
+    /// <c>&lt;button&gt;</c>s, so <c>Tab</c>+<c>Enter</c> reaches every one of them exactly as a
+    /// click would (AGENTS.md invariant #4).
+    /// </summary>
+    [Fact]
+    public async Task RepeatingGroupRowsCanBeAddedFilledReorderedAndRemovedByKeyboardAndStayAccessible()
+    {
+        await SampleFormDriver.GotoFillAsync(Page, BaseUrl);
+
+        var addButton = Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Add Member" });
+        Assert.True(await DesignerDriver.TabUntilFocusedAsync(Page, addButton));
+        await Page.Keyboard.PressAsync("Enter");
+
+        var firstRow = Page.GetByRole(AriaRole.Group, new PageGetByRoleOptions { Name = "Member 1" });
+        await firstRow.WaitForAsync();
+        await firstRow.GetByLabel("Full name").FillAsync("Alex Rivera");
+        await firstRow.GetByLabel("Relationship to applicant").SelectOptionAsync(new SelectOptionValue { Label = "Spouse" });
+        await firstRow.GetByLabel("Weekly income").FillAsync("500");
+
+        // A second row, added via keyboard alone -- Add sits after the rows, so Tab reaches it
+        // again from wherever the first row's own last edit left focus.
+        Assert.True(await DesignerDriver.TabUntilFocusedAsync(Page, addButton));
+        await Page.Keyboard.PressAsync("Enter");
+
+        var secondRow = Page.GetByRole(AriaRole.Group, new PageGetByRoleOptions { Name = "Member 2" });
+        await secondRow.WaitForAsync();
+        await secondRow.GetByLabel("Full name").FillAsync("Sam Rivera");
+
+        // Reorder: move Member 2 up one position via its own Move up button.
+        var moveUpSecond = Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Move Member 2 up" });
+        Assert.True(await DesignerDriver.TabUntilFocusedAsync(Page, moveUpSecond));
+        await Page.Keyboard.PressAsync("Enter");
+        await Assertions.Expect(Page.GetByRole(AriaRole.Group, new PageGetByRoleOptions { Name = "Member 1" }).GetByLabel("Full name"))
+            .ToHaveValueAsync("Sam Rivera");
+
+        // Remove the (now first) row via its own Remove button, reached by keyboard alone.
+        var removeFirst = Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Remove Member 1" });
+        Assert.True(await DesignerDriver.TabUntilFocusedAsync(Page, removeFirst));
+        await Page.Keyboard.PressAsync("Enter");
+
+        await Assertions.Expect(Page.GetByRole(AriaRole.Group, new PageGetByRoleOptions { Name = "Member 1" }).GetByLabel("Full name"))
+            .ToHaveValueAsync("Alex Rivera");
+        await Assertions.Expect(Page.GetByRole(AriaRole.Group, new PageGetByRoleOptions { Name = "Member 2" })).Not.ToBeVisibleAsync();
+
+        await AccessibilityAssertions.AssertNoViolationsAsync(Page, "/fill with repeating-group rows added, filled, reordered, and removed");
+    }
+
     [Fact]
     public async Task TabbingFromTheTopReachesFirstPageControlsWithoutATrap()
     {

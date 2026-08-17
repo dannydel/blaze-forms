@@ -195,6 +195,17 @@ public partial class FormDesigner : ComponentBase, IAsyncDisposable
     /// into; a designer with no page at all, or before the draft has loaded, is a no-op, since
     /// <see cref="Palette.FieldPalette"/> has nothing to target either way.
     /// </summary>
+    /// <remarks>
+    /// <b>Scoped adds (repeating-groups-plan.md, Increment C).</b> While
+    /// <see cref="DesignerEditContext.Selection"/> carries a <see cref="DesignerSelection.GroupId"/>
+    /// (the canvas is drilled into a repeating group's own fields), the palette adds into that
+    /// group's own <see cref="FormNode.Children"/> via <see cref="DesignerEditContext.AddChildNode"/>
+    /// instead -- the section-targeting logic below is entirely a top-level concern, so it never
+    /// runs for a scoped add. <see cref="Palette.FieldPalette.IsInsideRepeatingGroup"/> (wired from
+    /// this same <see cref="DesignerSelection.GroupId"/> in <c>FormDesigner.razor</c>) is what
+    /// keeps <see cref="NodeType.Repeating"/> off the palette while scoped, so this method never
+    /// has to guard against the no-nested-repeating case itself.
+    /// </remarks>
     /// <param name="nodeType">
     /// The node type the author asked to add.
     /// </param>
@@ -202,6 +213,12 @@ public partial class FormDesigner : ComponentBase, IAsyncDisposable
     {
         if (_editContext is null || _activePageId is null)
         {
+            return;
+        }
+
+        if (ActiveScopeGroupId is { } groupId)
+        {
+            _editContext.AddChildNode(nodeType, groupId);
             return;
         }
 
@@ -243,6 +260,24 @@ public partial class FormDesigner : ComponentBase, IAsyncDisposable
 
         return page.Sections.Count > 0 ? page.Sections[^1].Id : null;
     }
+
+    /// <summary>
+    /// The repeating group the designer is <em>effectively</em> scoped into right now, or
+    /// <see langword="null"/> at the top level -- the palette's add routing
+    /// (<see cref="OnPaletteAddRequested"/>) and its <see cref="Palette.FieldPalette.IsInsideRepeatingGroup"/>
+    /// gate both key off this rather than <see cref="DesignerSelection.GroupId"/> raw. It applies
+    /// the exact same page guard <see cref="Canvas.DesignerCanvas"/>'s own <c>ScopeGroupId</c> does
+    /// (repeating-groups-plan.md, Increment C): a scope only counts while
+    /// <see cref="DesignerSelection.PageId"/> still matches <see cref="_activePageId"/>, so an
+    /// author who scopes into a group on one page and then switches tabs adds to the page they are
+    /// actually looking at -- never into a stale group's own <see cref="FormNode.Children"/> on the
+    /// page just left -- while returning to that page restores the scope, matching the canvas.
+    /// </summary>
+    private string? ActiveScopeGroupId =>
+        _editContext?.Selection is { GroupId: { } groupId, PageId: var pageId }
+        && string.Equals(pageId, _activePageId, StringComparison.Ordinal)
+            ? groupId
+            : null;
 
     /// <summary>
     /// Switches <see cref="_activePageId"/> when the author clicks a different tab in

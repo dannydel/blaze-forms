@@ -562,6 +562,170 @@ public sealed class DesignerCanvasTests : DesignerTestContext
         JSInterop.VerifyFocusAsyncInvoke();
     }
 
+    // -- The repeating group drill-in scope (repeating-groups-plan.md, Increment C, PRD §4.1,
+    // §11): → enters a repeating row's own scope, Esc and the breadcrumb button both leave it, and
+    // every existing affordance (roving focus, Alt+↑/↓ reorder, duplicate, delete, undo/redo)
+    // applies unchanged to the group's own children once inside.
+
+    [Fact]
+    public async Task ArrowRightOnAnActiveRepeatingRowEntersItsScopeAndFocusesTheFirstChild()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.RepeatingGroupDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+
+        // group-1 is the roving cursor's default (first row in section-1).
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
+
+        Assert.Equal("group-1", context.Selection.GroupId);
+        Assert.Equal("child-a", context.Selection.NodeId);
+        Assert.Equal(DesignerFocusIntent.JumpedTo, context.Selection.Intent);
+
+        var rows = cut.FindAll("div.bf-canvas-row");
+        Assert.Equal(2, rows.Count);
+        Assert.Contains("Full name", cut.Markup, StringComparison.Ordinal);
+        Assert.Contains("Date of birth", cut.Markup, StringComparison.Ordinal);
+        Assert.DoesNotContain("Outside field", cut.Markup, StringComparison.Ordinal);
+        Assert.Equal("Editing fields for 'Household members'", cut.Find("h3.bf-canvas-section__title").TextContent);
+        JSInterop.VerifyFocusAsyncInvoke();
+    }
+
+    [Fact]
+    public async Task ArrowRightOnANonRepeatingRowDoesNothing()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.TwoSectionDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
+
+        Assert.Null(context.Selection.GroupId);
+        Assert.Equal(DesignerSelection.None, context.Selection);
+    }
+
+    [Fact]
+    public async Task BreadcrumbBackButtonExitsScopeAndFocusesTheGroupsOwnRow()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.RepeatingGroupDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
+
+        await cut.Find("button.bf-canvas__back-button").ClickAsync(new MouseEventArgs());
+
+        Assert.Null(context.Selection.GroupId);
+        Assert.Equal("group-1", context.Selection.NodeId);
+        Assert.Equal(DesignerFocusIntent.JumpedTo, context.Selection.Intent);
+        Assert.Equal(2, cut.FindAll("div.bf-canvas-row").Count);
+    }
+
+    [Fact]
+    public async Task EscapeWhileScopedExitsAndFocusesTheGroupsOwnRow()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.RepeatingGroupDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
+
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "Escape" });
+
+        Assert.Null(context.Selection.GroupId);
+        Assert.Equal("group-1", context.Selection.NodeId);
+        Assert.Equal(DesignerFocusIntent.JumpedTo, context.Selection.Intent);
+    }
+
+    [Fact]
+    public async Task EnteringAnEmptyGroupsScopeShowsTheEmptyStateAndFocusesTheScopeHeading()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.EmptyRepeatingGroupDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
+
+        Assert.Null(context.Selection.NodeId);
+        Assert.Equal("group-1", context.Selection.GroupId);
+        Assert.Equal(DesignerFocusIntent.JumpedTo, context.Selection.Intent);
+        Assert.Contains("This group has no fields yet", cut.Markup, StringComparison.Ordinal);
+        Assert.Empty(cut.FindAll("div.bf-canvas-row"));
+        JSInterop.VerifyFocusAsyncInvoke();
+    }
+
+    [Fact]
+    public async Task AltArrowDownWhileScopedReordersWithinTheGroupsOwnChildren()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.RepeatingGroupDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
+
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown", AltKey = true });
+
+        var children = context.Draft.Definition.FindNode("group-1")!.Children;
+        Assert.Equal(["child-b", "child-a"], children.Select(c => c.Id));
+        Assert.Equal("group-1", context.Selection.GroupId);
+        Assert.Equal("child-a", context.Selection.NodeId);
+    }
+
+    [Fact]
+    public async Task CtrlMWhileScopedIsANoOp()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.RepeatingGroupDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
+
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "m", CtrlKey = true });
+
+        Assert.Empty(cut.FindAll("div.bf-move-dialog"));
+    }
+
+    [Fact]
+    public async Task CtrlDWhileScopedDuplicatesTheActiveChildWithinTheSameGroup()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.RepeatingGroupDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
+
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "d", CtrlKey = true });
+
+        var children = context.Draft.Definition.FindNode("group-1")!.Children;
+        Assert.Equal(3, children.Count);
+        Assert.Equal("group-1", context.Selection.GroupId);
+        Assert.Equal(DesignerFocusIntent.NewNode, context.Selection.Intent);
+    }
+
+    [Fact]
+    public async Task DeleteWhileScopedOnAnUnreferencedChildDeletesDirectlyAndStaysScoped()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.RepeatingGroupDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
+
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "Delete" });
+
+        Assert.Null(context.Draft.Definition.FindNode("child-a"));
+        Assert.Equal("group-1", context.Selection.GroupId);
+        Assert.Equal("child-b", context.Selection.NodeId);
+        Assert.Empty(cut.FindAll("div.bf-delete-dialog"));
+    }
+
+    /// <summary>
+    /// The selection/scope snapshot restoring the right view (repeating-groups-plan.md, Increment
+    /// C's own explicit requirement): undoing a mutation made while scoped lands back on the same
+    /// scoped selection that mutation started from, not merely the same definition.
+    /// </summary>
+    [Fact]
+    public async Task UndoOfAChildMutationRestoresTheScopedSelection()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.RepeatingGroupDefinition("form-1"));
+        var cut = Render<DesignerCanvas>(p => p.Add(f => f.EditContext, context).Add(f => f.ActivePageId, "page-1"));
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "ArrowRight" });
+
+        context.DeleteNode("child-a");
+        Assert.Equal("child-b", context.Selection.NodeId);
+
+        await cut.Find("div.bf-canvas").KeyDownAsync(new KeyboardEventArgs { Key = "z", CtrlKey = true });
+
+        Assert.NotNull(context.Draft.Definition.FindNode("child-a"));
+        Assert.Equal("group-1", context.Selection.GroupId);
+        Assert.Equal("child-a", context.Selection.NodeId);
+        Assert.Equal(DesignerFocusIntent.Restored, context.Selection.Intent);
+    }
+
     [Fact]
     public async Task CtrlZUndoesTheMostRecentMutation()
     {

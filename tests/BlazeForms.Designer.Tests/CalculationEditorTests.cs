@@ -98,6 +98,29 @@ public sealed class CalculationEditorTests : DesignerTestContext
     }
 
     /// <summary>
+    /// The authoring-time counterpart to the linter's blocking FR-04 rule (repeating-groups-plan.md,
+    /// Increment C): a calc node inside a repeating group offers its own numeric siblings and
+    /// every top-level numeric field as operand candidates, but never a different group's own
+    /// child -- narrowing <c>CandidateFieldsFor</c> already applies to the operation's own
+    /// operand typing (numeric vs. date), unaffected by this boundary filter running alongside it.
+    /// </summary>
+    [Fact]
+    public async Task OperandFieldPickerForACalcInsideAGroupOffersSiblingsAndTopLevelFieldsButNotAnotherGroupsChildren()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.TwoRepeatingGroupsWithCalcDefinition("form-1"));
+        var cut = Render<CalculationEditor>(p => p.Add(d => d.EditContext, context).Add(d => d.NodeId, "calc-in-group"));
+
+        await cut.Find("button.bf-calc-dialog__add-button").ClickAsync(new MouseEventArgs());
+
+        var options = cut.Find("div.bf-calc-operand-row").QuerySelectorAll("select")[1]
+            .QuerySelectorAll("option").Select(o => o.GetAttribute("value")).ToArray();
+
+        Assert.Contains("child-a2", options);
+        Assert.Contains("node-outside", options);
+        Assert.DoesNotContain("child-c", options);
+    }
+
+    /// <summary>
     /// Switching from a numeric operation to a date one must never leave a numeric field
     /// stranded on the date operation, silently Apply-able as a calculation that can only ever
     /// evaluate to no value (code review fix #2). The stale selection is cleared, not defensively

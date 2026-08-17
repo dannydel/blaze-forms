@@ -68,6 +68,36 @@ public sealed class ValidationRuleEditorTests : DesignerTestContext
         Assert.Equal("node-c", context.Draft.Definition.ValidationRules[0].Expression.Conditions[0].Field);
     }
 
+    /// <summary>
+    /// A rule's own boundary (repeating-groups-plan.md, Increment C) is decided by its
+    /// <see cref="ValidationRule.Target"/>, matching the linter's own blocking FR-04 rule exactly:
+    /// once the target names a repeating group's own child, that rule's own condition rows offer
+    /// the target's siblings and every top-level field, but never a different group's own child.
+    /// The Target select itself stays unfiltered -- a rule's own target is not itself scoped by
+    /// anything.
+    /// </summary>
+    [Fact]
+    public async Task ConditionFieldPickerNarrowsToTheRulesOwnTargetsBoundaryOnceTheTargetIsAGroupsChild()
+    {
+        await using var context = CreateContext(DesignerTestFixtures.TwoRepeatingGroupsDefinition("form-1"));
+        var cut = Render<ValidationRuleEditor>(p => p.Add(d => d.EditContext, context));
+
+        await cut.Find("button.bf-validation-rules__add-button").ClickAsync(new MouseEventArgs());
+
+        // The Target select itself offers every input field, group children included.
+        var targetOptions = cut.Find("select").QuerySelectorAll("option").Select(o => o.GetAttribute("value")).ToArray();
+        Assert.Contains("child-a", targetOptions);
+        Assert.Contains("child-c", targetOptions);
+
+        await cut.Find("select").ChangeAsync("child-a");
+        await cut.Find("button.bf-validation-rules__button:not(.bf-validation-rules__remove-button)").ClickAsync(new MouseEventArgs());
+
+        var conditionOptions = cut.Find("div.bf-condition-row select").QuerySelectorAll("option").Select(o => o.GetAttribute("value")).ToArray();
+        Assert.Contains("child-a2", conditionOptions);
+        Assert.Contains("node-outside", conditionOptions);
+        Assert.DoesNotContain("child-c", conditionOptions);
+    }
+
     [Fact]
     public async Task SwitchingTheJoinToAnyCommitsImmediately()
     {
