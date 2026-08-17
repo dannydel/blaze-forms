@@ -41,6 +41,40 @@ BlazeForms.Components.ErrorSummaryEntry.FieldDomId.get -> string!
 BlazeForms.Components.ErrorSummaryEntry.FieldDomId.init -> void
 BlazeForms.Components.ErrorSummaryEntry.Message.get -> string!
 BlazeForms.Components.ErrorSummaryEntry.Message.init -> void
+BlazeForms.Components.RepeatingGroup
+BlazeForms.Components.RepeatingGroup.BuildChildParameters.get -> System.Func<BlazeForms.Definitions.FormNode!, BlazeForms.Serialization.RepeatingRow!, System.Collections.Generic.Dictionary<string!, object!>!>!
+BlazeForms.Components.RepeatingGroup.BuildChildParameters.set -> void
+BlazeForms.Components.RepeatingGroup.DisposeAsync() -> System.Threading.Tasks.ValueTask
+BlazeForms.Components.RepeatingGroup.Error.get -> string?
+BlazeForms.Components.RepeatingGroup.Error.set -> void
+BlazeForms.Components.RepeatingGroup.FieldId.get -> string!
+BlazeForms.Components.RepeatingGroup.FieldId.set -> void
+BlazeForms.Components.RepeatingGroup.GetVisibleChildIds.get -> System.Func<BlazeForms.Serialization.RepeatingRow!, System.Collections.Generic.IReadOnlyList<string!>!>!
+BlazeForms.Components.RepeatingGroup.GetVisibleChildIds.set -> void
+BlazeForms.Components.RepeatingGroup.Node.get -> BlazeForms.Definitions.FormNode!
+BlazeForms.Components.RepeatingGroup.Node.set -> void
+BlazeForms.Components.RepeatingGroup.OnAddRow.get -> Microsoft.AspNetCore.Components.EventCallback
+BlazeForms.Components.RepeatingGroup.OnAddRow.set -> void
+BlazeForms.Components.RepeatingGroup.OnAnnounce.get -> Microsoft.AspNetCore.Components.EventCallback<string!>
+BlazeForms.Components.RepeatingGroup.OnAnnounce.set -> void
+BlazeForms.Components.RepeatingGroup.OnMoveRow.get -> Microsoft.AspNetCore.Components.EventCallback<BlazeForms.Components.RepeatingRowMove>
+BlazeForms.Components.RepeatingGroup.OnMoveRow.set -> void
+BlazeForms.Components.RepeatingGroup.OnRemoveRow.get -> Microsoft.AspNetCore.Components.EventCallback<string!>
+BlazeForms.Components.RepeatingGroup.OnRemoveRow.set -> void
+BlazeForms.Components.RepeatingGroup.RepeatingGroup() -> void
+BlazeForms.Components.RepeatingGroup.ResolveChildComponentType.get -> System.Func<BlazeForms.Definitions.FormNode!, System.Type!>!
+BlazeForms.Components.RepeatingGroup.ResolveChildComponentType.set -> void
+BlazeForms.Components.RepeatingGroup.Value.get -> BlazeForms.Serialization.RepeatingRows!
+BlazeForms.Components.RepeatingGroup.Value.set -> void
+BlazeForms.Components.RepeatingRowMove
+BlazeForms.Components.RepeatingRowMove.Deconstruct(out string! RowId, out int Delta) -> void
+BlazeForms.Components.RepeatingRowMove.Delta.get -> int
+BlazeForms.Components.RepeatingRowMove.Delta.init -> void
+BlazeForms.Components.RepeatingRowMove.Equals(BlazeForms.Components.RepeatingRowMove other) -> bool
+BlazeForms.Components.RepeatingRowMove.RepeatingRowMove() -> void
+BlazeForms.Components.RepeatingRowMove.RepeatingRowMove(string! RowId, int Delta) -> void
+BlazeForms.Components.RepeatingRowMove.RowId.get -> string!
+BlazeForms.Components.RepeatingRowMove.RowId.init -> void
 BlazeForms.Fields.BooleanField
 BlazeForms.Fields.BooleanField.BooleanField() -> void
 BlazeForms.Fields.CalcField
@@ -119,12 +153,16 @@ override BlazeForms.Fields.FormFieldBase.OnParametersSet() -> void
 virtual BlazeForms.Fields.FormFieldBase.CaptureValueSnapshot() -> void
 override BlazeForms.Fields.HeadingBlock.ShouldRender() -> bool
 override BlazeForms.Components.ErrorSummaryEntry.GetHashCode() -> int
+override BlazeForms.Components.RepeatingGroup.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
+override BlazeForms.Components.RepeatingRowMove.GetHashCode() -> int
 override BlazeForms.FormRenderer.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
 override BlazeForms.FormRenderer.OnInitialized() -> void
 override BlazeForms.FormRenderer.OnParametersSet() -> void
 override BlazeForms.FormSubmissionView.OnParametersSet() -> void
 static BlazeForms.Components.ErrorSummaryEntry.operator !=(BlazeForms.Components.ErrorSummaryEntry left, BlazeForms.Components.ErrorSummaryEntry right) -> bool
 static BlazeForms.Components.ErrorSummaryEntry.operator ==(BlazeForms.Components.ErrorSummaryEntry left, BlazeForms.Components.ErrorSummaryEntry right) -> bool
+static BlazeForms.Components.RepeatingRowMove.operator !=(BlazeForms.Components.RepeatingRowMove left, BlazeForms.Components.RepeatingRowMove right) -> bool
+static BlazeForms.Components.RepeatingRowMove.operator ==(BlazeForms.Components.RepeatingRowMove left, BlazeForms.Components.RepeatingRowMove right) -> bool
 override BlazeForms.Fields.NumberField.CaptureValueSnapshot() -> void
 override BlazeForms.Fields.NumberField.ShouldRender() -> bool
 override BlazeForms.Fields.ParagraphBlock.CaptureValueSnapshot() -> void
@@ -144,6 +182,9 @@ override BlazeForms.Fields.YesNoField.ShouldRender() -> bool
 ~override BlazeForms.Components.ErrorSummary.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Components.ErrorSummaryEntry.Equals(object obj) -> bool
 ~override BlazeForms.Components.ErrorSummaryEntry.ToString() -> string
+~override BlazeForms.Components.RepeatingGroup.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
+~override BlazeForms.Components.RepeatingRowMove.Equals(object obj) -> bool
+~override BlazeForms.Components.RepeatingRowMove.ToString() -> string
 ~override BlazeForms.Fields.BooleanField.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Fields.CalcField.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Fields.CalloutBlock.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void

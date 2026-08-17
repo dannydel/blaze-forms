@@ -1,0 +1,68 @@
+<fieldset class="bf-repeating-group" id="@FieldId" tabindex="-1" aria-describedby="@BuildDescribedBy()">
+    <legend class="bf-repeating-group__legend">@Node.Label</legend>
+
+    @if (!string.IsNullOrWhiteSpace(Node.Help))
+    {
+        <div id="@HelpElementId" class="bf-repeating-group__help bf-prose">@HelpMarkup</div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Error))
+    {
+        <p id="@ErrorElementId" class="bf-repeating-group__error">@Error</p>
+    }
+
+    @for (var rowIndex = 0; rowIndex < Value.Rows.Count; rowIndex++)
+    {
+        var row = Value.Rows[rowIndex];
+        var index = rowIndex;
+        var ordinal = rowIndex + 1;
+
+        <fieldset class="bf-repeating-group__row" id="@RowDomId(row.RowId)" @key="row.RowId">
+            <legend>@RowLegend(ordinal)</legend>
+
+            <div class="bf-row">
+                @foreach (var childId in GetVisibleChildIds(row))
+                {
+                    var child = FindChild(childId);
+
+                    if (child is not null)
+                    {
+                        <div class="@(child.Half ? "bf-col-half" : "bf-col-full")" @key="child.Id">
+                            <DynamicComponent Type="@ResolveChildComponentType(child)" Parameters="@BuildChildParameters(child, row)" />
+                        </div>
+                    }
+                }
+            </div>
+
+            <div class="bf-repeating-group__row-actions">
+                <button type="button"
+                        class="bf-repeating-group__move-button"
+                        aria-disabled="@(index == 0 ? "true" : null)"
+                        @onclick="() => HandleMoveClick(row.RowId, -1)">
+                    @MoveUpLabel(ordinal)
+                </button>
+                <button type="button"
+                        class="bf-repeating-group__move-button"
+                        aria-disabled="@(index == Value.Rows.Count - 1 ? "true" : null)"
+                        @onclick="() => HandleMoveClick(row.RowId, 1)">
+                    @MoveDownLabel(ordinal)
+                </button>
+                <button type="button"
+                        class="bf-repeating-group__remove-button"
+                        @ref="_removeButtonRefs[row.RowId]"
+                        aria-disabled="@(IsAtMinRows ? "true" : null)"
+                        @onclick="() => HandleRemoveClick(row.RowId, index)">
+                    @RemoveLabel(ordinal)
+                </button>
+            </div>
+        </fieldset>
+    }
+
+    <button type="button"
+            class="bf-repeating-group__add-button"
+            @ref="_addButtonRef"
+            aria-disabled="@(IsAtMaxRows ? "true" : null)"
+            @onclick="HandleAddClick">
+        @AddLabel
+    </button>
+</fieldset>

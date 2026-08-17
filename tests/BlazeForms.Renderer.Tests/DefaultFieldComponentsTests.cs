@@ -77,9 +77,43 @@ public sealed class DefaultFieldComponentsTests
     }
 
     [Fact]
-    public void ThrowsForAP2ReservedNodeTypeWithNoRegistryOverride()
+    public void ThrowsForAStillReservedNodeTypeWithNoRegistryOverride()
+    {
+        // File and Lookup still ship schema only in this slice -- no default renderer, and no
+        // structural branch anywhere in FormRenderer resolves them.
+        Assert.Throws<InvalidOperationException>(() => DefaultFieldComponents.Resolve(NodeType.File, registry: null));
+        Assert.Throws<InvalidOperationException>(() => DefaultFieldComponents.Resolve(NodeType.Lookup, registry: null));
+    }
+
+    /// <summary>
+    /// <see cref="NodeType.Repeating"/> is no longer reserved (repeating-groups-plan.md's schema
+    /// v3): a fillable group exists, but it is resolved structurally by <c>FormRenderer</c>'s
+    /// section loop rendering the internal <c>Components.RepeatingGroup</c> directly, never
+    /// through this resolver. A direct call here for <see cref="NodeType.Repeating"/> with no
+    /// registry override — the one path that reaches this type instead of that structural
+    /// branch — documents that by still throwing, exactly like the two node types this build
+    /// fully reserves.
+    /// </summary>
+    [Fact]
+    public void ThrowsForRepeatingWithNoRegistryOverrideSinceItIsResolvedStructurallyNotHere()
     {
         Assert.Throws<InvalidOperationException>(() => DefaultFieldComponents.Resolve(NodeType.Repeating, registry: null));
+    }
+
+    /// <summary>
+    /// A host registering its own component for <see cref="NodeType.Repeating"/> is the one case
+    /// this resolver ever answers for it — <c>FormRenderer</c>'s section loop checks the registry
+    /// first and falls through to this resolver's ordinary registry-first path only then.
+    /// </summary>
+    [Fact]
+    public void HonorsARegistryOverrideForRepeating()
+    {
+        var registry = new StubRegistry();
+        registry.Register(NodeType.Repeating, typeof(FakeFieldComponent));
+
+        var resolved = DefaultFieldComponents.Resolve(NodeType.Repeating, registry);
+
+        Assert.Equal(typeof(FakeFieldComponent), resolved);
     }
 
     [Fact]

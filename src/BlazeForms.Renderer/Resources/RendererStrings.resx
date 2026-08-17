@@ -176,4 +176,65 @@
   <data name="SubmissionPageFallbackTitle" xml:space="preserve">
     <value>Page {0}</value>
   </data>
+
+  <!-- RepeatingGroup chrome (repeating-groups-plan.md, D-3). {0} is always the group's item
+       noun (FormNode.ItemLabel, falling back to its Label); a second {1} is a 1-based row
+       ordinal where one applies. -->
+  <data name="RepeatingRowLegend" xml:space="preserve">
+    <value>{0} {1}</value>
+  </data>
+  <data name="RepeatingAddButtonLabel" xml:space="preserve">
+    <value>Add {0}</value>
+  </data>
+  <data name="RepeatingRemoveButtonLabel" xml:space="preserve">
+    <value>Remove {0} {1}</value>
+  </data>
+  <data name="RepeatingMoveUpButtonLabel" xml:space="preserve">
+    <value>Move {0} {1} up</value>
+  </data>
+  <data name="RepeatingMoveDownButtonLabel" xml:space="preserve">
+    <value>Move {0} {1} down</value>
+  </data>
+
+  <!-- RepeatingGroup's row-operation live-region announcements: a separate, shared region on
+       FormRenderer from the calc announcer (D-3's keyboard/SR model). {2} is the pre-formatted
+       row-count suffix (RepeatingRowCountOfMax or RepeatingRowCount below). -->
+  <data name="RepeatingRowAddedAnnouncement" xml:space="preserve">
+    <value>{0} {1} added. {2}</value>
+  </data>
+  <data name="RepeatingRowRemovedAnnouncement" xml:space="preserve">
+    <value>{0} {1} removed. {2}</value>
+  </data>
+  <data name="RepeatingRowMovedAnnouncement" xml:space="preserve">
+    <value>{0} moved to position {1} of {2}.</value>
+  </data>
+  <!-- Blocked-move announcements (SR parity with the blocked Add/Remove pair above): {0} is the
+       item noun, {1} the row's own unchanged 1-based position. -->
+  <data name="RepeatingMoveBlockedUpAnnouncement" xml:space="preserve">
+    <value>{0} {1} cannot move up. It is already first.</value>
+  </data>
+  <data name="RepeatingMoveBlockedDownAnnouncement" xml:space="preserve">
+    <value>{0} {1} cannot move down. It is already last.</value>
+  </data>
+  <data name="RepeatingRowCountOfMax" xml:space="preserve">
+    <value>{0} of {1}.</value>
+  </data>
+  <data name="RepeatingRowCount" xml:space="preserve">
+    <value>{0}.</value>
+  </data>
+  <data name="RepeatingAddBlockedAnnouncement" xml:space="preserve">
+    <value>Cannot add another {0}. The maximum of {1} has been reached.</value>
+  </data>
+  <data name="RepeatingRemoveBlockedAnnouncement" xml:space="preserve">
+    <value>Cannot remove this {0}. At least {1} are required.</value>
+  </data>
+
+  <!-- Group-level row-count remedy (PRD §6): {0} is FormNode.MinRows/MaxRows, {1} the group's own
+       item noun. -->
+  <data name="RepeatingMinRowsRemedy" xml:space="preserve">
+    <value>Add at least {0} {1} entries.</value>
+  </data>
+  <data name="RepeatingMaxRowsRemedy" xml:space="preserve">
+    <value>Remove {1} entries until there are {0} or fewer.</value>
+  </data>
 </root>

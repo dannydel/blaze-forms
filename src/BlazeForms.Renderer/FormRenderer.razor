@@ -1,3 +1,4 @@
+@using BlazeForms.Definitions
 <div class="bf-renderer">
     @if (_isSubmitted && _submittedEnvelope is not null)
     {
@@ -30,6 +31,7 @@
 
         <div class="bf-visually-hidden" aria-live="polite">@StepAnnouncement</div>
         <div class="bf-visually-hidden bf-calc-announcer" aria-live="polite">@_calcAnnouncement</div>
+        <div class="bf-visually-hidden bf-repeating-announcer" aria-live="polite">@_repeatingRowAnnouncement</div>
 
         <ErrorSummary @ref="_errorSummary" Entries="SummaryEntries" HeadingText="@Localizer["ErrorSummaryHeading"].Value" />
 
@@ -38,7 +40,7 @@
                 @PageTitleOrFallback(CurrentPage, _currentPageIndex)
             </h2>
 
-            @{ var visibleNodeIds = GetVisibleNodeIds(); }
+            @{ var visibleNodeIds = GetVisibleNodeIds(out var settledValues); }
 
             @foreach (var section in CurrentPage.Sections)
             {
@@ -57,7 +59,24 @@
                                 @if (visibleNodeIds.Contains(node.Id))
                                 {
                                     <div class="@(node.Half ? "bf-col-half" : "bf-col-full")" @key="node.Id">
-                                        <DynamicComponent Type="@ResolveComponentType(node)" Parameters="@BuildFieldParameters(node)" />
+                                        @if (node.Type == NodeType.Repeating && !IsRepeatingComponentRegisteredByHost)
+                                        {
+                                            <RepeatingGroup Node="node"
+                                                             Value="GetRepeatingRows(node)"
+                                                             FieldId="@BuildFieldDomId(node.Id)"
+                                                             Error="@GetFieldError(node.Id)"
+                                                             ResolveChildComponentType="ResolveComponentType"
+                                                             GetVisibleChildIds="@(row => GetVisibleRepeatingChildIds(node, row, settledValues))"
+                                                             BuildChildParameters="@((child, row) => BuildRepeatingChildParametersFor(node, child, row))"
+                                                             OnAddRow="@(() => AddRepeatingRow(node))"
+                                                             OnRemoveRow="@(rowId => RemoveRepeatingRow(node, rowId))"
+                                                             OnMoveRow="@(move => MoveRepeatingRow(node, move.RowId, move.Delta))"
+                                                             OnAnnounce="AnnounceRepeatingRowChange" />
+                                        }
+                                        else
+                                        {
+                                            <DynamicComponent Type="@ResolveComponentType(node)" Parameters="@BuildFieldParameters(node)" />
+                                        }
                                     </div>
                                 }
                             }

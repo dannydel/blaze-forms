@@ -242,6 +242,107 @@ internal static class FormSubmissionViewTestFixtures
     };
 
     /// <summary>
+    /// One page, one section, a single repeating group (<c>siblings</c>, <c>ItemLabel</c>
+    /// "Sibling", <c>MinRows</c> 0) whose children are a plain text field
+    /// (<c>sibling-name</c>), a boolean controller (<c>wants-detail</c>), and a text field
+    /// (<c>sibling-detail</c>) visible only within a row whose own <c>wants-detail</c> is true —
+    /// enough to exercise per-row rendering and a per-row "Not applicable" (D-3's within-row
+    /// visibility, PRD §4.3, §9).
+    /// </summary>
+    internal static FormDefinition RepeatingSubmissionDefinition { get; } = new()
+    {
+        Id = "form-repeating-submission",
+        Name = "Repeating submission",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Title = "Household",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Title = "Members",
+                        Nodes =
+                        [
+                            new FormNode
+                            {
+                                Id = "siblings",
+                                Type = NodeType.Repeating,
+                                Label = "Siblings",
+                                ItemLabel = "Sibling",
+                                MinRows = 0,
+                                Children =
+                                [
+                                    new FormNode { Id = "sibling-name", Type = NodeType.Text, Label = "Name" },
+                                    new FormNode { Id = "wants-detail", Type = NodeType.Boolean, Label = "Needs extra care?" },
+                                    new FormNode
+                                    {
+                                        Id = "sibling-detail",
+                                        Type = NodeType.Text,
+                                        Label = "Care detail",
+                                        VisibleWhen = new ConditionGroup
+                                        {
+                                            Conditions = [new Condition { Field = "wants-detail", Operator = ConditionOperator.IsTrue }],
+                                        },
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    };
+
+    /// <summary>
+    /// One page, one section: a boolean (<c>show-siblings</c>) controls the visibility of a
+    /// repeating group (<c>siblings</c>) — for proving a hidden group's own run still renders,
+    /// showing the same "Not applicable" text a hidden top-level field would, rather than being
+    /// omitted entirely.
+    /// </summary>
+    internal static FormDefinition RepeatingGroupHiddenByOuterVisibilityDefinition { get; } = new()
+    {
+        Id = "form-repeating-hidden",
+        Name = "Repeating hidden",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Title = "Household",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Title = "Members",
+                        Nodes =
+                        [
+                            new FormNode { Id = "show-siblings", Type = NodeType.Boolean, Label = "Show siblings?" },
+                            new FormNode
+                            {
+                                Id = "siblings",
+                                Type = NodeType.Repeating,
+                                Label = "Siblings",
+                                ItemLabel = "Sibling",
+                                MinRows = 0,
+                                VisibleWhen = new ConditionGroup
+                                {
+                                    Conditions = [new Condition { Field = "show-siblings", Operator = ConditionOperator.IsTrue }],
+                                },
+                                Children = [new FormNode { Id = "sibling-name-2", Type = NodeType.Text, Label = "Name" }],
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    };
+
+    /// <summary>
     /// One section whose nodes interleave two captured headings among the input nodes they
     /// introduce, for the "no <c>div</c> inside a <c>dl</c>" regression test: a headingless run
     /// ("before" the first heading), then two heading-led runs, the second of which introduces no

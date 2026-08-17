@@ -33,6 +33,8 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     private readonly Dictionary<string, object?> _values = new(StringComparer.Ordinal);
     private readonly Dictionary<string, EventCallback<object?>> _valueChangedCallbacks = new(StringComparer.Ordinal);
     private readonly Dictionary<string, EventCallback> _onBlurCallbacks = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, EventCallback<object?>> _repeatingChildValueChangedCallbacks = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, EventCallback> _repeatingChildBlurCallbacks = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _errors = new(StringComparer.Ordinal);
     private readonly HashSet<string> _validatedNodeIds = new(StringComparer.Ordinal);
     private int _currentPageIndex;
@@ -43,6 +45,7 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     private ElementReference _pageHeadingElement;
     private ElementReference _confirmationElement;
     private string _calcAnnouncement = "";
+    private string _repeatingRowAnnouncement = "";
     private ErrorSummary? _errorSummary;
     private FieldValidator _fieldValidator = default!;
     private DateTimeOffset _startedAt;
@@ -217,11 +220,48 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
                 return Array.Empty<ErrorSummaryEntry>();
             }
 
-            var visibleNodeIds = GetVisibleNodeIds();
+            var visibleNodeIds = GetVisibleNodeIds(out var settledValues);
             var entries = new List<ErrorSummaryEntry>();
 
             foreach (var node in Definition.EnumerateNodes())
             {
+                if (node.Type == NodeType.Repeating)
+                {
+                    if (!visibleNodeIds.Contains(node.Id))
+                    {
+                        continue;
+                    }
+
+                    if (_errors.TryGetValue(node.Id, out var groupMessage))
+                    {
+                        entries.Add(new ErrorSummaryEntry(BuildFieldDomId(node.Id), groupMessage));
+                    }
+
+                    // A host-registered Repeating override owns its own per-child validation
+                    // (IsRepeatingComponentRegisteredByHost's remarks) — ValidateRepeatingGroup
+                    // never writes a composite-key error for one, so this walk would find nothing
+                    // to add anyway; skipping it outright avoids the wasted per-row work.
+                    if (IsRepeatingComponentRegisteredByHost)
+                    {
+                        continue;
+                    }
+
+                    foreach (var row in GetRepeatingRows(node).Rows)
+                    {
+                        foreach (var childId in VisibilityEvaluator.GetVisibleChildIds(node, row, settledValues))
+                        {
+                            var key = RepeatingFieldKeys.ChildKey(childId, row.RowId);
+
+                            if (_errors.TryGetValue(key, out var childMessage))
+                            {
+                                entries.Add(new ErrorSummaryEntry(BuildRepeatingChildDomId(childId, row.RowId), childMessage));
+                            }
+                        }
+                    }
+
+                    continue;
+                }
+
                 if (visibleNodeIds.Contains(node.Id) && _errors.TryGetValue(node.Id, out var message))
                 {
                     entries.Add(new ErrorSummaryEntry(BuildFieldDomId(node.Id), message));
@@ -250,7 +290,7 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
         // Loop through and hydrate any that are present in the definition.
         foreach(var pair in rawValues){
             hydratedValues[pair.Key] = nodes.TryGetValue(pair.Key, out var node)
-                ? HydrateValue(node.Type, pair.Value)
+                ? HydrateValue(node, pair.Value)
                 : pair.Value;
         }
         return hydratedValues;
@@ -258,9 +298,45 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
 
     /// <summary>
     /// Hydrates a single value from the draft store, if it is a type that needs hydration.
-    /// This is used when hydrating the entire draft values dictionary.
+    /// This is used when hydrating the entire draft values dictionary. A
+    /// <see cref="NodeType.Repeating"/> group's stored value recurses into each row and
+    /// re-hydrates its own children by their type, reusing the same <see cref="NodeType.Date"/>
+    /// case below per child — a resumed draft's date answers inside a row need exactly the same
+    /// <see cref="DateOnly"/> hydration a top-level date answer does.
     /// </summary>
-    private static object? HydrateValue(NodeType type, object? value) =>
+    private static object? HydrateValue(FormNode node, object? value)
+    {
+        if (node.Type == NodeType.Repeating && value is RepeatingRows rows)
+        {
+            return HydrateRepeatingRows(node, rows);
+        }
+
+        return HydrateScalarValue(node.Type, value);
+    }
+
+    private static RepeatingRows HydrateRepeatingRows(FormNode group, RepeatingRows rows)
+    {
+        var childrenById = group.Children.ToDictionary(child => child.Id, StringComparer.Ordinal);
+        var hydratedRows = new List<RepeatingRow>(rows.Rows.Count);
+
+        foreach (var row in rows.Rows)
+        {
+            var hydratedValues = new Dictionary<string, object?>(StringComparer.Ordinal);
+
+            foreach (var pair in row.Values)
+            {
+                hydratedValues[pair.Key] = childrenById.TryGetValue(pair.Key, out var child)
+                    ? HydrateValue(child, pair.Value)
+                    : pair.Value;
+            }
+
+            hydratedRows.Add(row with { Values = hydratedValues });
+        }
+
+        return rows with { Rows = hydratedRows };
+    }
+
+    private static object? HydrateScalarValue(NodeType type, object? value) =>
     type == NodeType.Date
     && value is string text
     && DateOnly.TryParseExact(
@@ -292,9 +368,40 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
 
         _timeProvider = ServiceProvider.GetService(typeof(TimeProvider)) as TimeProvider ?? TimeProvider.System;
 
+        SeedRepeatingGroups();
+
         // So a calc node whose expression depends on nothing but today() already shows a value
         // on the very first render, before the respondent has touched anything.
         RecomputeCalculations();
+    }
+
+    /// <summary>
+    /// Seeds every <see cref="NodeType.Repeating"/> group's initial answer to
+    /// <see cref="FormNode.MinRows"/> (or zero, when unset) fresh rows via
+    /// <see cref="RepeatingRows.Empty"/>. Runs once, here, rather than as part of
+    /// <see cref="VisibilityEvaluator.FilterToVisible"/> — seeding is this renderer's own
+    /// fill-time concern, not a pure visibility computation. A resumed draft's own repeating
+    /// value (<see cref="LoadDraftAsync"/>) overwrites this seed entirely, since that runs later
+    /// and unconditionally assigns every key the draft carries.
+    /// </summary>
+    private void SeedRepeatingGroups()
+    {
+        foreach (var node in Definition.EnumerateNodes())
+        {
+            if (node.Type != NodeType.Repeating || _values.ContainsKey(node.Id))
+            {
+                continue;
+            }
+
+            var seeded = RepeatingRows.Empty;
+
+            for (var i = 0; i < (node.MinRows ?? 0); i++)
+            {
+                seeded = seeded.AddRow();
+            }
+
+            _values[node.Id] = seeded;
+        }
     }
 
     /// <inheritdoc />
@@ -480,12 +587,23 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
             return true;
         }
 
-        var visibleNodeIds = GetVisibleNodeIds();
+        var visibleNodeIds = GetVisibleNodeIds(out var settledValues);
         var pageNodeIds = new HashSet<string>(StringComparer.Ordinal);
 
-        foreach (var node in CurrentPage.Sections.SelectMany(section => section.EnumerateNodes()))
+        foreach (var node in CurrentPage.Sections.SelectMany(section => section.Nodes))
         {
-            if (!visibleNodeIds.Contains(node.Id) || FieldValueConventions.GetStoredClrType(node.Type) is null)
+            if (!visibleNodeIds.Contains(node.Id))
+            {
+                continue;
+            }
+
+            if (node.Type == NodeType.Repeating)
+            {
+                pageNodeIds.UnionWith(ValidateRepeatingGroup(node, settledValues));
+                continue;
+            }
+
+            if (FieldValueConventions.GetStoredClrType(node.Type) is null)
             {
                 continue;
             }
@@ -495,7 +613,7 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
             ApplyFieldValidation(node);
         }
 
-        PruneHiddenErrors(visibleNodeIds);
+        PruneHiddenErrors(visibleNodeIds, settledValues);
 
         return !pageNodeIds.Overlaps(_errors.Keys);
     }
@@ -510,11 +628,22 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     /// </returns>
     private bool ValidateWholeForm()
     {
-        var visibleNodeIds = GetVisibleNodeIds();
+        var visibleNodeIds = GetVisibleNodeIds(out var settledValues);
 
-        foreach (var node in Definition.EnumerateNodes())
+        foreach (var node in Definition.Pages.SelectMany(page => page.Sections).SelectMany(section => section.Nodes))
         {
-            if (!visibleNodeIds.Contains(node.Id) || FieldValueConventions.GetStoredClrType(node.Type) is null)
+            if (!visibleNodeIds.Contains(node.Id))
+            {
+                continue;
+            }
+
+            if (node.Type == NodeType.Repeating)
+            {
+                ValidateRepeatingGroup(node, settledValues);
+                continue;
+            }
+
+            if (FieldValueConventions.GetStoredClrType(node.Type) is null)
             {
                 continue;
             }
@@ -523,8 +652,8 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
             ApplyFieldValidation(node);
         }
 
-        CrossFieldValidator.Evaluate(Definition, _values, visibleNodeIds, _errors);
-        PruneHiddenErrors(visibleNodeIds);
+        CrossFieldValidator.Evaluate(Definition, _values, settledValues, visibleNodeIds, _errors);
+        PruneHiddenErrors(visibleNodeIds, settledValues);
 
         return _errors.Count == 0;
     }
@@ -545,16 +674,168 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     }
 
     /// <summary>
-    /// Drops every error whose node is not currently visible — a hidden node carries no
-    /// validation state at all, so a field that hid after it last failed must not go on
+    /// Validates one visible <see cref="NodeType.Repeating"/> group: the group-level row-count
+    /// rule (<see cref="ValidateRepeatingRowCount"/>), then — unless
+    /// <see cref="IsRepeatingComponentRegisteredByHost"/> — every visible child of every row,
+    /// row-scoped (<see cref="VisibilityEvaluator.GetVisibleChildIds"/>), keyed by
+    /// <see cref="RepeatingFieldKeys.ChildKey"/>. A host-registered override never gets composite
+    /// per-child errors here: it renders through its own <c>DynamicComponent</c>, at its own DOM
+    /// ids, and gets only the single group-level <see cref="FormFieldBase.Error"/> — a composite
+    /// key this method never writes could otherwise block submit invisibly (nothing in the host's
+    /// own markup carries that error) and would resolve to a dead error-summary anchor pointing
+    /// at a DOM id (<see cref="BuildRepeatingChildDomId"/>) the host's component never renders
+    /// (repeating-groups-plan.md's "Risks": a host-registered Repeating component owns its own
+    /// per-child validation entirely).
+    /// </summary>
+    /// <param name="group">
+    /// The group to validate.
+    /// </param>
+    /// <param name="outerValues">
+    /// The settled outer answers — the same settled dictionary the caller's own
+    /// <c>GetVisibleNodeIds</c> out-overload already computed for this pass — to resolve each
+    /// row's own child visibility against. Never the raw answer store, so a row child's own
+    /// <c>VisibleWhen</c> naming a conditionally hidden outer field agrees exactly with what
+    /// <see cref="BuildSubmissionEnvelope"/> will actually capture.
+    /// </param>
+    /// <returns>
+    /// Every key this call touched — the group's own id plus, when not host-overridden, one
+    /// composite key per validated child — for a caller (<see cref="ValidateCurrentPage"/>) that
+    /// needs to know whether any of them now carries an error.
+    /// </returns>
+    private HashSet<string> ValidateRepeatingGroup(FormNode group, IReadOnlyDictionary<string, object?> outerValues)
+    {
+        var touchedKeys = new HashSet<string>(StringComparer.Ordinal) { group.Id };
+        ValidateRepeatingRowCount(group);
+
+        if (IsRepeatingComponentRegisteredByHost)
+        {
+            return touchedKeys;
+        }
+
+        foreach (var row in GetRepeatingRows(group).Rows)
+        {
+            foreach (var childId in VisibilityEvaluator.GetVisibleChildIds(group, row, outerValues))
+            {
+                var child = FindChild(group, childId);
+
+                if (child is null || FieldValueConventions.GetStoredClrType(child.Type) is null)
+                {
+                    continue;
+                }
+
+                var key = RepeatingFieldKeys.ChildKey(childId, row.RowId);
+                touchedKeys.Add(key);
+                _validatedNodeIds.Add(key);
+
+                row.Values.TryGetValue(childId, out var value);
+                var message = _fieldValidator.Validate(child, value, isVisible: true);
+
+                if (message is null)
+                {
+                    _errors.Remove(key);
+                }
+                else
+                {
+                    _errors[key] = message;
+                }
+            }
+        }
+
+        return touchedKeys;
+    }
+
+    /// <summary>
+    /// Validates a repeating group's row count against <see cref="FormNode.MinRows"/> and
+    /// <see cref="FormNode.MaxRows"/> — the one mechanism a group has for "at least N rows" (PRD
+    /// §5, since <see cref="FormNode.Required"/> is hidden for a repeating group in the
+    /// designer). Marks the group itself validated, so its error (if any) becomes visible from
+    /// this point on — including immediately after an add/remove, not only at page-advance or
+    /// submit.
+    /// </summary>
+    private void ValidateRepeatingRowCount(FormNode group)
+    {
+        _validatedNodeIds.Add(group.Id);
+        var rowCount = GetRepeatingRows(group).Rows.Count;
+
+        if (group.MinRows is int min && rowCount < min)
+        {
+            _errors[group.Id] = Localizer["RepeatingMinRowsRemedy", min, ItemNoun(group)].Value;
+        }
+        else if (group.MaxRows is int max && rowCount > max)
+        {
+            _errors[group.Id] = Localizer["RepeatingMaxRowsRemedy", max, ItemNoun(group)].Value;
+        }
+        else
+        {
+            _errors.Remove(group.Id);
+        }
+    }
+
+    private static string ItemNoun(FormNode group) => group.ItemLabel ?? group.Label ?? "";
+
+    private static FormNode? FindChild(FormNode group, string childId) =>
+        group.Children.FirstOrDefault(child => string.Equals(child.Id, childId, StringComparison.Ordinal));
+
+    /// <summary>
+    /// Drops every error whose node — or, for a repeating group's child, whose (child, row) pair
+    /// — is not currently visible. A hidden node carries no validation state at all, so a field
+    /// that hid after it last failed (including a row that was removed entirely) must not go on
     /// counting toward "the form has an error" or lingering in the summary.
     /// </summary>
-    private void PruneHiddenErrors(HashSet<string> visibleNodeIds)
+    /// <param name="visibleNodeIds">
+    /// The flat, top-level visible node ids for this pass.
+    /// </param>
+    /// <param name="settledValues">
+    /// The same settled outer answers <paramref name="visibleNodeIds"/> was computed from —
+    /// threaded through to <see cref="CollectVisibleErrorKeys"/> so a repeating child's visibility
+    /// is resolved exactly like <see cref="BuildSubmissionEnvelope"/> resolves it, never against
+    /// the raw, unsettled answer store.
+    /// </param>
+    private void PruneHiddenErrors(HashSet<string> visibleNodeIds, IReadOnlyDictionary<string, object?> settledValues)
     {
-        foreach (var nodeId in _errors.Keys.Where(id => !visibleNodeIds.Contains(id)).ToList())
+        var keep = CollectVisibleErrorKeys(visibleNodeIds, settledValues);
+
+        foreach (var key in _errors.Keys.Where(id => !keep.Contains(id)).ToList())
         {
-            _errors.Remove(nodeId);
+            _errors.Remove(key);
         }
+    }
+
+    /// <summary>
+    /// The full set of keys <see cref="_errors"/> and <see cref="_validatedNodeIds"/> may
+    /// currently carry without being stale: every flat, top-level visible node id, plus — for
+    /// every currently visible repeating group not overridden by a host component
+    /// (<see cref="IsRepeatingComponentRegisteredByHost"/>; that branch never writes a composite
+    /// key in the first place, per <see cref="ValidateRepeatingGroup"/>'s own remarks) — one
+    /// composite <see cref="RepeatingFieldKeys.ChildKey"/> per currently visible child of every
+    /// row.
+    /// </summary>
+    private HashSet<string> CollectVisibleErrorKeys(HashSet<string> visibleNodeIds, IReadOnlyDictionary<string, object?> settledValues)
+    {
+        var keep = new HashSet<string>(visibleNodeIds, StringComparer.Ordinal);
+
+        if (IsRepeatingComponentRegisteredByHost)
+        {
+            return keep;
+        }
+
+        foreach (var node in Definition.EnumerateNodes())
+        {
+            if (node.Type != NodeType.Repeating || !visibleNodeIds.Contains(node.Id))
+            {
+                continue;
+            }
+
+            foreach (var row in GetRepeatingRows(node).Rows)
+            {
+                foreach (var childId in VisibilityEvaluator.GetVisibleChildIds(node, row, settledValues))
+                {
+                    keep.Add(RepeatingFieldKeys.ChildKey(childId, row.RowId));
+                }
+            }
+        }
+
+        return keep;
     }
 
     [SuppressMessage(
@@ -736,6 +1017,296 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     private Type ResolveComponentType(FormNode node) => DefaultFieldComponents.Resolve(node.Type, FieldComponents);
 
     /// <summary>
+    /// Whether the host registered its own component for <see cref="NodeType.Repeating"/>. When
+    /// <see langword="true"/>, the section loop renders that override as an ordinary
+    /// <see cref="FormFieldBase"/> through the same <c>DynamicComponent</c> path every other node
+    /// uses — the whole group's <see cref="Serialization.RepeatingRows"/> as
+    /// <see cref="FormFieldBase.Value"/>, one group-level <see cref="FormFieldBase.Error"/> — a
+    /// documented limitation of that seam (repeating-groups-plan.md's "Risks"): per-child inline
+    /// errors are the internal <see cref="Components.RepeatingGroup"/>'s own affordance, not
+    /// something a host override gets for free. When <see langword="false"/> (the common case),
+    /// the section loop renders <see cref="Components.RepeatingGroup"/> directly instead, never
+    /// reaching <see cref="DefaultFieldComponents"/> for <see cref="NodeType.Repeating"/> at all.
+    /// </summary>
+    private bool IsRepeatingComponentRegisteredByHost =>
+        FieldComponents is not null
+        && FieldComponents.TryGetComponentType(NodeType.Repeating, out var registered)
+        && registered is not null;
+
+    /// <summary>
+    /// The current answer to a repeating group, or <see cref="RepeatingRows.Empty"/> when the
+    /// group has not yet been seeded or its stored value is not a <see cref="RepeatingRows"/> —
+    /// defensive against a host-registered override handing back something else through
+    /// <see cref="FormFieldBase.ValueChanged"/>.
+    /// </summary>
+    private RepeatingRows GetRepeatingRows(FormNode group) =>
+        _values.TryGetValue(group.Id, out var raw) && raw is RepeatingRows rows ? rows : RepeatingRows.Empty;
+
+    /// <summary>
+    /// The per-(child, row) DOM id a repeating group's child renders its primary control with —
+    /// the same <c>{_instanceId}-…</c> namespacing <see cref="BuildFieldDomId"/> uses for a
+    /// top-level field, extended with the row id so the same child node id repeating once per row
+    /// still gets a unique id per row.
+    /// </summary>
+    private string BuildRepeatingChildDomId(string childId, string rowId) => $"{_instanceId}-{childId}-{rowId}";
+
+    /// <summary>
+    /// The child ids currently visible within one row, resolved against the row-scoped merged
+    /// view (<see cref="VisibilityEvaluator.GetVisibleChildIds"/>). Curried by
+    /// <see cref="FormNode"/> and the current render's settled outer values in
+    /// <c>FormRenderer.razor</c> so <see cref="Components.RepeatingGroup"/> gets a plain
+    /// <c>Func&lt;RepeatingRow, IReadOnlyList&lt;string&gt;&gt;</c> for one specific group.
+    /// </summary>
+    /// <param name="group">
+    /// The repeating group whose child to resolve.
+    /// </param>
+    /// <param name="row">
+    /// The row to resolve against — passed through unsettled; only <paramref name="outerValues"/>
+    /// needs settling, since <see cref="VisibilityEvaluator.GetVisibleChildIds"/> overlays the
+    /// row's own (full, raw) values on top of it.
+    /// </param>
+    /// <param name="outerValues">
+    /// The settled outer answers for this render — never the raw answer store, so what the
+    /// respondent sees agrees exactly with what a submit would capture for the same state.
+    /// </param>
+    private static IReadOnlyList<string> GetVisibleRepeatingChildIds(
+        FormNode group,
+        RepeatingRow row,
+        IReadOnlyDictionary<string, object?> outerValues) =>
+        VisibilityEvaluator.GetVisibleChildIds(group, row, outerValues);
+
+    /// <summary>
+    /// Builds the <c>DynamicComponent</c> parameter set for one repeating group's child within
+    /// one row — the row-scoped counterpart of <see cref="BuildFieldParameters"/>. Value,
+    /// change/blur callbacks, and error are wired only for a child whose type actually captures
+    /// an answer, exactly like the top-level case; a <see cref="NodeType.Calc"/> child gets its
+    /// own formatted display value the same way <see cref="RecomputeCalculations"/>'s per-row
+    /// results feed it.
+    /// </summary>
+    private Dictionary<string, object> BuildRepeatingChildParametersFor(FormNode group, FormNode child, RepeatingRow row)
+    {
+        var parameters = new Dictionary<string, object>(StringComparer.Ordinal)
+        {
+            [nameof(FormFieldBase.Node)] = child,
+            [nameof(FormFieldBase.FieldId)] = BuildRepeatingChildDomId(child.Id, row.RowId),
+        };
+
+        if (FieldValueConventions.GetStoredClrType(child.Type) is not null)
+        {
+            row.Values.TryGetValue(child.Id, out var value);
+            parameters[nameof(FormFieldBase.Value)] = value!;
+            parameters[nameof(FormFieldBase.ValueChanged)] = GetRepeatingChildValueChangedCallback(group, row.RowId, child.Id);
+            parameters[nameof(FormFieldBase.OnBlur)] = GetRepeatingChildBlurCallback(group, row.RowId, child.Id);
+            parameters[nameof(FormFieldBase.Error)] = GetRepeatingChildError(child.Id, row.RowId)!;
+        }
+        else if (child.Type == NodeType.Calc)
+        {
+            row.Values.TryGetValue(child.Id, out var computed);
+            var formatted = child.Calculation is null ? null : CalcDisplayFormatter.Format(computed, child.Calculation.Format);
+            parameters[nameof(FormFieldBase.Value)] = formatted!;
+        }
+
+        return parameters;
+    }
+
+    /// <summary>
+    /// The error currently attached to one repeating child within one row, or
+    /// <see langword="null"/> when it has none or has not yet been validated — the row-scoped
+    /// counterpart of <see cref="GetFieldError"/>.
+    /// </summary>
+    private string? GetRepeatingChildError(string childId, string rowId)
+    {
+        var key = RepeatingFieldKeys.ChildKey(childId, rowId);
+        return _validatedNodeIds.Contains(key) ? _errors.GetValueOrDefault(key) : null;
+    }
+
+    /// <summary>
+    /// Returns the same <see cref="EventCallback{T}"/> instance for a given (child, row) on every
+    /// call, caching it the first time that pair is encountered — the row-scoped counterpart of
+    /// <see cref="GetValueChangedCallback"/>.
+    /// </summary>
+    private EventCallback<object?> GetRepeatingChildValueChangedCallback(FormNode group, string rowId, string childId)
+    {
+        var key = RepeatingFieldKeys.ChildKey(childId, rowId);
+
+        if (!_repeatingChildValueChangedCallbacks.TryGetValue(key, out var callback))
+        {
+            callback = EventCallback.Factory.Create<object?>(this, (object? value) => SetRepeatingChildValue(group, rowId, childId, value));
+            _repeatingChildValueChangedCallbacks[key] = callback;
+        }
+
+        return callback;
+    }
+
+    /// <summary>
+    /// Returns the same <see cref="EventCallback"/> instance for a given (child, row) on every
+    /// call, for the same reason <see cref="GetRepeatingChildValueChangedCallback"/> does.
+    /// </summary>
+    private EventCallback GetRepeatingChildBlurCallback(FormNode group, string rowId, string childId)
+    {
+        var key = RepeatingFieldKeys.ChildKey(childId, rowId);
+
+        if (!_repeatingChildBlurCallbacks.TryGetValue(key, out var callback))
+        {
+            callback = EventCallback.Factory.Create(this, () => HandleRepeatingChildBlur(group, rowId, childId));
+            _repeatingChildBlurCallbacks[key] = callback;
+        }
+
+        return callback;
+    }
+
+    /// <summary>
+    /// Sets one child's answer within one row: mutates the group's <see cref="RepeatingRows"/>
+    /// value through <see cref="RepeatingRows.SetValue"/>, then hands the updated value to
+    /// <see cref="SetValue(string, object?)"/> exactly as any top-level answer change would —
+    /// the existing pipeline recomputes every calc (including this group's own per-row
+    /// calculations) with no repeating-specific recompute code needed here.
+    /// </summary>
+    private void SetRepeatingChildValue(FormNode group, string rowId, string childId, object? value) =>
+        SetValue(group.Id, GetRepeatingRows(group).SetValue(rowId, childId, value));
+
+    /// <summary>
+    /// Handles the blur of one repeating child's control — the row-scoped counterpart of
+    /// <see cref="HandleBlur"/>: validates that one child alone, marks it validated, refreshes
+    /// the calc announcer, and autosaves the draft.
+    /// </summary>
+    [SuppressMessage(
+        "Reliability",
+        "CA2007:Consider calling ConfigureAwait on the awaited task",
+        Justification = "A Blazor event handler must resume on the renderer's synchronization context so it can safely schedule the next render.")]
+    private async Task HandleRepeatingChildBlur(FormNode group, string rowId, string childId)
+    {
+        var child = FindChild(group, childId);
+        var row = GetRepeatingRows(group).Rows.FirstOrDefault(r => string.Equals(r.RowId, rowId, StringComparison.Ordinal));
+
+        if (child is null || row is null)
+        {
+            return;
+        }
+
+        var key = RepeatingFieldKeys.ChildKey(childId, rowId);
+        _validatedNodeIds.Add(key);
+
+        row.Values.TryGetValue(childId, out var value);
+        var message = _fieldValidator.Validate(child, value, isVisible: true);
+
+        if (message is null)
+        {
+            _errors.Remove(key);
+        }
+        else
+        {
+            _errors[key] = message;
+        }
+
+        RefreshCalcAnnouncement();
+        await PersistDraftAsync();
+    }
+
+    /// <summary>
+    /// Handles the Add control: appends a fresh row via <see cref="RepeatingRows.AddRow"/> and
+    /// revalidates the group's row count. Defensive against exceeding
+    /// <see cref="FormNode.MaxRows"/> even though <see cref="Components.RepeatingGroup"/> already
+    /// gates its own Add control before ever raising this — a host's own replacement for that
+    /// component might not.
+    /// </summary>
+    [SuppressMessage(
+        "Reliability",
+        "CA2007:Consider calling ConfigureAwait on the awaited task",
+        Justification = "A Blazor event handler must resume on the renderer's synchronization context so it can safely schedule the next render.")]
+    private async Task AddRepeatingRow(FormNode group)
+    {
+        var rows = GetRepeatingRows(group);
+
+        if (group.MaxRows is int max && rows.Rows.Count >= max)
+        {
+            return;
+        }
+
+        SetValue(group.Id, rows.AddRow());
+        ValidateRepeatingRowCount(group);
+        await PersistDraftAsync();
+    }
+
+    /// <summary>
+    /// Handles one row's Remove control: removes it via <see cref="RepeatingRows.RemoveRow"/>,
+    /// clears every bit of per-row state the removed row's children carried (errors, validated
+    /// flags, cached callbacks — <see cref="ClearRemovedRowState"/>) so nothing about a row that
+    /// no longer exists can ever surface again, and revalidates the group's row count. Defensive
+    /// against going below <see cref="FormNode.MinRows"/> for the same reason
+    /// <see cref="AddRepeatingRow"/> is defensive against <see cref="FormNode.MaxRows"/>.
+    /// </summary>
+    [SuppressMessage(
+        "Reliability",
+        "CA2007:Consider calling ConfigureAwait on the awaited task",
+        Justification = "A Blazor event handler must resume on the renderer's synchronization context so it can safely schedule the next render.")]
+    private async Task RemoveRepeatingRow(FormNode group, string rowId)
+    {
+        var rows = GetRepeatingRows(group);
+
+        if (group.MinRows is int min && rows.Rows.Count <= min)
+        {
+            return;
+        }
+
+        SetValue(group.Id, rows.RemoveRow(rowId));
+        ClearRemovedRowState(group, rowId);
+        ValidateRepeatingRowCount(group);
+        await PersistDraftAsync();
+    }
+
+    /// <summary>
+    /// Handles one row's Move up/down control via <see cref="RepeatingRows.MoveRow"/>. A no-op
+    /// move (the row was not found, or the move would land it outside the list) never persists
+    /// the draft — nothing changed. Reordering never touches error/validated state: a row's
+    /// composite keys are keyed by its own row id, which a move never changes.
+    /// </summary>
+    [SuppressMessage(
+        "Reliability",
+        "CA2007:Consider calling ConfigureAwait on the awaited task",
+        Justification = "A Blazor event handler must resume on the renderer's synchronization context so it can safely schedule the next render.")]
+    private async Task MoveRepeatingRow(FormNode group, string rowId, int delta)
+    {
+        var rows = GetRepeatingRows(group);
+        var moved = rows.MoveRow(rowId, delta);
+
+        if (ReferenceEquals(moved, rows))
+        {
+            return;
+        }
+
+        SetValue(group.Id, moved);
+        await PersistDraftAsync();
+    }
+
+    /// <summary>
+    /// Purges every trace of a removed row's children from the renderer's per-row state — the
+    /// composite error/validated entries and the cached value-changed/blur callback instances —
+    /// so a long fill session with many add/remove cycles never accumulates dead entries keyed by
+    /// a row id that no longer exists.
+    /// </summary>
+    private void ClearRemovedRowState(FormNode group, string rowId)
+    {
+        foreach (var child in group.Children)
+        {
+            var key = RepeatingFieldKeys.ChildKey(child.Id, rowId);
+            _errors.Remove(key);
+            _validatedNodeIds.Remove(key);
+            _repeatingChildValueChangedCallbacks.Remove(key);
+            _repeatingChildBlurCallbacks.Remove(key);
+        }
+    }
+
+    /// <summary>
+    /// Receives the localized text a <see cref="Components.RepeatingGroup"/> built for one row
+    /// mutation (including a blocked one at min/max) and renders it into <c>FormRenderer.razor</c>'s
+    /// own shared, visually-hidden <c>aria-live="polite"</c> region — separate from
+    /// <see cref="_calcAnnouncement"/>'s own region, per the keyboard/SR model
+    /// (repeating-groups-plan.md, D-3).
+    /// </summary>
+    private void AnnounceRepeatingRowChange(string text) => _repeatingRowAnnouncement = text;
+
+    /// <summary>
     /// The stable DOM id a field renders its primary control with, namespaced to this renderer
     /// instance so two <see cref="FormRenderer"/> instances of the same definition on one
     /// page never collide on <c>id</c>. <see cref="_values"/> and the submission envelope stay
@@ -749,9 +1320,26 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
     /// never reimplements condition logic; it only decides which of the current page's nodes to
     /// emit against this set.
     /// </summary>
-    private HashSet<string> GetVisibleNodeIds()
+    private HashSet<string> GetVisibleNodeIds() => GetVisibleNodeIds(out _);
+
+    /// <summary>
+    /// The same visible-node-id set <see cref="GetVisibleNodeIds()"/> returns, plus the settled
+    /// outer values (<see cref="VisibilityEvaluator.FilterToVisible"/>) that set was computed
+    /// from. A caller that also needs to resolve a repeating group's per-row child visibility
+    /// (<see cref="VisibilityEvaluator.GetVisibleChildIds"/>) for the <em>same pass</em> — display,
+    /// validation, the error summary, pruning — must reuse this exact settled dictionary as that
+    /// call's outer-values argument rather than the raw <see cref="_values"/>. Using raw values
+    /// there would silently diverge from what <see cref="BuildSubmissionEnvelope"/> actually
+    /// captures: when a row child's own <c>VisibleWhen</c> names an <em>outer</em> field that is
+    /// itself conditionally hidden, the settled dictionary already reflects that field's answer
+    /// having been dropped — exactly the shrink-only fixed point <see cref="VisibilityEvaluator"/>
+    /// computes for the flat, top-level case — while the raw dictionary still carries the stale
+    /// answer. Computed once per call so a single validation or render pass never re-settles the
+    /// whole form more than once.
+    /// </summary>
+    private HashSet<string> GetVisibleNodeIds(out IReadOnlyDictionary<string, object?> settledValues)
     {
-        var settledValues = VisibilityEvaluator.FilterToVisible(Definition, _values);
+        settledValues = VisibilityEvaluator.FilterToVisible(Definition, _values);
         return VisibilityEvaluator.GetVisibleNodes(Definition, settledValues)
             .Select(node => node.Id)
             .ToHashSet(StringComparer.Ordinal);
@@ -893,6 +1481,13 @@ public partial class FormRenderer : ComponentBase, IAsyncDisposable
 
         foreach (var node in currentPageNodes)
         {
+            // EnumerateNodes flattens into a repeating group's own children too, but
+            // visibleNodeIds never contains a repeating child's plain id (only the group's own),
+            // so every one of them -- calc or not, in every row -- is skipped here by construction.
+            // Deliberate, not a gap: announcing a per-row calc's settled value on every row's own
+            // commit, for however many rows a group holds, would be noisy rather than helpful; a
+            // per-row calc's live <output> already shows the value visually, same as any other
+            // calc.
             if (node.Type != NodeType.Calc || node.Calculation is null || !visibleNodeIds.Contains(node.Id))
             {
                 continue;

@@ -706,6 +706,271 @@ internal static class FormRendererTestFixtures
     /// the submission-envelope tests — nothing here blocks validation, so every test using it
     /// exercises the envelope shape and the hidden-field-is-absent rule rather than validation.
     /// </summary>
+    /// <summary>
+    /// One page, one section, a single repeating group (<c>siblings</c>, <c>ItemLabel</c>
+    /// "Sibling", <c>MinRows</c> 1, <c>MaxRows</c> 3) whose children are a text field
+    /// (<c>sibling-name</c>, required), a number field (<c>sibling-age</c>), and a calc
+    /// (<c>sibling-age-plus-one</c>, sums <c>sibling-age</c> and 1) — enough to exercise add,
+    /// remove, reorder, per-row required validation, and per-row calc (D-3).
+    /// </summary>
+    internal static FormDefinition RepeatingDefinition { get; } = new()
+    {
+        Id = "form-repeating",
+        Name = "Repeating",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Title = "Household",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Title = "Members",
+                        Nodes =
+                        [
+                            new FormNode
+                            {
+                                Id = "siblings",
+                                Type = NodeType.Repeating,
+                                Label = "Siblings",
+                                ItemLabel = "Sibling",
+                                MinRows = 1,
+                                MaxRows = 3,
+                                Children =
+                                [
+                                    new FormNode { Id = "sibling-name", Type = NodeType.Text, Label = "Sibling name", Required = true },
+                                    new FormNode { Id = "sibling-age", Type = NodeType.Number, Label = "Sibling age" },
+                                    new FormNode
+                                    {
+                                        Id = "sibling-age-plus-one",
+                                        Type = NodeType.Calc,
+                                        Label = "Sibling age plus one",
+                                        Calculation = new CalcExpression
+                                        {
+                                            Operation = CalcOperation.Sum,
+                                            Operands = [new CalcOperand { Field = "sibling-age" }, new CalcOperand { Number = 1m }],
+                                            Format = CalcFormat.Number,
+                                        },
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    };
+
+    /// <summary>
+    /// A repeating group (<c>siblings</c>) whose <c>MinRows</c> is unset (0), one required text
+    /// child (<c>sibling-name</c>), a boolean controller (<c>wants-notes</c>), and a text field
+    /// (<c>sibling-notes</c>) visible only within a row whose own <c>wants-notes</c> is true —
+    /// for within-row visibility and hidden-in-row-child capture-at-submit tests.
+    /// </summary>
+    internal static FormDefinition RepeatingWithinRowVisibilityDefinition { get; } = new()
+    {
+        Id = "form-repeating-visibility",
+        Name = "Repeating visibility",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Title = "Page one",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Title = "Section one",
+                        Nodes =
+                        [
+                            new FormNode
+                            {
+                                Id = "siblings",
+                                Type = NodeType.Repeating,
+                                Label = "Siblings",
+                                ItemLabel = "Sibling",
+                                Children =
+                                [
+                                    new FormNode { Id = "sibling-name", Type = NodeType.Text, Label = "Sibling name", Required = true },
+                                    new FormNode { Id = "wants-notes", Type = NodeType.Boolean, Label = "Add notes?" },
+                                    new FormNode
+                                    {
+                                        Id = "sibling-notes",
+                                        Type = NodeType.TextArea,
+                                        Label = "Notes",
+                                        VisibleWhen = new ConditionGroup
+                                        {
+                                            Conditions = [new Condition { Field = "wants-notes", Operator = ConditionOperator.IsTrue }],
+                                        },
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    };
+
+    /// <summary>
+    /// A repeating group (<c>siblings</c>) hidden behind a top-level controller
+    /// (<c>has-siblings</c>) — for the hidden-group capture-at-submit test.
+    /// </summary>
+    internal static FormDefinition RepeatingHiddenByOuterVisibilityDefinition { get; } = new()
+    {
+        Id = "form-repeating-hidden",
+        Name = "Repeating hidden",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Title = "Page one",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Title = "Section one",
+                        Nodes =
+                        [
+                            new FormNode { Id = "has-siblings", Type = NodeType.Boolean, Label = "Do you have siblings?" },
+                            new FormNode
+                            {
+                                Id = "siblings",
+                                Type = NodeType.Repeating,
+                                Label = "Siblings",
+                                ItemLabel = "Sibling",
+                                MinRows = 0,
+                                VisibleWhen = new ConditionGroup
+                                {
+                                    Conditions = [new Condition { Field = "has-siblings", Operator = ConditionOperator.IsTrue }],
+                                },
+                                Children = [new FormNode { Id = "sibling-name", Type = NodeType.Text, Label = "Sibling name" }],
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    };
+
+    /// <summary>
+    /// A repeating group (<c>siblings</c>, <c>MinRows</c> 0) whose children are a text field
+    /// (<c>sibling-name</c>) and a date field (<c>sibling-birthdate</c>) — for the draft
+    /// save/resume round-trip test proving a row's <see cref="DateOnly"/> child rehydrates
+    /// correctly.
+    /// </summary>
+    internal static FormDefinition RepeatingWithDateChildDefinition { get; } = new()
+    {
+        Id = "form-repeating-date",
+        Name = "Repeating date",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Title = "Page one",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Title = "Section one",
+                        Nodes =
+                        [
+                            new FormNode
+                            {
+                                Id = "siblings",
+                                Type = NodeType.Repeating,
+                                Label = "Siblings",
+                                ItemLabel = "Sibling",
+                                MinRows = 0,
+                                Children =
+                                [
+                                    new FormNode { Id = "sibling-name", Type = NodeType.Text, Label = "Sibling name" },
+                                    new FormNode { Id = "sibling-birthdate", Type = NodeType.Date, Label = "Sibling birthdate" },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    };
+
+    /// <summary>
+    /// A top-level controller (<c>show-detail</c>) gates a top-level field (<c>outer-detail</c>);
+    /// a repeating group (<c>items</c>, <c>MinRows</c> 0) has one required child
+    /// (<c>confirm</c>) visible only while that SAME outer field, <c>outer-detail</c>, is
+    /// non-blank. For the regression test proving a row child's own <c>VisibleWhen</c> resolves
+    /// against the settled outer answers, not the raw ones — flipping <c>show-detail</c> back off
+    /// must hide <c>confirm</c> too (agreeing with capture), never leave it stranded visible and
+    /// required against a stale answer capture would already have dropped.
+    /// </summary>
+    internal static FormDefinition RepeatingChildVisibleWhenOuterFieldDefinition { get; } = new()
+    {
+        Id = "form-repeating-outer-visibility",
+        Name = "Repeating outer visibility",
+        Pages =
+        [
+            new FormPage
+            {
+                Id = "page-1",
+                Title = "Page one",
+                Sections =
+                [
+                    new FormSection
+                    {
+                        Id = "section-1",
+                        Title = "Section one",
+                        Nodes =
+                        [
+                            new FormNode { Id = "show-detail", Type = NodeType.Boolean, Label = "Show detail?" },
+                            new FormNode
+                            {
+                                Id = "outer-detail",
+                                Type = NodeType.Text,
+                                Label = "Outer detail",
+                                VisibleWhen = new ConditionGroup
+                                {
+                                    Conditions = [new Condition { Field = "show-detail", Operator = ConditionOperator.IsTrue }],
+                                },
+                            },
+                            new FormNode
+                            {
+                                Id = "items",
+                                Type = NodeType.Repeating,
+                                Label = "Items",
+                                ItemLabel = "Item",
+                                MinRows = 0,
+                                Children =
+                                [
+                                    new FormNode
+                                    {
+                                        Id = "confirm",
+                                        Type = NodeType.Text,
+                                        Label = "Confirm",
+                                        Required = true,
+                                        VisibleWhen = new ConditionGroup
+                                        {
+                                            Conditions = [new Condition { Field = "outer-detail", Operator = ConditionOperator.IsNotBlank }],
+                                        },
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    };
+
     internal static FormDefinition SubmissionDefinition { get; } = new()
     {
         Id = "form-submission",

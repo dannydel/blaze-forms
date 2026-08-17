@@ -31,28 +31,69 @@
                         <p class="bf-submission__section-description">@section.Description</p>
                     }
 
-                    @* A captured heading cannot legally sit inside a <dl> alongside dt/dd pairs
-                       (a <dl>'s only valid children are dt/dd groups, optionally wrapped in a div
-                       that itself contains only dt/dd), so BuildNodeGroups splits each section
-                       into heading-led runs and this loop emits the heading -- when a run has one
-                       -- as its own element above that run's <dl>, not inside it. See
-                       BuildNodeGroups' remarks for why this stays a flat, non-recursive read. *@
+                    @* A captured heading, and a repeating group's own per-row sub-blocks, cannot
+                       legally sit inside a <dl> alongside dt/dd pairs (a <dl>'s only valid
+                       children are dt/dd groups, optionally wrapped in a div that itself contains
+                       only dt/dd), so BuildNodeGroups splits each section into heading-led and
+                       repeating-group-led runs; this loop emits each run's own heading/sub-blocks
+                       above its <dl>, never inside it. *@
                     @foreach (var group in BuildNodeGroups(section))
                     {
-                        @if (group.Heading is { } headingNode)
+                        @if (group.Repeating is { } repeatingNode)
                         {
-                            <div class="bf-submission__subheading" @key="@($"{group.Key}-heading")">@headingNode.Label</div>
-                        }
-                        @if (group.Fields.Count > 0)
-                        {
-                            <dl class="bf-submission__list" @key="@($"{group.Key}-list")">
-                                @foreach (var node in group.Fields)
+                            <div class="bf-submission__subheading" @key="@($"{group.Key}-heading")">@repeatingNode.Label</div>
+
+                            @if (!_visibleNodeIds.Contains(repeatingNode.Id))
+                            {
+                                <p class="@ValueCssClass(FieldDisplayKind.NotApplicable)" @key="@($"{group.Key}-state")">
+                                    @Localizer["SubmissionNotApplicable"].Value
+                                </p>
+                            }
+                            else
+                            {
+                                var rowViews = BuildRepeatingRowViews(repeatingNode);
+
+                                @if (rowViews.Count == 0)
                                 {
-                                    var display = BuildDisplay(node);
-                                    <dt class="bf-submission__term" @key="@($"{node.Id}-term")">@node.Label</dt>
-                                    <dd class="@ValueCssClass(display.Kind)" @key="@($"{node.Id}-value")">@ResolveDisplayText(display)</dd>
+                                    <p class="@ValueCssClass(FieldDisplayKind.Empty)" @key="@($"{group.Key}-state")">
+                                        @Localizer["SubmissionEmptyValue"].Value
+                                    </p>
                                 }
-                            </dl>
+                                else
+                                {
+                                    @foreach (var rowView in rowViews)
+                                    {
+                                        <div class="bf-submission__subheading bf-submission__subheading--row" @key="@($"{group.Key}-{rowView.RowId}-heading")">
+                                            @RowHeadingText(repeatingNode, rowView.Ordinal)
+                                        </div>
+                                        <dl class="bf-submission__list" @key="@($"{group.Key}-{rowView.RowId}-list")">
+                                            @foreach (var field in rowView.Fields)
+                                            {
+                                                <dt class="bf-submission__term" @key="@($"{field.Node.Id}-{rowView.RowId}-term")">@field.Node.Label</dt>
+                                                <dd class="@ValueCssClass(field.Display.Kind)" @key="@($"{field.Node.Id}-{rowView.RowId}-value")">@ResolveDisplayText(field.Display)</dd>
+                                            }
+                                        </dl>
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            @if (group.Heading is { } headingNode)
+                            {
+                                <div class="bf-submission__subheading" @key="@($"{group.Key}-heading")">@headingNode.Label</div>
+                            }
+                            @if (group.Fields.Count > 0)
+                            {
+                                <dl class="bf-submission__list" @key="@($"{group.Key}-list")">
+                                    @foreach (var node in group.Fields)
+                                    {
+                                        var display = BuildDisplay(node);
+                                        <dt class="bf-submission__term" @key="@($"{node.Id}-term")">@node.Label</dt>
+                                        <dd class="@ValueCssClass(display.Kind)" @key="@($"{node.Id}-value")">@ResolveDisplayText(display)</dd>
+                                    }
+                                </dl>
+                            }
                         }
                     }
                 </div>

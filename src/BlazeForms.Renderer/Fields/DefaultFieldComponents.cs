@@ -10,6 +10,18 @@ namespace BlazeForms.Fields;
 /// shipped in this namespace. Internal — hosts influence resolution entirely through
 /// <see cref="IFieldComponentRegistry"/>; they never call this type directly.
 /// </summary>
+/// <remarks>
+/// <see cref="NodeType.Repeating"/> carries no entry in <see cref="DefaultsByNodeType"/> and
+/// never will: a repeating group is resolved structurally, by <c>FormRenderer</c>'s own section
+/// loop, which renders the internal <c>Components.RepeatingGroup</c> directly — bypassing this
+/// resolver entirely — unless the host's registry (checked by that same loop before ever reaching
+/// this type) carries an override for <see cref="NodeType.Repeating"/>, in which case this
+/// method's ordinary registry-first path resolves it like any other node type. A call here for
+/// <see cref="NodeType.Repeating"/> with no registry override — reachable only from a caller that
+/// bypasses <c>FormRenderer</c>'s structural branch, such as this type's own direct unit tests —
+/// throws exactly like the two node types P2 still fully reserves, <see cref="NodeType.File"/>
+/// and <see cref="NodeType.Lookup"/>.
+/// </remarks>
 internal static class DefaultFieldComponents
 {
     private static readonly Dictionary<NodeType, Type> DefaultsByNodeType = new()

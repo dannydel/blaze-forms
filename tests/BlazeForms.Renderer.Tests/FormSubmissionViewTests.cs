@@ -1,5 +1,6 @@
 using System.Globalization;
 using BlazeForms.Definitions;
+using BlazeForms.Serialization;
 using Bunit;
 
 namespace BlazeForms.Renderer.Tests;
@@ -378,5 +379,104 @@ public sealed class FormSubmissionViewTests : RendererTestContext
         {
             CultureInfo.CurrentCulture = originalCulture;
         }
+    }
+
+    [Fact]
+    public void ARepeatingGroupRendersOneSubHeadingAndDlPerRowWithWithinRowNotApplicable()
+    {
+        var definition = FormSubmissionViewTestFixtures.RepeatingSubmissionDefinition;
+        var version = FormSubmissionViewTestFixtures.ToVersion(definition);
+
+        var rows = RepeatingRows.Empty.AddRow().AddRow();
+        var firstRowId = rows.Rows[0].RowId;
+        var secondRowId = rows.Rows[1].RowId;
+        rows = rows
+            .SetValue(firstRowId, "sibling-name", "Ada")
+            .SetValue(firstRowId, "wants-detail", true)
+            .SetValue(firstRowId, "sibling-detail", "Needs a ramp")
+            .SetValue(secondRowId, "sibling-name", "Grace")
+            .SetValue(secondRowId, "wants-detail", false);
+
+        var envelope = FormSubmissionViewTestFixtures.BuildEnvelope(
+            definition,
+            version.Version,
+            new Dictionary<string, object?>(StringComparer.Ordinal) { ["siblings"] = rows });
+
+        var cut = Render<FormSubmissionView>(p => p
+            .Add(f => f.Envelope, envelope)
+            .Add(f => f.Version, version));
+
+        var subheadings = cut.FindAll(".bf-submission__subheading").Select(e => e.TextContent).ToList();
+        Assert.Equal(["Siblings", "Sibling 1", "Sibling 2"], subheadings);
+
+        // Two rows -> two <dl>s, each anchored to its own row's own sub-heading.
+        Assert.Equal(2, cut.FindAll("dl").Count);
+
+        var firstRowList = cut.FindAll("dl")[0];
+        var firstTerms = firstRowList.QuerySelectorAll("dt").Select(e => e.TextContent).ToList();
+        var firstValues = firstRowList.QuerySelectorAll("dd").Select(e => e.TextContent).ToList();
+        Assert.Equal(["Name", "Needs extra care?", "Care detail"], firstTerms);
+        Assert.Equal(["Ada", "Yes", "Needs a ramp"], firstValues);
+
+        var secondRowList = cut.FindAll("dl")[1];
+        var secondTerms = secondRowList.QuerySelectorAll("dt").Select(e => e.TextContent).ToList();
+        var secondValues = secondRowList.QuerySelectorAll("dd").Select(e => e.TextContent).ToList();
+        Assert.Equal(["Name", "Needs extra care?", "Care detail"], secondTerms);
+        // "wants-detail" is false in the second row, so "sibling-detail" reads "Not applicable"
+        // -- it was never shown to the respondent within THIS row, even though the same child
+        // node id was visible one row earlier.
+        Assert.Equal(["Grace", "No", "Not applicable — hidden by logic at fill time"], secondValues);
+    }
+
+    [Fact]
+    public void ARepeatingGroupWithNoRowsRendersItsHeadingAndAnEmptyPlaceholderRatherThanNoDl()
+    {
+        var definition = FormSubmissionViewTestFixtures.RepeatingSubmissionDefinition;
+        var version = FormSubmissionViewTestFixtures.ToVersion(definition);
+
+        var envelope = FormSubmissionViewTestFixtures.BuildEnvelope(
+            definition,
+            version.Version,
+            new Dictionary<string, object?>(StringComparer.Ordinal) { ["siblings"] = RepeatingRows.Empty });
+
+        var cut = Render<FormSubmissionView>(p => p
+            .Add(f => f.Envelope, envelope)
+            .Add(f => f.Version, version));
+
+        Assert.Equal(["Siblings"], cut.FindAll(".bf-submission__subheading").Select(e => e.TextContent).ToList());
+        Assert.Empty(cut.FindAll("dl"));
+        Assert.Equal("—", cut.Find(".bf-submission__value--empty").TextContent);
+    }
+
+    [Fact]
+    public void AGroupHiddenByOuterVisibilityRendersNotApplicableRatherThanAnyRow()
+    {
+        var definition = FormSubmissionViewTestFixtures.RepeatingGroupHiddenByOuterVisibilityDefinition;
+        var version = FormSubmissionViewTestFixtures.ToVersion(definition);
+
+        // "show-siblings" is never true -- the group's whole RepeatingRows value is absent from
+        // the envelope exactly like any other hidden input node's answer (PRD §9), reconstructed
+        // here through the real FilterToVisible path rather than BuildEnvelope's already-clean
+        // set.
+        var rows = RepeatingRows.Empty.AddRow();
+        var rawValues = new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["show-siblings"] = false,
+            ["siblings"] = rows.SetValue(rows.Rows[0].RowId, "sibling-name-2", "Ada"),
+        };
+        var envelope = FormSubmissionViewTestFixtures.BuildEnvelopeFromRawValues(definition, version.Version, rawValues);
+
+        var cut = Render<FormSubmissionView>(p => p
+            .Add(f => f.Envelope, envelope)
+            .Add(f => f.Version, version));
+
+        // "show-siblings" itself still renders its own ordinary dt/dd row -- only the group's own
+        // run must fall back to "Not applicable" with no per-row <dl> of its own, i.e. no "Name"
+        // term ever appears despite the raw values carrying an answer for it.
+        Assert.Contains("Siblings", cut.FindAll(".bf-submission__subheading").Select(e => e.TextContent));
+        Assert.DoesNotContain("Name", Terms(cut));
+        Assert.Equal(
+            "Not applicable — hidden by logic at fill time",
+            cut.Find(".bf-submission__value--not-applicable").TextContent);
     }
 }

@@ -150,19 +150,17 @@ public partial class FormSubmissionView : ComponentBase, IAsyncDisposable
 
     /// <summary>
     /// Splits one section's nodes into the runs <c>FormSubmissionView.razor</c> renders: a
-    /// captured <see cref="NodeType.Heading"/> starts a new run rather than joining the previous
-    /// one's <c>&lt;dl&gt;</c>, because <c>&lt;dl&gt;</c>'s only valid children are <c>dt</c>/
-    /// <c>dd</c> pairs (optionally wrapped in a <c>div</c> that itself contains only <c>dt</c>/
-    /// <c>dd</c>) — a heading's own text-only <c>div</c> cannot legally sit among them. A group
-    /// with no fields (a trailing heading, or two headings back to back) renders its heading with
-    /// no empty <c>&lt;dl&gt;</c> beneath it.
+    /// captured <see cref="NodeType.Heading"/> or <see cref="NodeType.Repeating"/> node ends the
+    /// current run rather than joining its <c>&lt;dl&gt;</c>, because <c>&lt;dl&gt;</c>'s only
+    /// valid children are <c>dt</c>/<c>dd</c> pairs (optionally wrapped in a <c>div</c> that
+    /// itself contains only <c>dt</c>/<c>dd</c>) — neither a heading's own text-only <c>div</c>
+    /// nor a repeating group's per-row sub-blocks can legally sit among them. A group with no
+    /// fields (a trailing heading, or two headings back to back) renders its heading with no
+    /// empty <c>&lt;dl&gt;</c> beneath it. A repeating group gets its own run, carrying the group
+    /// node itself rather than any flat <see cref="FormNodeGroup.Fields"/> — its own children
+    /// render as one sub-block per row (<see cref="BuildRepeatingRowViews"/>), never through this
+    /// flat list.
     /// </summary>
-    /// <remarks>
-    /// This iterates <see cref="FormSection.Nodes"/> flatly and never recurses
-    /// <see cref="FormNode.Children"/> — correct for P1, where no shipped node type carries
-    /// children, but a P2 container/repeating node type will need this method (and its razor
-    /// caller) to recurse rather than being mistaken for an intentional permanent flat read.
-    /// </remarks>
     private static List<FormNodeGroup> BuildNodeGroups(FormSection section)
     {
         var groups = new List<FormNodeGroup>();
@@ -175,10 +173,23 @@ public partial class FormSubmissionView : ComponentBase, IAsyncDisposable
             {
                 if (heading is not null || fields.Count > 0)
                 {
-                    groups.Add(new FormNodeGroup(heading, fields));
+                    groups.Add(new FormNodeGroup(heading, null, fields));
                 }
 
                 heading = node;
+                fields = [];
+                continue;
+            }
+
+            if (node.Type == NodeType.Repeating)
+            {
+                if (heading is not null || fields.Count > 0)
+                {
+                    groups.Add(new FormNodeGroup(heading, null, fields));
+                }
+
+                groups.Add(new FormNodeGroup(null, node, []));
+                heading = null;
                 fields = [];
                 continue;
             }
@@ -191,11 +202,107 @@ public partial class FormSubmissionView : ComponentBase, IAsyncDisposable
 
         if (heading is not null || fields.Count > 0)
         {
-            groups.Add(new FormNodeGroup(heading, fields));
+            groups.Add(new FormNodeGroup(heading, null, fields));
         }
 
         return groups;
     }
+
+    /// <summary>
+    /// The current answer to a repeating group, or <see cref="RepeatingRows.Empty"/> when the
+    /// captured envelope carries none (a hidden group's whole value is absent, per envelope
+    /// purity, or a pre-v3 envelope predates the repeating-groups schema entirely).
+    /// </summary>
+    private RepeatingRows GetRepeatingRows(FormNode group) =>
+        _values.TryGetValue(group.Id, out var raw) && raw is RepeatingRows rows ? rows : RepeatingRows.Empty;
+
+    /// <summary>
+    /// Builds one repeating group's per-row view: for each row, the row's own 1-based ordinal,
+    /// its <see cref="RepeatingRow.RowId"/>, and the resolved display for every one of the
+    /// group's own input children — hidden-in-row children render the same "Not applicable" state
+    /// a top-level hidden node does (<see cref="BuildRowDisplay"/>), decided via
+    /// <see cref="VisibilityEvaluator.GetVisibleChildIds"/> against the exact answers this
+    /// submission was captured with, same as <see cref="OnParametersSet"/>'s own top-level
+    /// <see cref="_visibleNodeIds"/> computation.
+    /// </summary>
+    private List<RepeatingRowView> BuildRepeatingRowViews(FormNode group)
+    {
+        var childNodes = group.Children.Where(child => !FormSchema.IsStaticNode(child.Type)).ToList();
+        var rows = GetRepeatingRows(group);
+        var views = new List<RepeatingRowView>(rows.Rows.Count);
+
+        for (var index = 0; index < rows.Rows.Count; index++)
+        {
+            var row = rows.Rows[index];
+            var visibleChildIds = VisibilityEvaluator.GetVisibleChildIds(group, row, _values);
+            var fields = new List<RepeatingChildDisplay>(childNodes.Count);
+
+            foreach (var child in childNodes)
+            {
+                fields.Add(new RepeatingChildDisplay(child, BuildRowDisplay(child, row, visibleChildIds.Contains(child.Id))));
+            }
+
+            views.Add(new RepeatingRowView(index + 1, row.RowId, fields));
+        }
+
+        return views;
+    }
+
+    /// <summary>
+    /// The row-scoped counterpart of <see cref="BuildDisplay"/>: decides how one repeating
+    /// group's child renders within one specific row.
+    /// </summary>
+    private static FieldDisplay BuildRowDisplay(FormNode node, RepeatingRow row, bool isVisible)
+    {
+        if (!isVisible)
+        {
+            return new FieldDisplay(FieldDisplayKind.NotApplicable, "");
+        }
+
+        if (node.Type == NodeType.Calc)
+        {
+            return BuildRowCalcDisplay(node, row);
+        }
+
+        if (!row.Values.TryGetValue(node.Id, out var value) || value is null)
+        {
+            return new FieldDisplay(FieldDisplayKind.Empty, "");
+        }
+
+        var text = FormatFieldValue(node, value);
+
+        return string.IsNullOrEmpty(text)
+            ? new FieldDisplay(FieldDisplayKind.Empty, "")
+            : new FieldDisplay(FieldDisplayKind.Value, text);
+    }
+
+    /// <summary>
+    /// The row-scoped counterpart of <see cref="BuildCalcDisplay"/>.
+    /// </summary>
+    private static FieldDisplay BuildRowCalcDisplay(FormNode node, RepeatingRow row)
+    {
+        if (row.Values.TryGetValue(node.Id, out var raw) && raw is not null)
+        {
+            var format = node.Calculation?.Format ?? CalcFormat.Number;
+            var formatted = CalcDisplayFormatter.Format(NormalizeCapturedCalcValue(raw, format), format);
+
+            if (formatted is not null)
+            {
+                return new FieldDisplay(FieldDisplayKind.Value, formatted);
+            }
+        }
+
+        var placeholderText = node.Placeholder ?? "";
+        return string.IsNullOrEmpty(placeholderText)
+            ? new FieldDisplay(FieldDisplayKind.Empty, "")
+            : new FieldDisplay(FieldDisplayKind.Value, placeholderText);
+    }
+
+    /// <summary>
+    /// One row's own sub-heading text: "{ItemLabel ?? Label} {n}", the exact convention
+    /// <c>FormRenderer</c>'s fillable <c>RepeatingGroup</c> uses for the same row.
+    /// </summary>
+    private static string RowHeadingText(FormNode group, int ordinal) => $"{group.ItemLabel ?? group.Label} {ordinal}";
 
     /// <summary>
     /// Decides how one input node's row renders: hidden by fill-time logic, visible but
@@ -478,17 +585,33 @@ public partial class FormSubmissionView : ComponentBase, IAsyncDisposable
 
     /// <summary>
     /// One run of a section's nodes, computed once per render by <see cref="BuildNodeGroups"/>:
-    /// an optional heading (<see langword="null"/> for the run before a section's first heading,
-    /// if any) followed by the input nodes it introduces, up to the next heading or the end of
-    /// the section.
+    /// either an optional heading (<see langword="null"/> for the run before a section's first
+    /// heading or repeating group, if any) followed by the flat input nodes it introduces, up to
+    /// the next heading, repeating group, or the end of the section; or, when
+    /// <see cref="Repeating"/> is set, a repeating group's own run — <see cref="Fields"/> is
+    /// always empty in that case, since the group's children render per row
+    /// (<see cref="BuildRepeatingRowViews"/>), never as a flat list.
     /// </summary>
-    private readonly record struct FormNodeGroup(FormNode? Heading, IReadOnlyList<FormNode> Fields)
+    private readonly record struct FormNodeGroup(FormNode? Heading, FormNode? Repeating, IReadOnlyList<FormNode> Fields)
     {
         /// <summary>
-        /// A stable <c>@key</c> for this run: the heading node's own <see cref="FormNode.Id"/>
-        /// when one introduces it, or a fixed sentinel for the single headingless run a section
-        /// may start with.
+        /// A stable <c>@key</c> for this run: the repeating group's or heading node's own
+        /// <see cref="FormNode.Id"/> when one introduces it, or a fixed sentinel for the single
+        /// leading run a section may start with.
         /// </summary>
-        public string Key => Heading?.Id ?? "lead";
+        public string Key => Repeating?.Id ?? Heading?.Id ?? "lead";
     }
+
+    /// <summary>
+    /// One repeating group child's resolved display within one specific row, computed once per
+    /// render by <see cref="BuildRepeatingRowViews"/>.
+    /// </summary>
+    private readonly record struct RepeatingChildDisplay(FormNode Node, FieldDisplay Display);
+
+    /// <summary>
+    /// One repeating group row's resolved view, computed once per render by
+    /// <see cref="BuildRepeatingRowViews"/>: its 1-based ordinal, its own row id (for a stable
+    /// <c>@key</c>), and every one of the group's own children's resolved display.
+    /// </summary>
+    private readonly record struct RepeatingRowView(int Ordinal, string RowId, IReadOnlyList<RepeatingChildDisplay> Fields);
 }

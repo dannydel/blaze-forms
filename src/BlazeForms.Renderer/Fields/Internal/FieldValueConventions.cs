@@ -1,4 +1,5 @@
 using BlazeForms.Definitions;
+using BlazeForms.Serialization;
 
 namespace BlazeForms.Fields.Internal;
 
@@ -22,7 +23,13 @@ internal static class FieldValueConventions
     /// </param>
     /// <returns>
     /// The stored CLR type, or <see langword="null"/> for a static-content node type (and for
-    /// <see cref="NodeType.Calc"/>, which writes no value in P1) and for the P2-reserved types.
+    /// <see cref="NodeType.Calc"/>, which writes no value in P1) and for the still-reserved P2
+    /// types (<see cref="NodeType.File"/>, <see cref="NodeType.Lookup"/>).
+    /// <see cref="NodeType.Repeating"/> stores its answer as <see cref="RepeatingRows"/> — its
+    /// component resolution is structural (<c>FormRenderer</c>'s section loop), never through
+    /// <c>DefaultFieldComponents</c>, but the value it captures follows this same convention so
+    /// the renderer's one generic value-wiring path (<c>BuildFieldParameters</c>) still applies
+    /// whenever a host registers its own <c>Repeating</c> component.
     /// </returns>
     public static Type? GetStoredClrType(NodeType nodeType) => nodeType switch
     {
@@ -33,6 +40,7 @@ internal static class FieldValueConventions
         NodeType.DateRange => typeof(string[]),
         NodeType.CheckboxGroup => typeof(List<string>),
         NodeType.Boolean => typeof(bool),
+        NodeType.Repeating => typeof(RepeatingRows),
         _ => null,
     };
 

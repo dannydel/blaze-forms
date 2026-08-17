@@ -1,0 +1,82 @@
+.bf-repeating-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-4);
+    margin-block-end: var(--bf-space-4);
+    padding: var(--bf-space-4);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-md);
+}
+
+.bf-repeating-group:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}
+
+.bf-repeating-group__legend {
+    font-size: var(--bf-font-size-base);
+    font-weight: 600;
+}
+
+.bf-repeating-group__help {
+    font-size: var(--bf-font-size-sm);
+    color: var(--bf-color-muted);
+}
+
+.bf-repeating-group__error {
+    margin: 0;
+    font-size: var(--bf-font-size-sm);
+    color: var(--bf-color-danger);
+}
+
+.bf-repeating-group__row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bf-space-3);
+    padding: var(--bf-space-3);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+    background-color: var(--bf-color-surface);
+}
+
+.bf-repeating-group__row-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--bf-space-2);
+}
+
+.bf-repeating-group__move-button,
+.bf-repeating-group__remove-button,
+.bf-repeating-group__add-button {
+    min-block-size: var(--bf-touch-target);
+    padding-inline: var(--bf-space-3);
+    padding-block: var(--bf-space-2);
+    border: var(--bf-border-width) solid var(--bf-color-border);
+    border-radius: var(--bf-radius-sm);
+    background-color: var(--bf-color-bg);
+    color: var(--bf-color-text);
+    font: inherit;
+    cursor: pointer;
+    transition: border-color var(--bf-motion-duration) var(--bf-motion-ease);
+}
+
+.bf-repeating-group__move-button:focus-visible,
+.bf-repeating-group__remove-button:focus-visible,
+.bf-repeating-group__add-button:focus-visible {
+    outline: var(--bf-focus-ring-width) solid var(--bf-color-focus-ring);
+    outline-offset: var(--bf-focus-ring-offset);
+}
+
+/* aria-disabled, never the native disabled attribute -- a disabled button is unreachable by
+   keyboard and, worse, ejects focus if it was the very control just activated (AGENTS.md
+   invariant #4). The dimmed look conveys the same "not available right now" state visually. */
+.bf-repeating-group__move-button[aria-disabled="true"],
+.bf-repeating-group__remove-button[aria-disabled="true"],
+.bf-repeating-group__add-button[aria-disabled="true"] {
+    color: var(--bf-color-muted);
+    cursor: not-allowed;
+}
+
+.bf-repeating-group__add-button {
+    align-self: flex-start;
+}
