@@ -252,4 +252,62 @@ public sealed class ExpressionDependencyAnalysisTests
         Assert.False(visibilityCycle);
         Assert.Empty(visibilityPath);
     }
+
+    // -- GetRepeatingGroupOf -----------------------------------------------------------------
+
+    private static FormNode Repeating(string id, params FormNode[] children) =>
+        new() { Id = id, Type = NodeType.Repeating, Label = id, Children = children };
+
+    [Fact]
+    public void GetRepeatingGroupOfReturnsTheEnclosingGroupForADirectChild()
+    {
+        var definition = Definition(Repeating("group-a", Node("child-1"), Node("child-2")));
+
+        Assert.Equal("group-a", ExpressionDependencyAnalysis.GetRepeatingGroupOf(definition, "child-1"));
+        Assert.Equal("group-a", ExpressionDependencyAnalysis.GetRepeatingGroupOf(definition, "child-2"));
+    }
+
+    [Fact]
+    public void GetRepeatingGroupOfReturnsNullForATopLevelNode()
+    {
+        var definition = Definition(Node("top"), Repeating("group-a", Node("child-1")));
+
+        Assert.Null(ExpressionDependencyAnalysis.GetRepeatingGroupOf(definition, "top"));
+    }
+
+    [Fact]
+    public void GetRepeatingGroupOfReturnsNullForTheGroupsOwnId()
+    {
+        var definition = Definition(Repeating("group-a", Node("child-1")));
+
+        Assert.Null(ExpressionDependencyAnalysis.GetRepeatingGroupOf(definition, "group-a"));
+    }
+
+    [Fact]
+    public void GetRepeatingGroupOfReturnsNullForAnUnknownId()
+    {
+        var definition = Definition(Repeating("group-a", Node("child-1")));
+
+        Assert.Null(ExpressionDependencyAnalysis.GetRepeatingGroupOf(definition, "node-ghost"));
+    }
+
+    [Fact]
+    public void GetRepeatingGroupOfDistinguishesBetweenTwoGroups()
+    {
+        var definition = Definition(
+            Repeating("group-a", Node("child-a1")),
+            Repeating("group-b", Node("child-b1")));
+
+        Assert.Equal("group-a", ExpressionDependencyAnalysis.GetRepeatingGroupOf(definition, "child-a1"));
+        Assert.Equal("group-b", ExpressionDependencyAnalysis.GetRepeatingGroupOf(definition, "child-b1"));
+    }
+
+    [Fact]
+    public void GetRepeatingGroupOfRejectsNullOrWhitespaceArguments()
+    {
+        var definition = Definition(Node("a"));
+
+        Assert.Throws<ArgumentNullException>(() => ExpressionDependencyAnalysis.GetRepeatingGroupOf(null!, "a"));
+        Assert.Throws<ArgumentException>(() => ExpressionDependencyAnalysis.GetRepeatingGroupOf(definition, " "));
+    }
 }

@@ -9,10 +9,12 @@ public static class FormSchema
     /// <summary>
     /// The schema version this build reads and writes. Bumped by any change to the serialized
     /// shape of a definition (AGENTS.md invariant #2). Version 2 added the optional
-    /// <see cref="FormNode.Calculation"/> property; a version-1 document omits it and still reads,
-    /// so no migration is needed.
+    /// <see cref="FormNode.Calculation"/> property; version 3 added the optional repeating-group
+    /// properties <see cref="FormNode.MinRows"/>, <see cref="FormNode.MaxRows"/>, and
+    /// <see cref="FormNode.ItemLabel"/>. An older document omits the newer properties and still
+    /// reads, so no migration is needed.
     /// </summary>
-    public const int CurrentVersion = 2;
+    public const int CurrentVersion = 3;
 
     private static readonly NodeType[] StaticNodeTypesBacking =
     [

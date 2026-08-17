@@ -237,6 +237,45 @@ public static class ExpressionDependencyAnalysis
         return false;
     }
 
+    /// <summary>
+    /// Finds the repeating group a node belongs to, for the designer's boundary-aware field
+    /// pickers and the linter's FR-04 boundary check (PRD §5's "Reference semantics" — a rule may
+    /// not reach into a repeating group's rows from outside that exact group).
+    /// </summary>
+    /// <param name="definition">
+    /// The definition to search.
+    /// </param>
+    /// <param name="nodeId">
+    /// The identifier of the node to locate.
+    /// </param>
+    /// <returns>
+    /// The identifier of the enclosing <see cref="NodeType.Repeating"/> node, or
+    /// <see langword="null"/> when <paramref name="nodeId"/> is not a direct child of one —
+    /// including when it names the repeating group itself, or a node nowhere in
+    /// <paramref name="definition"/>. Only one nesting level is checked (PRD's "one nesting level
+    /// this slice"): a repeating group's own children are never themselves a repeating group.
+    /// </returns>
+    public static string? GetRepeatingGroupOf(FormDefinition definition, string nodeId)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+        ArgumentException.ThrowIfNullOrWhiteSpace(nodeId);
+
+        foreach (var node in definition.EnumerateNodes())
+        {
+            if (node.Type != NodeType.Repeating)
+            {
+                continue;
+            }
+
+            if (node.Children.Any(child => string.Equals(child.Id, nodeId, StringComparison.Ordinal)))
+            {
+                return node.Id;
+            }
+        }
+
+        return null;
+    }
+
     private static bool ReferencesField(ConditionGroup group, string nodeId) =>
         group.Conditions.Any(condition => string.Equals(condition.Field, nodeId, StringComparison.Ordinal));
 

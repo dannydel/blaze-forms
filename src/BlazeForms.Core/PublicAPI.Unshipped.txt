@@ -346,7 +346,7 @@ BlazeForms.Versioning.FormVersionSummary.SubmissionCount.get -> int
 BlazeForms.Versioning.FormVersionSummary.SubmissionCount.init -> void
 BlazeForms.Versioning.FormVersionSummary.Version.get -> int
 BlazeForms.Versioning.FormVersionSummary.Version.init -> void
-const BlazeForms.Definitions.FormSchema.CurrentVersion = 2 -> int
+const BlazeForms.Definitions.FormSchema.CurrentVersion = 3 -> int
 const BlazeForms.Linting.LintRuleIds.A11y01 = "A11Y-01" -> string!
 const BlazeForms.Linting.LintRuleIds.A11y06 = "A11Y-06" -> string!
 const BlazeForms.Linting.LintRuleIds.A11y08 = "A11Y-08" -> string!
@@ -540,3 +540,45 @@ static BlazeForms.Expressions.CalcEvaluator.EvaluateAll(BlazeForms.Definitions.F
 BlazeForms.Expressions.ReferenceKind.Calculation = 3 -> BlazeForms.Expressions.ReferenceKind
 const BlazeForms.Linting.LintRuleIds.Calc01 = "CALC-01" -> string!
 static BlazeForms.Expressions.ExpressionDependencyAnalysis.WouldCreateCalculationCycle(BlazeForms.Definitions.FormDefinition! definition, string! nodeId, BlazeForms.Expressions.CalcExpression! candidateCalculation, out System.Collections.Generic.IReadOnlyList<string!>! cyclePath) -> bool
+BlazeForms.Definitions.FormNode.ItemLabel.get -> string?
+BlazeForms.Definitions.FormNode.ItemLabel.init -> void
+BlazeForms.Definitions.FormNode.MaxRows.get -> int?
+BlazeForms.Definitions.FormNode.MaxRows.init -> void
+BlazeForms.Definitions.FormNode.MinRows.get -> int?
+BlazeForms.Definitions.FormNode.MinRows.init -> void
+static BlazeForms.Definitions.FormIds.NewRowId() -> string!
+BlazeForms.Serialization.RepeatingRows
+BlazeForms.Serialization.RepeatingRows.<Clone>$() -> BlazeForms.Serialization.RepeatingRows!
+BlazeForms.Serialization.RepeatingRows.Equals(BlazeForms.Serialization.RepeatingRows? other) -> bool
+BlazeForms.Serialization.RepeatingRows.RepeatingRows() -> void
+override BlazeForms.Serialization.RepeatingRows.Equals(object? obj) -> bool
+override BlazeForms.Serialization.RepeatingRows.GetHashCode() -> int
+override BlazeForms.Serialization.RepeatingRows.ToString() -> string!
+static BlazeForms.Serialization.RepeatingRows.operator !=(BlazeForms.Serialization.RepeatingRows? left, BlazeForms.Serialization.RepeatingRows? right) -> bool
+static BlazeForms.Serialization.RepeatingRows.operator ==(BlazeForms.Serialization.RepeatingRows? left, BlazeForms.Serialization.RepeatingRows? right) -> bool
+BlazeForms.Serialization.RepeatingRow
+BlazeForms.Serialization.RepeatingRow.<Clone>$() -> BlazeForms.Serialization.RepeatingRow!
+BlazeForms.Serialization.RepeatingRow.Equals(BlazeForms.Serialization.RepeatingRow? other) -> bool
+BlazeForms.Serialization.RepeatingRow.RepeatingRow() -> void
+override BlazeForms.Serialization.RepeatingRow.Equals(object? obj) -> bool
+override BlazeForms.Serialization.RepeatingRow.GetHashCode() -> int
+override BlazeForms.Serialization.RepeatingRow.ToString() -> string!
+static BlazeForms.Serialization.RepeatingRow.operator !=(BlazeForms.Serialization.RepeatingRow? left, BlazeForms.Serialization.RepeatingRow? right) -> bool
+static BlazeForms.Serialization.RepeatingRow.operator ==(BlazeForms.Serialization.RepeatingRow? left, BlazeForms.Serialization.RepeatingRow? right) -> bool
+BlazeForms.Serialization.RepeatingRow.RowId.get -> string!
+BlazeForms.Serialization.RepeatingRow.RowId.init -> void
+BlazeForms.Serialization.RepeatingRow.Values.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>!
+BlazeForms.Serialization.RepeatingRow.Values.init -> void
+BlazeForms.Serialization.RepeatingRow.SetValue(string! childId, object? value) -> BlazeForms.Serialization.RepeatingRow!
+static BlazeForms.Serialization.RepeatingRows.Empty.get -> BlazeForms.Serialization.RepeatingRows!
+BlazeForms.Serialization.RepeatingRows.Rows.get -> System.Collections.Generic.IReadOnlyList<BlazeForms.Serialization.RepeatingRow!>!
+BlazeForms.Serialization.RepeatingRows.Rows.init -> void
+BlazeForms.Serialization.RepeatingRows.AddRow() -> BlazeForms.Serialization.RepeatingRows!
+BlazeForms.Serialization.RepeatingRows.RemoveRow(string! rowId) -> BlazeForms.Serialization.RepeatingRows!
+BlazeForms.Serialization.RepeatingRows.MoveRow(string! rowId, int delta) -> BlazeForms.Serialization.RepeatingRows!
+BlazeForms.Serialization.RepeatingRows.SetValue(string! rowId, string! childId, object? value) -> BlazeForms.Serialization.RepeatingRows!
+static BlazeForms.Expressions.ExpressionDependencyAnalysis.GetRepeatingGroupOf(BlazeForms.Definitions.FormDefinition! definition, string! nodeId) -> string?
+static BlazeForms.Expressions.VisibilityEvaluator.GetVisibleChildIds(BlazeForms.Definitions.FormNode! repeatingNode, BlazeForms.Serialization.RepeatingRow! row, System.Collections.Generic.IReadOnlyDictionary<string!, object?>! outerValues) -> System.Collections.Generic.IReadOnlyList<string!>!
+const BlazeForms.Linting.LintRuleIds.Fr04 = "FR-04" -> string!
+const BlazeForms.Linting.LintRuleIds.Rep01 = "REP-01" -> string!
+const BlazeForms.Linting.LintRuleIds.Rep02 = "REP-02" -> string!

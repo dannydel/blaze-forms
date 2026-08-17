@@ -92,14 +92,37 @@ public sealed record FormNode
     public int? Level { get; init; }
 
     /// <summary>
-    /// The nodes repeated by a <see cref="NodeType.Repeating"/> node. Reserved for P2; empty
-    /// for every P1 node type.
+    /// The nodes repeated by a <see cref="NodeType.Repeating"/> node — the template a respondent
+    /// fills once per row. Empty for every other node type.
     /// </summary>
     public IReadOnlyList<FormNode> Children
     {
         get => _children ?? [];
         init => _children = value is null ? null : Array.AsReadOnly<FormNode>([.. value]);
     }
+
+    /// <summary>
+    /// The fewest rows a <see cref="NodeType.Repeating"/> group may hold. A respondent cannot
+    /// remove below it, and a group with <see cref="MinRows"/> ≥ 1 is effectively required —
+    /// the one mechanism for "at least one row" (PRD §5). <see langword="null"/> for every other
+    /// node type, and for a group with no lower bound.
+    /// </summary>
+    public int? MinRows { get; init; }
+
+    /// <summary>
+    /// The most rows a <see cref="NodeType.Repeating"/> group may hold. A respondent cannot add
+    /// beyond it. <see langword="null"/> for every other node type, and for a group with no upper
+    /// bound.
+    /// </summary>
+    public int? MaxRows { get; init; }
+
+    /// <summary>
+    /// The singular noun a <see cref="NodeType.Repeating"/> group's rows are named by — "Sibling"
+    /// for a "Siblings" group — used in each row's legend ("Sibling 2") and its add/remove control
+    /// labels (PRD §5). Plain text. <see langword="null"/> falls back to the group's
+    /// <see cref="Label"/>.
+    /// </summary>
+    public string? ItemLabel { get; init; }
 
     /// <summary>
     /// The rule that decides whether this node is shown. <see langword="null"/> means always

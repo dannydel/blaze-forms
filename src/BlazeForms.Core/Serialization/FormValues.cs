@@ -141,10 +141,44 @@ public static class FormValues
 
                 writer.WriteEndArray();
                 return;
+            case RepeatingRows rows:
+                WriteRepeatingRows(writer, rows);
+                return;
             default:
                 throw new NotSupportedException(
                     $"BlazeForms does not capture answers of type '{value.GetType()}'. Convert the answer to text, a number, a boolean, a date, a collection of stored option values, or a JsonElement first.");
         }
+    }
+
+    /// <summary>
+    /// Writes a <see cref="RepeatingRows"/> answer as a JSON array of
+    /// <c>{ "rowId": "...", "values": { ... } }</c> objects — the one canonical, self-describing
+    /// shape both the submission envelope and a fill draft carry (repeating-groups-plan.md,
+    /// "Resolved decisions" #1). Each row's own values are written through the same
+    /// <see cref="Write"/> switch as the top-level answers.
+    /// </summary>
+    private static void WriteRepeatingRows(Utf8JsonWriter writer, RepeatingRows rows)
+    {
+        writer.WriteStartArray();
+
+        foreach (var row in rows.Rows)
+        {
+            writer.WriteStartObject();
+            writer.WriteString("rowId", row.RowId);
+            writer.WritePropertyName("values");
+            writer.WriteStartObject();
+
+            foreach (var pair in row.Values)
+            {
+                writer.WritePropertyName(pair.Key);
+                Write(writer, pair.Value);
+            }
+
+            writer.WriteEndObject();
+            writer.WriteEndObject();
+        }
+
+        writer.WriteEndArray();
     }
 
     private static object? FromJsonElement(JsonElement element) => element.ValueKind switch
@@ -160,6 +194,17 @@ public static class FormValues
 
     private static object FromJsonArray(JsonElement element)
     {
+        // Strict shape recognition: only a non-empty array whose every element is an object with
+        // exactly a string "rowId" and an object "values" is a RepeatingRows answer. An empty
+        // array is inherently ambiguous with an empty selection list, so it keeps today's
+        // behavior (an empty string list) rather than guessing; anything else that fails the
+        // shape check — a plain string array, an arbitrary object array — also keeps today's
+        // behavior.
+        if (element.GetArrayLength() > 0 && TryReadRepeatingRows(element, out var rows))
+        {
+            return rows;
+        }
+
         var selections = new List<string>(element.GetArrayLength());
 
         foreach (var item in element.EnumerateArray())
@@ -173,5 +218,76 @@ public static class FormValues
         }
 
         return selections;
+    }
+
+    private static bool TryReadRepeatingRows(JsonElement element, out RepeatingRows rows)
+    {
+        var parsedRows = new List<RepeatingRow>(element.GetArrayLength());
+
+        foreach (var item in element.EnumerateArray())
+        {
+            if (!TryReadRepeatingRow(item, out var row))
+            {
+                rows = RepeatingRows.Empty;
+                return false;
+            }
+
+            parsedRows.Add(row);
+        }
+
+        rows = new RepeatingRows { Rows = parsedRows };
+        return true;
+    }
+
+    private static bool TryReadRepeatingRow(JsonElement element, out RepeatingRow row)
+    {
+        row = null!;
+
+        if (element.ValueKind != JsonValueKind.Object)
+        {
+            return false;
+        }
+
+        string? rowId = null;
+        JsonElement? valuesElement = null;
+        var propertyCount = 0;
+
+        foreach (var property in element.EnumerateObject())
+        {
+            propertyCount++;
+
+            if (property.NameEquals("rowId") && property.Value.ValueKind == JsonValueKind.String)
+            {
+                rowId = property.Value.GetString();
+            }
+            else if (property.NameEquals("values") && property.Value.ValueKind == JsonValueKind.Object)
+            {
+                valuesElement = property.Value;
+            }
+            else
+            {
+                // An unexpected property, or one of the two expected names carrying the wrong
+                // kind of value, means this object is not the strict { rowId, values } shape.
+                return false;
+            }
+        }
+
+        // A blank rowId can never be targeted by the mutators (all guard with
+        // ThrowIfNullOrWhiteSpace), so a row carrying one is malformed: reject the strict shape and
+        // let the array fall through to an opaque element rather than admitting an unusable row.
+        if (propertyCount != 2 || string.IsNullOrWhiteSpace(rowId) || valuesElement is null)
+        {
+            return false;
+        }
+
+        var values = new Dictionary<string, object?>(StringComparer.Ordinal);
+
+        foreach (var property in valuesElement.Value.EnumerateObject())
+        {
+            values[property.Name] = FromJsonElement(property.Value);
+        }
+
+        row = new RepeatingRow { RowId = rowId, Values = values };
+        return true;
     }
 }

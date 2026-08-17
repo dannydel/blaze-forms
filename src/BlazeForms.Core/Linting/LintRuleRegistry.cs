@@ -13,14 +13,18 @@ public static class LintRuleRegistry
     [
         new A11yLabelRule(),
         new DanglingReferenceRule(),
+        new RepeatingGroupBoundaryRule(),
         new RemedyMessageRule(),
         new HeadingLevelRule(),
         new LinkTextRule(),
         new CalcMissingExpressionRule(),
+        new RepeatingRowBoundsRule(),
+        new RepeatingGroupHasNoFieldsRule(),
     ];
 
     /// <summary>
-    /// The six built-in rules — A11Y-01, FR-03, A11Y-06, A11Y-08, A11Y-09, CALC-01 — in that order.
+    /// The nine built-in rules — A11Y-01, FR-03, FR-04, A11Y-06, A11Y-08, A11Y-09, CALC-01,
+    /// REP-01, REP-02 — in that order.
     /// </summary>
     public static IReadOnlyList<ILintRule> Default => DefaultBacking;
 }

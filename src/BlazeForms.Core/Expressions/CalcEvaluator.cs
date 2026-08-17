@@ -1,4 +1,5 @@
 using BlazeForms.Definitions;
+using BlazeForms.Serialization;
 
 namespace BlazeForms.Expressions;
 
@@ -80,10 +81,14 @@ public static class CalcEvaluator
     /// The date <see cref="CalcFunction.Today"/> resolves to.
     /// </param>
     /// <returns>
-    /// A map from calc node ID to its computed value, holding an entry for every calc node that
-    /// carries a <see cref="FormNode.Calculation"/>. This is the renderer's single evaluation entry
-    /// point: it writes these back into its own answer store so dependent calculations, visibility
-    /// rules, and validation all see them.
+    /// A map keyed by node ID, holding one entry for every top-level calc node that carries a
+    /// <see cref="FormNode.Calculation"/>, plus one entry per repeating group whose children
+    /// include at least one calc node with an existing row to compute — keyed by the group's own
+    /// ID, carrying an updated <see cref="RepeatingRows"/> with each row's calc children
+    /// recomputed. A form with no repeating groups gets exactly today's flat result. This is the
+    /// renderer's single evaluation entry point: it writes the top-level entries back into its own
+    /// answer store, and the group entries back as that group's whole value, so dependent
+    /// calculations, visibility rules, and validation all see them.
     /// </returns>
     public static IReadOnlyDictionary<string, object?> EvaluateAll(
         FormDefinition definition,
@@ -93,17 +98,125 @@ public static class CalcEvaluator
         ArgumentNullException.ThrowIfNull(definition);
         ArgumentNullException.ThrowIfNull(values);
 
-        var calcNodes = definition.EnumerateNodes()
-            .Where(node => node.Type == NodeType.Calc && node.Calculation is not null)
-            .ToList();
+        var topLevelCalcNodes = new List<FormNode>();
+        var groupsWithCalcChildren = new List<(FormNode Group, List<FormNode> CalcChildren)>();
 
-        var results = new Dictionary<string, object?>(StringComparer.Ordinal);
+        foreach (var section in definition.Pages.SelectMany(page => page.Sections))
+        {
+            CollectCalcNodes(section.Nodes, topLevelCalcNodes, groupsWithCalcChildren);
+        }
 
-        if (calcNodes.Count == 0)
+        var results = EvaluateAllInGraph(BuildGraph(topLevelCalcNodes), values, today);
+
+        if (groupsWithCalcChildren.Count == 0)
         {
             return results;
         }
 
+        // Row calculations may read a top-level calc result (an outer→row reference is allowed;
+        // it is only the reverse, a rule outside the group reading into a row, that FR-04 blocks),
+        // so the outer context every row merges against carries this pass's top-level results.
+        var outerContext = new Dictionary<string, object?>(values, StringComparer.Ordinal);
+        foreach (var pair in results)
+        {
+            outerContext[pair.Key] = pair.Value;
+        }
+
+        foreach (var (group, calcChildren) in groupsWithCalcChildren)
+        {
+            if (!values.TryGetValue(group.Id, out var raw) || raw is not RepeatingRows rows || rows.Rows.Count == 0)
+            {
+                continue;
+            }
+
+            // Rows share the same child node IDs, so the dependency/cycle graph is identical for
+            // every row; it is built once here rather than once per row.
+            var groupGraph = BuildGraph(calcChildren);
+            var updatedRows = new List<RepeatingRow>(rows.Rows.Count);
+            var rowChanged = false;
+
+            foreach (var row in rows.Rows)
+            {
+                var rowResults = EvaluateAllInGraph(groupGraph, RowScope.Merge(outerContext, row), today);
+
+                if (rowResults.Count == 0)
+                {
+                    updatedRows.Add(row);
+                    continue;
+                }
+
+                var updatedValues = new Dictionary<string, object?>(row.Values, StringComparer.Ordinal);
+                foreach (var pair in rowResults)
+                {
+                    updatedValues[pair.Key] = pair.Value;
+                }
+
+                updatedRows.Add(row with { Values = updatedValues });
+                rowChanged = true;
+            }
+
+            if (rowChanged)
+            {
+                results[group.Id] = rows with { Rows = updatedRows };
+            }
+        }
+
+        return results;
+    }
+
+    /// <summary>
+    /// Separates a node list into the top-level calc nodes (outside any repeating group) and, for
+    /// each repeating group encountered, the calc nodes among its own children. A repeating
+    /// group's children are never folded into <paramref name="topLevelCalcNodes"/> and are never
+    /// walked any deeper (PRD's "one nesting level this slice") — each group's calc children are
+    /// evaluated per row by <see cref="EvaluateAll"/>, not against the flat top-level graph.
+    /// </summary>
+    private static void CollectCalcNodes(
+        IReadOnlyList<FormNode> nodes,
+        List<FormNode> topLevelCalcNodes,
+        List<(FormNode Group, List<FormNode> CalcChildren)> groupsWithCalcChildren)
+    {
+        foreach (var node in nodes)
+        {
+            if (node.Type == NodeType.Repeating)
+            {
+                var calcChildren = node.Children
+                    .Where(child => child.Type == NodeType.Calc && child.Calculation is not null)
+                    .ToList();
+
+                if (calcChildren.Count > 0)
+                {
+                    groupsWithCalcChildren.Add((node, calcChildren));
+                }
+
+                continue;
+            }
+
+            if (node.Type == NodeType.Calc && node.Calculation is not null)
+            {
+                topLevelCalcNodes.Add(node);
+            }
+
+            if (node.Children.Count > 0)
+            {
+                CollectCalcNodes(node.Children, topLevelCalcNodes, groupsWithCalcChildren);
+            }
+        }
+    }
+
+    /// <summary>
+    /// The dependency/cycle information <see cref="EvaluateAllInGraph"/> needs, computed once for
+    /// a fixed set of calc nodes and reused across however many answer sets evaluate against it —
+    /// once for the top-level graph, and once per repeating group (shared by every one of that
+    /// group's rows, since they all share the same child node IDs).
+    /// </summary>
+    private sealed record CalcGraph(
+        Dictionary<string, CalcExpression> ById,
+        Dictionary<string, IReadOnlyList<string>> Dependencies,
+        HashSet<string> Cyclic);
+
+    private static CalcGraph BuildGraph(IReadOnlyList<FormNode> calcNodes)
+    {
         var byId = new Dictionary<string, CalcExpression>(StringComparer.Ordinal);
         foreach (var node in calcNodes)
         {
@@ -122,19 +235,39 @@ public static class CalcEvaluator
                 .ToList();
         }
 
-        var working = new Dictionary<string, object?>(StringComparer.Ordinal);
-        foreach (var pair in values)
-        {
-            working[pair.Key] = pair.Value;
-        }
-
         // A calc node that can reach itself through calc-to-calc references is part of a cycle. It,
         // and only it, evaluates to null; nodes that merely depend on a cyclic node read that null
         // as a blank operand and compute normally.
-        var done = new HashSet<string>(StringComparer.Ordinal);
+        var cyclic = new HashSet<string>(StringComparer.Ordinal);
         foreach (var id in byId.Keys)
         {
             if (CanReach(id, id, dependencies, new HashSet<string>(StringComparer.Ordinal)))
+            {
+                cyclic.Add(id);
+            }
+        }
+
+        return new CalcGraph(byId, dependencies, cyclic);
+    }
+
+    private static Dictionary<string, object?> EvaluateAllInGraph(
+        CalcGraph graph,
+        IReadOnlyDictionary<string, object?> values,
+        DateOnly today)
+    {
+        var results = new Dictionary<string, object?>(StringComparer.Ordinal);
+
+        if (graph.ById.Count == 0)
+        {
+            return results;
+        }
+
+        var working = new Dictionary<string, object?>(values, StringComparer.Ordinal);
+        var done = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var id in graph.ById.Keys)
+        {
+            if (graph.Cyclic.Contains(id))
             {
                 results[id] = null;
                 working[id] = null;
@@ -142,9 +275,9 @@ public static class CalcEvaluator
             }
         }
 
-        foreach (var id in byId.Keys)
+        foreach (var id in graph.ById.Keys)
         {
-            Visit(id, byId, dependencies, working, results, done, today);
+            Visit(id, graph.ById, graph.Dependencies, working, results, done, today);
         }
 
         return results;

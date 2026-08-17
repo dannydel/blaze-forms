@@ -31,12 +31,22 @@ public sealed class FormLinterTests
     }
 
     [Fact]
-    public void CreateDefaultCarriesTheSixBuiltInRulesInIdOrder()
+    public void CreateDefaultCarriesTheNineBuiltInRulesInIdOrder()
     {
         var rules = LintRuleRegistry.Default;
 
         Assert.Equal(
-            [LintRuleIds.A11y01, LintRuleIds.Fr03, LintRuleIds.A11y06, LintRuleIds.A11y08, LintRuleIds.A11y09, LintRuleIds.Calc01],
+            [
+                LintRuleIds.A11y01,
+                LintRuleIds.Fr03,
+                LintRuleIds.Fr04,
+                LintRuleIds.A11y06,
+                LintRuleIds.A11y08,
+                LintRuleIds.A11y09,
+                LintRuleIds.Calc01,
+                LintRuleIds.Rep01,
+                LintRuleIds.Rep02,
+            ],
             rules.Select(rule => rule.Id));
     }
 

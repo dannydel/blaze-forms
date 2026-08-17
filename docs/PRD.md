@@ -230,6 +230,7 @@ The Tyler design system in the reference design project is proprietary and ships
 | D15 | Localization | Chrome localizable P1; content P2; RTL via logical properties |
 | D16 | Dev standards | See `AGENTS.md` (canonical); CONTRIBUTING.md points into it |
 | D17 | Markdown support | Authors get Markdown in `help`/`paragraph`/`callout` via a shared Markdig pipeline in Core (raw HTML disabled, protocol allow-list); labels, options, and respondent input stay plain text |
+| D18 | Repeating groups (P2) | A repeating group's answer is one structured value under the group's node id: an ordered array of `{ rowId, values }` rows (opaque `row-` ids, kept in both drafts and the submission envelope). Logic scopes positionally — a rule inside a group resolves within its row; a reference crossing the group boundary is a blocking lint (FR-04). Cross-row aggregation (sum/count over rows) is deferred to a later additive change. Added schema v3 (`minRows`/`maxRows`/`itemLabel` on a node); see `docs/repeating-groups-plan.md` |
 
 ## 16. Open questions
 

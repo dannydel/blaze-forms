@@ -88,6 +88,66 @@ public sealed class DanglingReferenceRuleTests
     }
 
     [Fact]
+    public void AVisibilityRuleOnAChildOfARepeatingGroupReferencingAMissingSiblingIsFlaggedAndAnchoredToTheChild()
+    {
+        // FormDefinitionExtensions.EnumerateNodes already descends into Children, so a child's
+        // own visibility rule is checked exactly like any top-level node's.
+        var definition = RuleTestHelpers.Definition(
+        [
+            new FormNode
+            {
+                Id = "node-group",
+                Type = NodeType.Repeating,
+                Label = "Group",
+                Children =
+                [
+                    new FormNode { Id = "child-a", Type = NodeType.YesNo, Label = "A" },
+                    new FormNode
+                    {
+                        Id = "child-b",
+                        Type = NodeType.Text,
+                        Label = "B",
+                        VisibleWhen = Refers("child-ghost"),
+                    },
+                ],
+            },
+        ]);
+
+        var result = Assert.Single(RuleTestHelpers.Analyze(Rule, definition));
+
+        Assert.Equal(LintRuleIds.Fr03, result.RuleId);
+        Assert.Equal("child-b", result.NodeId);
+        Assert.Contains("child-ghost", result.Detail, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ALiveReferenceFromAChildOfARepeatingGroupToASiblingIsClean()
+    {
+        var definition = RuleTestHelpers.Definition(
+        [
+            new FormNode
+            {
+                Id = "node-group",
+                Type = NodeType.Repeating,
+                Label = "Group",
+                Children =
+                [
+                    new FormNode { Id = "child-a", Type = NodeType.YesNo, Label = "A" },
+                    new FormNode
+                    {
+                        Id = "child-b",
+                        Type = NodeType.Text,
+                        Label = "B",
+                        VisibleWhen = Refers("child-a"),
+                    },
+                ],
+            },
+        ]);
+
+        Assert.Empty(RuleTestHelpers.Analyze(Rule, definition));
+    }
+
+    [Fact]
     public void LiveReferencesAreClean()
     {
         var definition = RuleTestHelpers.Definition(

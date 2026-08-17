@@ -56,12 +56,12 @@ public sealed class SerializationTests
     [Fact]
     public void SchemaVersionIsWrittenAndDefaultsToTheCurrentVersion()
     {
-        Assert.Equal(2, FormSchema.CurrentVersion);
+        Assert.Equal(3, FormSchema.CurrentVersion);
         Assert.Equal(FormSchema.CurrentVersion, TestDefinitions.RepresentativeDefinition.SchemaVersion);
 
         var json = FormJson.SerializeDefinition(TestDefinitions.RepresentativeDefinition);
 
-        Assert.StartsWith("{\"schemaVersion\":2,", json, StringComparison.Ordinal);
+        Assert.StartsWith("{\"schemaVersion\":3,", json, StringComparison.Ordinal);
     }
 
     [Fact]

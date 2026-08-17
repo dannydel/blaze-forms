@@ -49,6 +49,17 @@ public static class FormIds
     /// </returns>
     public static string NewSubmissionId() => Create("sub");
 
+    /// <summary>
+    /// Creates an identifier for a new row of a repeating group (PRD §5). Row identifiers are
+    /// opaque and immutable like every other identifier here: they key a row's answers across
+    /// add/remove/reorder, draft resume, and the submission envelope, and nothing derives them
+    /// from respondent input.
+    /// </summary>
+    /// <returns>
+    /// A fresh opaque identifier prefixed <c>row-</c>.
+    /// </returns>
+    public static string NewRowId() => Create("row");
+
     private static string Create(string prefix) =>
         string.Concat(prefix, "-", Guid.NewGuid().ToString("n", CultureInfo.InvariantCulture));
 }

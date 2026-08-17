@@ -1,5 +1,6 @@
 using BlazeForms.Definitions;
 using BlazeForms.Expressions;
+using BlazeForms.Serialization;
 
 namespace BlazeForms.Core.Tests;
 
@@ -428,5 +429,237 @@ public sealed class CalcEvaluatorTests
 
         Assert.Single(values);
         Assert.False(values.ContainsKey("total"));
+    }
+
+    // ---- EvaluateAll: per-row calc (A4) ----
+
+    private static FormNode RepeatingGroup(string groupId, params FormNode[] children) => new()
+    {
+        Id = groupId,
+        Type = NodeType.Repeating,
+        Label = "Group",
+        Children = children,
+    };
+
+    [Fact]
+    public void EvaluateAllOnADefinitionWithNoRepeatingGroupsIsUnchanged()
+    {
+        var definition = WithCalcNodes(
+            new FormNode { Id = "fee", Type = NodeType.Currency, Label = "Fee" },
+            new FormNode
+            {
+                Id = "total",
+                Type = NodeType.Calc,
+                Label = "Total",
+                Calculation = Expression(CalcOperation.Sum, Field("fee"), Number(50m)),
+            });
+
+        var results = CalcEvaluator.EvaluateAll(definition, Values(("fee", 100m)), AnyToday);
+
+        Assert.Equal(
+            new Dictionary<string, object?>(StringComparer.Ordinal) { ["total"] = 150m },
+            results);
+    }
+
+    [Fact]
+    public void EvaluateAllComputesPerRowLineTotalsOverSiblingChildren()
+    {
+        var group = RepeatingGroup(
+            "node-items",
+            new FormNode { Id = "child-qty", Type = NodeType.Number, Label = "Qty" },
+            new FormNode { Id = "child-price", Type = NodeType.Currency, Label = "Price" },
+            new FormNode
+            {
+                Id = "child-line-total",
+                Type = NodeType.Calc,
+                Label = "Line total",
+                Calculation = Expression(CalcOperation.Multiply, Field("child-qty"), Field("child-price")),
+            });
+        var definition = WithCalcNodes(group);
+
+        var rows = RepeatingRows.Empty.AddRow().AddRow();
+        var firstRowId = rows.Rows[0].RowId;
+        var secondRowId = rows.Rows[1].RowId;
+        rows = rows
+            .SetValue(firstRowId, "child-qty", 3m)
+            .SetValue(firstRowId, "child-price", 4m)
+            .SetValue(secondRowId, "child-qty", 2m)
+            .SetValue(secondRowId, "child-price", 10m);
+
+        var values = new Dictionary<string, object?>(StringComparer.Ordinal) { ["node-items"] = rows };
+
+        var results = CalcEvaluator.EvaluateAll(definition, values, AnyToday);
+
+        var updatedRows = Assert.IsType<RepeatingRows>(results["node-items"]);
+        Assert.Equal(12m, updatedRows.Rows.Single(row => row.RowId == firstRowId).Values["child-line-total"]);
+        Assert.Equal(20m, updatedRows.Rows.Single(row => row.RowId == secondRowId).Values["child-line-total"]);
+    }
+
+    [Fact]
+    public void EvaluateAllTreatsAPartiallyFilledRowsCalcChildAsNoValue()
+    {
+        var group = RepeatingGroup(
+            "node-items",
+            new FormNode { Id = "child-qty", Type = NodeType.Number, Label = "Qty" },
+            new FormNode { Id = "child-price", Type = NodeType.Currency, Label = "Price" },
+            new FormNode
+            {
+                Id = "child-line-total",
+                Type = NodeType.Calc,
+                Label = "Line total",
+                Calculation = Expression(CalcOperation.Multiply, Field("child-qty"), Field("child-price")),
+            });
+        var definition = WithCalcNodes(group);
+
+        var rows = RepeatingRows.Empty.AddRow();
+        rows = rows.SetValue(rows.Rows[0].RowId, "child-qty", 3m); // No price entered yet.
+
+        var values = new Dictionary<string, object?>(StringComparer.Ordinal) { ["node-items"] = rows };
+
+        var results = CalcEvaluator.EvaluateAll(definition, values, AnyToday);
+
+        var updatedRows = Assert.IsType<RepeatingRows>(results["node-items"]);
+        Assert.Null(updatedRows.Rows[0].Values["child-line-total"]);
+    }
+
+    [Fact]
+    public void EvaluateAllTreatsACompletelyBlankRowsCalcChildAsNoValue()
+    {
+        var group = RepeatingGroup(
+            "node-items",
+            new FormNode { Id = "child-qty", Type = NodeType.Number, Label = "Qty" },
+            new FormNode { Id = "child-price", Type = NodeType.Currency, Label = "Price" },
+            new FormNode
+            {
+                Id = "child-line-total",
+                Type = NodeType.Calc,
+                Label = "Line total",
+                Calculation = Expression(CalcOperation.Multiply, Field("child-qty"), Field("child-price")),
+            });
+        var definition = WithCalcNodes(group);
+
+        var rows = RepeatingRows.Empty.AddRow();
+        var values = new Dictionary<string, object?>(StringComparer.Ordinal) { ["node-items"] = rows };
+
+        var results = CalcEvaluator.EvaluateAll(definition, values, AnyToday);
+
+        var updatedRows = Assert.IsType<RepeatingRows>(results["node-items"]);
+        Assert.Null(updatedRows.Rows[0].Values["child-line-total"]);
+    }
+
+    [Fact]
+    public void ACalcChildCycleWithinARepeatingGroupResolvesToNullForEveryRow()
+    {
+        var group = RepeatingGroup(
+            "node-items",
+            new FormNode
+            {
+                Id = "child-a",
+                Type = NodeType.Calc,
+                Label = "A",
+                Calculation = Expression(CalcOperation.Sum, Field("child-b"), Number(1m)),
+            },
+            new FormNode
+            {
+                Id = "child-b",
+                Type = NodeType.Calc,
+                Label = "B",
+                Calculation = Expression(CalcOperation.Sum, Field("child-a"), Number(1m)),
+            });
+        var definition = WithCalcNodes(group);
+
+        var rows = RepeatingRows.Empty.AddRow().AddRow();
+        var values = new Dictionary<string, object?>(StringComparer.Ordinal) { ["node-items"] = rows };
+
+        var results = CalcEvaluator.EvaluateAll(definition, values, AnyToday);
+
+        var updatedRows = Assert.IsType<RepeatingRows>(results["node-items"]);
+        Assert.All(updatedRows.Rows, row =>
+        {
+            Assert.Null(row.Values["child-a"]);
+            Assert.Null(row.Values["child-b"]);
+        });
+    }
+
+    [Fact]
+    public void ARepeatingGroupsCalcChildCanReadATopLevelCalcResult()
+    {
+        var group = RepeatingGroup(
+            "node-items",
+            new FormNode { Id = "child-qty", Type = NodeType.Number, Label = "Qty" },
+            new FormNode
+            {
+                Id = "child-total-with-surcharge",
+                Type = NodeType.Calc,
+                Label = "Total with surcharge",
+                Calculation = Expression(CalcOperation.Sum, Field("child-qty"), Field("surcharge")),
+            });
+        var definition = WithCalcNodes(
+            new FormNode
+            {
+                Id = "surcharge",
+                Type = NodeType.Calc,
+                Label = "Surcharge",
+                Calculation = Expression(CalcOperation.Sum, Number(5m)),
+            },
+            group);
+
+        var rows = RepeatingRows.Empty.AddRow();
+        rows = rows.SetValue(rows.Rows[0].RowId, "child-qty", 10m);
+
+        var values = new Dictionary<string, object?>(StringComparer.Ordinal) { ["node-items"] = rows };
+
+        var results = CalcEvaluator.EvaluateAll(definition, values, AnyToday);
+
+        Assert.Equal(5m, results["surcharge"]);
+        var updatedRows = Assert.IsType<RepeatingRows>(results["node-items"]);
+        Assert.Equal(15m, updatedRows.Rows[0].Values["child-total-with-surcharge"]);
+    }
+
+    [Fact]
+    public void ARepeatingGroupWithNoRowsContributesNoEntryToTheResults()
+    {
+        var group = RepeatingGroup(
+            "node-items",
+            new FormNode { Id = "child-qty", Type = NodeType.Number, Label = "Qty" },
+            new FormNode
+            {
+                Id = "child-double",
+                Type = NodeType.Calc,
+                Label = "Double",
+                Calculation = Expression(CalcOperation.Multiply, Field("child-qty"), Number(2m)),
+            });
+        var definition = WithCalcNodes(group);
+
+        var values = new Dictionary<string, object?>(StringComparer.Ordinal) { ["node-items"] = RepeatingRows.Empty };
+
+        var results = CalcEvaluator.EvaluateAll(definition, values, AnyToday);
+
+        Assert.False(results.ContainsKey("node-items"));
+    }
+
+    [Fact]
+    public void EvaluateAllNeverMutatesTheSuppliedRepeatingRowsOrItsRows()
+    {
+        var group = RepeatingGroup(
+            "node-items",
+            new FormNode { Id = "child-qty", Type = NodeType.Number, Label = "Qty" },
+            new FormNode
+            {
+                Id = "child-double",
+                Type = NodeType.Calc,
+                Label = "Double",
+                Calculation = Expression(CalcOperation.Multiply, Field("child-qty"), Number(2m)),
+            });
+        var definition = WithCalcNodes(group);
+
+        var originalRows = RepeatingRows.Empty.AddRow();
+        originalRows = originalRows.SetValue(originalRows.Rows[0].RowId, "child-qty", 5m);
+        var values = new Dictionary<string, object?>(StringComparer.Ordinal) { ["node-items"] = originalRows };
+
+        _ = CalcEvaluator.EvaluateAll(definition, values, AnyToday);
+
+        Assert.False(originalRows.Rows[0].Values.ContainsKey("child-double"));
+        Assert.Same(originalRows, values["node-items"]);
     }
 }

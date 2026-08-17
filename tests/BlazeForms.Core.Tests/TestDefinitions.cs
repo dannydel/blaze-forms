@@ -261,6 +261,9 @@ internal static class TestDefinitions
                                 Id = "node-siblings",
                                 Type = NodeType.Repeating,
                                 Label = "Siblings also enrolling",
+                                ItemLabel = "Sibling",
+                                MinRows = 0,
+                                MaxRows = 4,
                                 Children =
                                 [
                                     new FormNode

@@ -18,6 +18,12 @@ public static class LintRuleIds
     public const string Fr03 = "FR-03";
 
     /// <summary>
+    /// A rule references a field inside a repeating group from outside that exact group
+    /// (Blocking).
+    /// </summary>
+    public const string Fr04 = "FR-04";
+
+    /// <summary>
     /// A validation message states no remedy (Advisory).
     /// </summary>
     public const string A11y06 = "A11Y-06";
@@ -36,4 +42,14 @@ public static class LintRuleIds
     /// A calc node carries no calculation, so it renders as an empty read-only field (Advisory).
     /// </summary>
     public const string Calc01 = "CALC-01";
+
+    /// <summary>
+    /// A repeating group's <c>MinRows</c> is greater than its <c>MaxRows</c> (Advisory).
+    /// </summary>
+    public const string Rep01 = "REP-01";
+
+    /// <summary>
+    /// A repeating group has no child fields (Advisory).
+    /// </summary>
+    public const string Rep02 = "REP-02";
 }
