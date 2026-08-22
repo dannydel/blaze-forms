@@ -1,8 +1,12 @@
 # BlazeForms
 
+[![NuGet BlazeForms.Core](https://img.shields.io/nuget/vpre/BlazeForms.Core?label=BlazeForms.Core)](https://www.nuget.org/packages/BlazeForms.Core)
+[![NuGet BlazeForms.Renderer](https://img.shields.io/nuget/vpre/BlazeForms.Renderer?label=BlazeForms.Renderer)](https://www.nuget.org/packages/BlazeForms.Renderer)
+[![NuGet BlazeForms.Designer](https://img.shields.io/nuget/vpre/BlazeForms.Designer?label=BlazeForms.Designer)](https://www.nuget.org/packages/BlazeForms.Designer)
+
 **Versioned, accessible, UI-library-agnostic forms for Blazor.** Define forms as data, build them in a keyboard-first designer, render a published version in any Blazor app, and review submissions against the exact version that captured them.
 
-> ⚠️ **Pre-release.** The API is unstable through 0.x. BlazeForms targets .NET 10 and requires an interactive Blazor render mode for filling and designing forms. See [docs/PRD.md](docs/PRD.md) for the locked product scope and phasing.
+> ⚠️ **Pre-release.** The API is unstable through 0.x. BlazeForms targets .NET 10 and requires an interactive Blazor render mode for filling and designing forms. See [docs/PRD.md](https://github.com/dannydel/blaze-forms/blob/main/docs/PRD.md) for the locked product scope and phasing.
 
 ## Packages
 
@@ -222,7 +226,7 @@ The library intentionally ships no database, authentication scheme, tenant model
 
 ## Theming and component replacement
 
-The default renderer is neutral HTML and CSS. Restyle it through the documented `--bf-*` token contract, scoped globally or around one form. See [docs/theming.md](docs/theming.md) for every token and a Bootstrap mapping.
+The default renderer is neutral HTML and CSS. Restyle it through the documented `--bf-*` token contract, scoped globally or around one form. See [docs/theming.md](https://github.com/dannydel/blaze-forms/blob/main/docs/theming.md) for every token and a Bootstrap mapping.
 
 For a host UI library, implement `IFieldComponentRegistry` and map individual `NodeType` values to compatible Blazor components. The `samples/BlazeForms.Sample/Mud` adapter demonstrates the seam with MudBlazor without adding a vendor dependency to any BlazeForms package.
 
@@ -233,7 +237,7 @@ For a host UI library, implement `IFieldComponentRegistry` and map individual `N
 - Keyboard-first designer, library, linter, version history, preview, and a MudBlazor sample adapter.
 - P1 fields: text, textarea, email, phone, number, currency, date, date range, select, radio, checkbox group, yes/no, boolean, heading, paragraph, callout, divider, and a read-only calc placeholder.
 
-Repeating groups, file upload, lookup fields, calculated-value evaluation, and localized form content are planned follow-on work. See [docs/PRD.md](docs/PRD.md) for the full phased roadmap.
+Repeating groups, file upload, lookup fields, calculated-value evaluation, and localized form content are planned follow-on work. See [docs/PRD.md](https://github.com/dannydel/blaze-forms/blob/main/docs/PRD.md) for the full phased roadmap.
 
 ## Development
 
@@ -249,8 +253,8 @@ dotnet build tests/BlazeForms.E2E.Tests/BlazeForms.E2E.Tests.csproj
 pwsh tests/BlazeForms.E2E.Tests/bin/Debug/net10.0/playwright.ps1 install chromium
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md) for contribution, test, accessibility, and DCO requirements.
+See [CONTRIBUTING.md](https://github.com/dannydel/blaze-forms/blob/main/CONTRIBUTING.md) and [AGENTS.md](https://github.com/dannydel/blaze-forms/blob/main/AGENTS.md) for contribution, test, accessibility, and DCO requirements.
 
 ## License
 
-[MIT](LICENSE) © Daniel Del Grosso and contributors
+[MIT](https://github.com/dannydel/blaze-forms/blob/main/LICENSE) © Daniel Del Grosso and contributors

@@ -3,6 +3,7 @@
   <PropertyGroup>
     <RootNamespace>BlazeForms</RootNamespace>
     <IsTrimmable>true</IsTrimmable>
+    <Description>Form definition schema, serialization, expressions, linting, versioning, and host contracts for BlazeForms — no UI dependencies.</Description>
   </PropertyGroup>
 
   <ItemGroup>

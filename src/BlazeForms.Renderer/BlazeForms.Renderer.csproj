@@ -12,6 +12,7 @@
       overrides are honored for compiler-generated symbols.
     -->
     <NoWarn>$(NoWarn);RS0041</NoWarn>
+    <Description>Accessible Blazor components — FormRenderer and FormSubmissionView — for filling and reviewing BlazeForms definitions, with default field components and neutral CSS tokens.</Description>
   </PropertyGroup>
 
   <!--

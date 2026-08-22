@@ -1,0 +1,101 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Build
+        run: dotnet build BlazeForms.sln -c Release
+
+      - name: Test
+        run: dotnet test BlazeForms.sln -c Release --no-build
+
+      - name: Pack BlazeForms.Core
+        run: dotnet pack src/BlazeForms.Core -c Release --no-build -o artifacts
+
+      - name: Pack BlazeForms.Renderer
+        run: dotnet pack src/BlazeForms.Renderer -c Release --no-build -o artifacts
+
+      - name: Pack BlazeForms.Designer
+        run: dotnet pack src/BlazeForms.Designer -c Release --no-build -o artifacts
+
+      - name: Assert packed version matches the tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          nupkg=$(ls artifacts/BlazeForms.Core.*.nupkg | head -n1)
+          filename=$(basename "$nupkg")
+          packedVersion="${filename#BlazeForms.Core.}"
+          packedVersion="${packedVersion%.nupkg}"
+          if [ "$packedVersion" != "$tag" ]; then
+            echo "Packed version '$packedVersion' does not match tag '$tag'." >&2
+            exit 1
+          fi
+          echo "Packed version '$packedVersion' matches tag '$tag'."
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: artifacts/*
+
+  publish:
+    needs: pack
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment: nuget
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: nuget-packages
+          path: artifacts
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Push packages
+        run: dotnet nuget push "artifacts/*.nupkg" --api-key "${{ secrets.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Push symbol packages
+        run: dotnet nuget push "artifacts/*.snupkg" --api-key "${{ secrets.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ github.ref_name }}"
+          gh release view "$TAG" >/dev/null 2>&1 && gh release upload "$TAG" artifacts/* --clobber || gh release create "$TAG" artifacts/* --title "$TAG" --notes "See CHANGELOG.md"

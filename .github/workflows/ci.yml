@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -25,6 +27,19 @@ jobs:
       - name: Test
         run: dotnet test -c Release --no-build
 
+      - name: Pack packable projects
+        run: |
+          dotnet pack src/BlazeForms.Core -c Release --no-build -o artifacts
+          dotnet pack src/BlazeForms.Renderer -c Release --no-build -o artifacts
+          dotnet pack src/BlazeForms.Designer -c Release --no-build -o artifacts
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: artifacts/*.nupkg
+          retention-days: 7
+
   # Deliberately outside BlazeForms.sln (AGENTS.md §Testing; PRD §11, §14 #3): this job needs
   # Playwright's Chromium download and a real socket for an Interactive Server circuit, neither of
   # which the build-and-test job above should ever have to pay for. Gates the renderer half of the
@@ -36,6 +51,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4

@@ -12,6 +12,7 @@
       overrides are honored for compiler-generated symbols. Mirrors BlazeForms.Renderer's csproj.
     -->
     <NoWarn>$(NoWarn);RS0041</NoWarn>
+    <Description>A keyboard-first, accessible visual designer — FormDesigner and FormLibrary — for authoring and managing versioned BlazeForms definitions.</Description>
   </PropertyGroup>
 
   <!--
