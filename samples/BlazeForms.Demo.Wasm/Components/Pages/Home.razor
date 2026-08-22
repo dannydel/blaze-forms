@@ -1,0 +1,36 @@
+@page "/"
+@inject DemoSubmissionSink SubmissionSink
+
+<PageTitle>BlazeForms Demo</PageTitle>
+
+<div class="bf-container">
+
+<h1>BlazeForms live demo</h1>
+
+<p>This app hosts BlazeForms.Renderer and BlazeForms.Designer as a standalone WebAssembly build — no server, everything runs in this browser tab.</p>
+
+@* Every link/NavigateTo target in this project is base-href-relative (no leading slash), unlike
+   the sample host's root-absolute ones -- Pages deploys this app under /blaze-forms/demo/, and a
+   root-absolute href bypasses the router entirely for a full page load to the org root's 404.
+   @page templates keep their leading slash; the router strips <base href> from those itself. *@
+<p><a href="fill">Fill the reference enrollment form</a></p>
+<p><a href="library">Open the form library</a> — search, filter, and sort every form the store
+    knows about, with an open-in-designer action on each one.</p>
+<p><a href="design">Design the reference enrollment form</a> — the three-pane designer shell
+    (palette, canvas, properties) directly, without going through the library first.</p>
+
+@if (SubmissionSink.All.Count > 0)
+{
+    <h2>Submissions</h2>
+    <ul>
+        @foreach (var envelope in SubmissionSink.All)
+        {
+            <li>
+                <a href="@($"submission/{envelope.SubmissionId}")">
+                    Submission @envelope.SubmissionId (v@envelope.DefinitionVersion, @envelope.SubmittedAt.ToString("u"))
+                </a>
+            </li>
+        }
+    </ul>
+}
+</div>

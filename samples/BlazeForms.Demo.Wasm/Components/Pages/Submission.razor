@@ -1,0 +1,50 @@
+@page "/submission/{SubmissionId}"
+@inject IFormDefinitionStore DefinitionStore
+@inject DemoSubmissionSink SubmissionSink
+
+<PageTitle>Submission — BlazeForms Demo</PageTitle>
+
+<p><a href="./">Back to the demo home</a></p>
+
+<div class="bf-container">
+    @if (_envelope is null || _version is null)
+    {
+        <h1>Submission not found</h1>
+        <p>No submission was found for id "@SubmissionId".</p>
+        <p><a href="fill">Fill the form</a> to create one.</p>
+    }
+    else
+    {
+        <h1>Submission received</h1>
+        <FormSubmissionView Envelope="_envelope" Version="_version" LatestPublishedVersion="_latestPublishedVersion" />
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// The <c>submissionId</c> route segment, looked up against <see cref="DemoSubmissionSink"/>.
+    /// </summary>
+    [Parameter]
+    public string SubmissionId { get; set; } = "";
+
+    private FormSubmissionEnvelope? _envelope;
+    private FormVersion? _version;
+    private int? _latestPublishedVersion;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _envelope = SubmissionSink.TryGet(SubmissionId);
+
+        if (_envelope is null)
+        {
+            return;
+        }
+
+        // FormSubmissionView always renders against the exact version the submission was
+        // captured against (PRD §7) -- never whatever the form's latest version happens to be.
+        _version = await DefinitionStore.GetVersionAsync(_envelope.FormId, _envelope.DefinitionVersion);
+
+        var latest = await DefinitionStore.GetLatestPublishedVersionAsync(_envelope.FormId);
+        _latestPublishedVersion = latest?.Version;
+    }
+}

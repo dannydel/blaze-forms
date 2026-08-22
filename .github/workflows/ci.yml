@@ -111,3 +111,45 @@ jobs:
 
       - name: Run the Playwright + axe accessibility gate
         run: dotnet test tests/BlazeForms.E2E.Tests -c Release --no-build
+
+  # Independent of build-and-test: a plain `dotnet build` never runs the trimmer, and never
+  # exercises base-href-relative navigation, so this is the only per-PR signal for a publish/trim
+  # regression *and* for a routing regression like a root-absolute href silently bypassing the
+  # router once the app isn't served from "/" (adoption-infrastructure-plan Increment D).
+  # SuppressTrimAnalysisWarnings=false lives in the demo's own csproj, not here.
+  demo-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      # Assembled at a scratch base href identical in shape to the real deploy path, via the same
+      # script pages.yml uses, so the base-href rewrite + grep guard run on every PR -- not only
+      # on push to main.
+      - name: Assemble the demo at a Pages-shaped base href
+        run: eng/assemble-demo.sh /tmp/demo-site/blaze-forms/demo "/blaze-forms/demo/"
+
+      - name: Install Playwright's Chromium
+        run: npx --yes playwright install --with-deps chromium
+
+      - name: Serve the assembled demo (mimicking GitHub Pages' 404.html fallback)
+        run: |
+          nohup python3 eng/serve-with-404-fallback.py 8123 /tmp/demo-site > /tmp/demo-serve.log 2>&1 &
+          for _ in $(seq 1 20); do
+            curl -sf -o /dev/null http://127.0.0.1:8123/blaze-forms/demo/ && exit 0
+            sleep 0.5
+          done
+          echo "::error::demo server never became reachable"; cat /tmp/demo-serve.log; exit 1
+
+      # Catches exactly the class of bug a green publish can't: base-href-relative navigation,
+      # a real fill-and-submit flow, and a hard-refresh deep link through the 404.html fallback.
+      - name: Run the demo smoke test
+        run: npx --yes -p playwright node eng/demo-smoke-test.mjs "http://127.0.0.1:8123/blaze-forms/demo/"

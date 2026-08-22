@@ -1,0 +1,57 @@
+@page "/fill"
+@inject IFormDefinitionStore DefinitionStore
+@inject NavigationManager Navigation
+
+<PageTitle>Fill — BlazeForms Demo</PageTitle>
+
+<p><a href="./">Back to the demo home</a></p>
+
+<div class="bf-container">
+@if (_version is null)
+{
+    <h1>No form available</h1>
+    <p>No published form is available yet.</p>
+}
+else
+{
+    <h1>@_version.Definition.Name</h1>
+    <p>
+        Your progress autosaves as you fill this in — leave and come back and you will resume
+        where you left off, as long as this tab stays open.
+    </p>
+    <FormRenderer Version="_version" RespondentKey="@RespondentKey" OnSubmitted="HandleSubmittedAsync" />
+}
+</div>
+
+@code {
+    private FormVersion? _version;
+
+    /// <summary>
+    /// Overrides the shared demo respondent key via <c>?respondent=</c> so independent fills
+    /// never share one autosaved draft, matching the sample host's own <c>Fill.razor</c>.
+    /// </summary>
+    [SupplyParameterFromQuery(Name = "respondent")]
+    private string? RespondentKeyOverride { get; set; }
+
+    private string RespondentKey => RespondentKeyOverride ?? "demo-respondent";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var forms = await DefinitionStore.ListFormsAsync();
+        var reference = forms.FirstOrDefault();
+
+        if (reference is not null)
+        {
+            _version = await DefinitionStore.GetLatestPublishedVersionAsync(reference.FormId);
+        }
+    }
+
+    // FormRenderer already hands the envelope to the DI-registered IFormSubmissionSink itself
+    // (PRD §9) -- this handler's only job is to send the respondent on to the read-only view of
+    // what they just submitted.
+    private Task HandleSubmittedAsync(FormSubmissionEnvelope envelope)
+    {
+        Navigation.NavigateTo($"submission/{envelope.SubmissionId}");
+        return Task.CompletedTask;
+    }
+}

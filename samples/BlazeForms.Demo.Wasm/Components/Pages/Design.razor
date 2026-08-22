@@ -1,0 +1,64 @@
+@page "/design/{FormId?}"
+@inject IFormDefinitionStore DefinitionStore
+@inject NavigationManager Navigation
+
+<PageTitle>Design — BlazeForms Demo</PageTitle>
+
+<p><a href="./">Back to the demo home</a></p>
+
+@if (_isResolving)
+{
+    <h1>Design</h1>
+    <p>Loading the designer…</p>
+}
+else if (_resolvedFormId is null)
+{
+    <h1>Design</h1>
+    <p>No forms are available to design yet.</p>
+    <p><a href="library">Back to the library</a></p>
+}
+else
+{
+    @* FormDesigner renders no heading of its own -- this h1 is visually hidden (.bf-visually-hidden,
+       wwwroot/app.css) so FocusOnNavigate still has a route-change landing target without a
+       redundant "Design" caption above the three-pane shell. *@
+    <h1 class="bf-visually-hidden">Design</h1>
+    <FormDesigner FormId="@_resolvedFormId" Author="Demo Author" OnPublished="HandlePublishedAsync" OnClosed="HandleClosed" />
+}
+
+@code {
+    /// <summary>
+    /// The <c>formId</c> route segment. Optional -- omitting it (plain <c>/design</c>) opens the
+    /// seeded reference enrollment form, matching the sample host's own <c>Design.razor</c>.
+    /// </summary>
+    [Parameter]
+    public string? FormId { get; set; }
+
+    private bool _isResolving = true;
+    private string? _resolvedFormId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(FormId))
+        {
+            _resolvedFormId = FormId;
+            _isResolving = false;
+            return;
+        }
+
+        var forms = await DefinitionStore.ListFormsAsync();
+        _resolvedFormId = forms.FirstOrDefault()?.FormId;
+        _isResolving = false;
+    }
+
+    // FormDesigner already persists the newly published version to the store itself
+    // (PublishDialog -> IFormDefinitionStore.PublishAsync) -- this handler's only job is to send
+    // the author on to the library, where the form now shows its new published status.
+    private Task HandlePublishedAsync(FormVersion published)
+    {
+        Navigation.NavigateTo("library");
+        return Task.CompletedTask;
+    }
+
+    private void HandleClosed() => Navigation.NavigateTo("library");
+}

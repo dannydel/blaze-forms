@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <!--
+      Off with suppression so a regression in the registry seam surfaces at publish time (adoption
+      plan Increment D, ground-truth WASM probe). The probe measured exactly two real findings —
+      DynamicComponent.Type at FormRenderer.razor:52 and Components/RepeatingGroup.razor:2, both
+      the IFieldComponentRegistry seam — and TrimmerRootAssembly below keeps the registry's
+      reflection targets out of the trim graph. Silencing precisely those two codes here, not in
+      the Renderer source, until the [DynamicallyAccessedMembers] follow-up lands (see
+      adoption-infrastructure-plan.md, "Registry-seam trimming"). IL2104 is a second, unrelated
+      NoWarn: the trimmer's collapsed-summary code for any referenced assembly that ships its own
+      pre-existing, un-annotated reflection warnings and isn't itself fully analyzed; here,
+      Microsoft.AspNetCore.Components, Microsoft.JSInterop, and Markdig (Core's only third-party
+      dependency). Nothing BlazeForms code can fix in any of the three, and it only becomes a hard
+      error in this repo because the root Directory.Build.props turns on TreatWarningsAsErrors.
+      Our own three project references (Core, Renderer, Designer) are never IL2104-collapsed —
+      the ILLink targets set TrimmerSingleWarn=false for project references, so they stay fully
+      analyzed and still fail loudly on anything past IL2110/IL2111.
+    -->
+    <SuppressTrimAnalysisWarnings>false</SuppressTrimAnalysisWarnings>
+    <NoWarn>$(NoWarn);IL2110;IL2111;IL2104</NoWarn>
+    <!-- GitHub Pages serves whatever bytes are in the artifact verbatim; it does not
+         content-negotiate .br/.gz, so shipping both compressed variants only doubles the
+         artifact's size for nothing. -->
+    <CompressionEnabled>false</CompressionEnabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.10" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\BlazeForms.Renderer\BlazeForms.Renderer.csproj" />
+    <ProjectReference Include="..\..\src\BlazeForms.Designer\BlazeForms.Designer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Linked, not referenced, so the reference enrollment form can never drift between the
+         sample host and this demo: both build from the exact same source file. -->
+    <Compile Include="..\BlazeForms.Sample\Data\EnrollmentForm.cs" Link="Data\EnrollmentForm.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <TrimmerRootAssembly Include="BlazeForms.Renderer" />
+    <TrimmerRootAssembly Include="BlazeForms.Designer" />
+  </ItemGroup>
+
+</Project>

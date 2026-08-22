@@ -24,6 +24,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
 
       - name: Assemble site
         run: |
@@ -31,6 +38,17 @@ jobs:
           cp docs/schemas/*.schema.json _site/schemas/
           cp docs/pages/index.html _site/index.html
           touch _site/.nojekyll
+
+          # Publish, copy, base-href rewrite (+ grep guard), and demo/404.html all live in one
+          # script shared with ci.yml's demo-publish job, so the rewrite and guard run on every
+          # PR too, not only here on push to main.
+          eng/assemble-demo.sh _site/demo "/blaze-forms/demo/"
+
+          # GitHub only documents a root-level 404.html fallback for the whole site (the
+          # per-directory demo/404.html above is the belt; this is the suspenders) -- a byte copy
+          # of the same rewritten shell means any unmatched path still boots the demo and lets the
+          # Blazor router resolve it, whichever 404.html GitHub Pages actually picks.
+          cp _site/demo/404.html _site/404.html
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

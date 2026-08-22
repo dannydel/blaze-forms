@@ -1,0 +1,13 @@
+@page "/library"
+@inject NavigationManager Navigation
+
+<PageTitle>Library — BlazeForms Demo</PageTitle>
+
+<p><a href="./">Back to the demo home</a></p>
+
+<div class="bf-container">
+    <h1>Form library</h1>
+    <p>Search, filter, and sort every form the store knows about, with an open-in-designer action on each one.</p>
+
+    <FormLibrary OnOpenInDesigner="@(formId => Navigation.NavigateTo($"design/{formId}"))" />
+</div>

@@ -1,0 +1,15 @@
+@inherits LayoutComponentBase
+
+<div class="bf-demo-banner" role="note">
+    <strong>In-browser demo.</strong> Everything here — forms, drafts, and submissions — lives
+    only in this tab's memory. Refreshing the page loses it.
+</div>
+
+<main class="bf-page">
+    @Body
+</main>
+
+@* #blazor-error-ui already lives in wwwroot/index.html, outside the app's own root -- Blazor
+   overwrites #app's contents on a fatal error, so the div showing the error bar has to sit
+   outside the component tree to survive that, matching every default Blazor template. A second
+   copy here would only sit unstyled (CSS isolation never reaches into index.html's markup). *@

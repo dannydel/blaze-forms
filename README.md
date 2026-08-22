@@ -6,6 +6,8 @@
 
 **Versioned, accessible, UI-library-agnostic forms for Blazor.** Define forms as data, build them in a keyboard-first designer, render a published version in any Blazor app, and review submissions against the exact version that captured them.
 
+🔗 **[Live demo](https://dannydel.github.io/blaze-forms/demo/)** — a standalone WebAssembly build, no server: fill and design the reference enrollment form directly in your browser.
+
 > ⚠️ **Pre-release.** The API is unstable through 0.x. BlazeForms targets .NET 10 and requires an interactive Blazor render mode for filling and designing forms. See [docs/PRD.md](https://github.com/dannydel/blaze-forms/blob/main/docs/PRD.md) for the locked product scope and phasing.
 
 ## Packages

@@ -35,6 +35,11 @@ git tags by [MinVer](https://github.com/adamralph/minver) (`v*` tag prefix), not
   is published at `docs/schemas/form-definition-v3.schema.json`, attached to GitHub releases, and
   served from GitHub Pages via a new `pages.yml` workflow. See `docs/schema.md` for consumption
   and the add-only publish policy.
+- **Live WASM demo**: `samples/BlazeForms.Demo.Wasm` — a standalone `Microsoft.NET.Sdk.BlazorWebAssembly`
+  app referencing `BlazeForms.Renderer` and `BlazeForms.Designer` directly, sharing only the
+  reference enrollment form's data seed with the sample host via a linked compile item so the two
+  can never drift. Deployed by `pages.yml` to `/blaze-forms/demo/`; `ci.yml` publishes it on every
+  PR so a trim or publish regression surfaces at review time, not at deploy time.
 
 ### Changed
 
