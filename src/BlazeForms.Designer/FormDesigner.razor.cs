@@ -42,7 +42,7 @@ namespace BlazeForms;
 /// discards every edit later.
 /// </para>
 /// </remarks>
-public partial class FormDesigner : ComponentBase, IAsyncDisposable
+public sealed partial class FormDesigner : ComponentBase, IAsyncDisposable
 {
     private IFormDefinitionStore _store = default!;
     private DesignerEditContext? _editContext;

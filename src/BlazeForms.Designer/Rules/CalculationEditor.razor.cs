@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using BlazeForms.Definitions;
 using BlazeForms.Designer;
@@ -67,7 +68,8 @@ namespace BlazeForms.Rules;
 /// say) touches nothing, since every existing selection is still exactly as valid as it was.
 /// </para>
 /// </remarks>
-public partial class CalculationEditor : ComponentBase, IAsyncDisposable
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class CalculationEditor : ComponentBase, IAsyncDisposable
 {
     /// <summary>
     /// The static web asset path this component imports its focus-trap JS module from. See

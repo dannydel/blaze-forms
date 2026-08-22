@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using BlazeForms.Definitions;
 using BlazeForms.Designer;
@@ -41,7 +42,8 @@ namespace BlazeForms.Rules;
 /// (PRD §4.1's depth-50 cap) with one entry per keystroke.
 /// </para>
 /// </remarks>
-public partial class VisibilityRuleEditor : ComponentBase, IAsyncDisposable
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class VisibilityRuleEditor : ComponentBase, IAsyncDisposable
 {
     /// <summary>
     /// The static web asset path this component imports its focus-trap JS module from. See

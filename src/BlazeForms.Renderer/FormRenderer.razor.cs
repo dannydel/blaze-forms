@@ -27,7 +27,7 @@ namespace BlazeForms;
 /// successful submit builds the submission envelope and hands it to
 /// <see cref="OnSubmitted"/> and, when the host registered one, its <c>IFormSubmissionSink</c>.
 /// </summary>
-public partial class FormRenderer : ComponentBase, IAsyncDisposable
+public sealed partial class FormRenderer : ComponentBase, IAsyncDisposable
 {
     private readonly string _instanceId = "bf-renderer-" + Guid.NewGuid().ToString("n");
     private readonly Dictionary<string, object?> _values = new(StringComparer.Ordinal);

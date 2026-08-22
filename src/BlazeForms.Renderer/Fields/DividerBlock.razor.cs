@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace BlazeForms.Fields;
 
 /// <summary>
@@ -6,7 +8,8 @@ namespace BlazeForms.Fields;
 /// except <see cref="FormFieldBase.FieldId"/>, which it still renders as an id so a lint
 /// jump-to-node action has something to anchor to.
 /// </summary>
-public partial class DividerBlock : FormFieldBase
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class DividerBlock : FormFieldBase
 {
     /// <inheritdoc />
     protected override bool ShouldRender() => HaveSharedParametersChanged();

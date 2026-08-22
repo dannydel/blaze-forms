@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using BlazeForms.Definitions;
 using BlazeForms.Designer;
@@ -53,7 +54,8 @@ namespace BlazeForms.Properties;
 /// move has already left native DOM focus exactly where it belongs.
 /// </para>
 /// </remarks>
-public partial class OptionsEditor : ComponentBase
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class OptionsEditor : ComponentBase
 {
     private readonly string _instanceId = "bf-options-editor-" + Guid.NewGuid().ToString("n");
     private readonly List<OptionRow> _rows = [];

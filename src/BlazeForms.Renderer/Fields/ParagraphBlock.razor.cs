@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using BlazeForms.Markdown;
 using Microsoft.AspNetCore.Components;
 
@@ -10,7 +11,8 @@ namespace BlazeForms.Fields;
 /// through <see cref="SafeMarkdown.ToHtml"/> — the sole sanctioned raw-markup path (AGENTS.md
 /// invariant #6).
 /// </summary>
-public partial class ParagraphBlock : FormFieldBase
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class ParagraphBlock : FormFieldBase
 {
     private string? _renderedContent;
 

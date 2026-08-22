@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using BlazeForms.Definitions;
@@ -46,7 +47,8 @@ namespace BlazeForms.Rules;
 /// Field select.
 /// </para>
 /// </remarks>
-public partial class CalcOperandRow : ComponentBase
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class CalcOperandRow : ComponentBase
 {
     /// <summary>
     /// The UI-only shape this row currently edits, derived from whichever single member

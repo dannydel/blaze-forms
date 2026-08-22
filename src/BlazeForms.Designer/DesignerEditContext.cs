@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using BlazeForms.Definitions;
 using BlazeForms.Designer.Internal;
@@ -32,6 +33,7 @@ namespace BlazeForms.Designer;
 /// (see <see cref="FormDesigner"/>'s remarks on <c>LoadDraftAsync</c>).
 /// </para>
 /// </remarks>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public sealed class DesignerEditContext : IAsyncDisposable
 {
     /// <summary>

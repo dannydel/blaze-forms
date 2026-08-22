@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using BlazeForms.Definitions;
 using BlazeForms.Expressions;
@@ -49,7 +50,8 @@ namespace BlazeForms.Rules;
 /// should land focus on -- this row never decides that for itself.
 /// </para>
 /// </remarks>
-public partial class ConditionRow : ComponentBase
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class ConditionRow : ComponentBase
 {
     private static readonly ConditionOperator[] NoOperandOperators =
     [

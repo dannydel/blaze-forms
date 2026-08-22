@@ -52,7 +52,7 @@ namespace BlazeForms;
 /// non-interactive prerendered pass.
 /// </para>
 /// </remarks>
-public partial class FormSubmissionView : ComponentBase, IAsyncDisposable
+public sealed partial class FormSubmissionView : ComponentBase, IAsyncDisposable
 {
     /// <summary>
     /// The static web asset path this component imports its JS module from, following the same

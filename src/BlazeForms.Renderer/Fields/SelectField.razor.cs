@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using BlazeForms.Markdown;
 using Microsoft.AspNetCore.Components;
 
@@ -18,7 +19,8 @@ namespace BlazeForms.Fields;
 /// blank option carries <see cref="Definitions.FormNode.Placeholder"/> as its text — a genuine
 /// unanswered state, not a substitute for the label.
 /// </remarks>
-public partial class SelectField : FormFieldBase
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class SelectField : FormFieldBase
 {
     private string? _renderedStringValue;
 

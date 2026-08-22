@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using BlazeForms.Designer;
 using Microsoft.AspNetCore.Components;
 
@@ -17,7 +18,8 @@ namespace BlazeForms;
 /// context if <see cref="EditContext"/> itself is ever replaced across renders, even though
 /// <see cref="FormDesigner"/> only ever constructs one per instance today.
 /// </remarks>
-public partial class AriaLiveRegion : ComponentBase, IAsyncDisposable
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class AriaLiveRegion : ComponentBase, IAsyncDisposable
 {
     // Zero-width space (U+200B): no glyph, and screen readers do not speak it. Appending it on
     // every other announcement forces the region's rendered text to always differ from what it

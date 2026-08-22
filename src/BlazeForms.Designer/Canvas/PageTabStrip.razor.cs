@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using BlazeForms.Definitions;
 using BlazeForms.Designer;
@@ -78,7 +79,8 @@ namespace BlazeForms.Canvas;
 /// CSS class actually differ between them -- an ordinary attribute diff, not a frame-shape one.
 /// </para>
 /// </remarks>
-public partial class PageTabStrip : ComponentBase, IAsyncDisposable
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class PageTabStrip : ComponentBase, IAsyncDisposable
 {
     private DesignerEditContext? _subscribedContext;
     private bool _disposed;

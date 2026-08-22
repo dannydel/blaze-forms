@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using BlazeForms.Definitions;
 using BlazeForms.Delete;
@@ -98,7 +99,8 @@ namespace BlazeForms.Canvas;
 /// no-op" contract <see cref="DropOnRow"/> and <see cref="DropOnSection"/> otherwise guarantee.
 /// </para>
 /// </remarks>
-public partial class DesignerCanvas : ComponentBase, IAsyncDisposable
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class DesignerCanvas : ComponentBase, IAsyncDisposable
 {
     /// <summary>
     /// The static web asset path this component imports its scroll-suppression JS module from,

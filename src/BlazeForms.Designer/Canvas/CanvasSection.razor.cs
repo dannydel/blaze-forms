@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using BlazeForms.Definitions;
 using BlazeForms.Designer;
@@ -27,7 +28,8 @@ namespace BlazeForms.Canvas;
 /// contract <see cref="Preview.PreviewPane"/>'s own heading, and <see cref="DesignerCanvas"/>'s
 /// own root, give themselves for the same reason.
 /// </remarks>
-public partial class CanvasSection : ComponentBase
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class CanvasSection : ComponentBase
 {
     private readonly string _headingId = "bf-canvas-section-" + Guid.NewGuid().ToString("n");
     private ElementReference _element;

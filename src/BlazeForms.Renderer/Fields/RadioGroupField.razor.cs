@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using BlazeForms.Markdown;
 using Microsoft.AspNetCore.Components;
 
@@ -21,7 +22,8 @@ namespace BlazeForms.Fields;
 /// <c>aria-describedby</c> on the radiogroup activate when <see cref="FormFieldBase.Error"/> is
 /// set. Each choice meets the 44px touch target via <c>--bf-touch-target</c>.
 /// </remarks>
-public partial class RadioGroupField : FormFieldBase
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class RadioGroupField : FormFieldBase
 {
     private string? _renderedStringValue;
 

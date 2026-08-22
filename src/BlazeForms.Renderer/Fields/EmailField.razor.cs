@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using BlazeForms.Markdown;
 using Microsoft.AspNetCore.Components;
 
@@ -16,7 +17,8 @@ namespace BlazeForms.Fields;
 /// <see cref="Definitions.FormNode.Required"/>, and <c>aria-invalid</c>/<c>aria-describedby</c>
 /// activate when <see cref="FormFieldBase.Error"/> is set.
 /// </remarks>
-public partial class EmailField : FormFieldBase
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class EmailField : FormFieldBase
 {
     private string? _renderedStringValue;
 

@@ -284,60 +284,12 @@ BlazeForms.Versioning.VersionHistory.OnRevised.set -> void
 BlazeForms.Versioning.VersionHistory.Store.get -> BlazeForms.Hosting.IFormDefinitionStore!
 BlazeForms.Versioning.VersionHistory.Store.set -> void
 BlazeForms.Versioning.VersionHistory.VersionHistory() -> void
-override BlazeForms.AriaLiveRegion.OnParametersSet() -> void
-override BlazeForms.Canvas.CanvasNodeRow.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
-override BlazeForms.Canvas.CanvasNodeRow.OnInitialized() -> void
-override BlazeForms.Canvas.CanvasNodeRow.OnParametersSet() -> void
-override BlazeForms.Canvas.CanvasNodeRow.ShouldRender() -> bool
-override BlazeForms.Canvas.CanvasSection.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
-override BlazeForms.Canvas.CanvasSection.OnParametersSet() -> void
-override BlazeForms.Canvas.DesignerCanvas.OnAfterRender(bool firstRender) -> void
-override BlazeForms.Canvas.DesignerCanvas.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
-override BlazeForms.Canvas.DesignerCanvas.OnParametersSet() -> void
-override BlazeForms.Canvas.MoveToPositionDialog.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
-override BlazeForms.Canvas.MoveToPositionDialog.OnInitialized() -> void
-override BlazeForms.Canvas.PageTabStrip.OnAfterRender(bool firstRender) -> void
-override BlazeForms.Canvas.PageTabStrip.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
-override BlazeForms.Canvas.PageTabStrip.OnParametersSet() -> void
-override BlazeForms.Delete.DeleteProtectionDialog.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
-override BlazeForms.Delete.DeleteProtectionDialog.OnInitialized() -> void
 override BlazeForms.Designer.DesignerAnnouncement.Equals(object? obj) -> bool
 override BlazeForms.Designer.DesignerAnnouncement.GetHashCode() -> int
 override BlazeForms.Designer.DesignerAnnouncement.ToString() -> string!
 override BlazeForms.Designer.DesignerSelection.Equals(object? obj) -> bool
 override BlazeForms.Designer.DesignerSelection.GetHashCode() -> int
 override BlazeForms.Designer.DesignerSelection.ToString() -> string!
-override BlazeForms.FormDesigner.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
-override BlazeForms.FormDesigner.OnInitialized() -> void
-override BlazeForms.FormLibrary.OnInitialized() -> void
-override BlazeForms.FormLibrary.OnInitializedAsync() -> System.Threading.Tasks.Task!
-override BlazeForms.KeyboardHelpDialog.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
-override BlazeForms.Linting.LinterDock.OnInitialized() -> void
-override BlazeForms.Linting.LinterDock.OnParametersSet() -> void
-override BlazeForms.Preview.PreviewPane.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
-override BlazeForms.Properties.OptionsEditor.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
-override BlazeForms.Properties.OptionsEditor.OnParametersSet() -> void
-override BlazeForms.Properties.PropertiesPanel.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
-override BlazeForms.Properties.PropertiesPanel.OnInitialized() -> void
-override BlazeForms.Properties.PropertiesPanel.OnParametersSet() -> void
-override BlazeForms.Rules.CalcOperandRow.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
-override BlazeForms.Rules.CalcOperandRow.OnParametersSet() -> void
-override BlazeForms.Rules.CalculationEditor.OnAfterRender(bool firstRender) -> void
-override BlazeForms.Rules.CalculationEditor.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
-override BlazeForms.Rules.CalculationEditor.OnInitialized() -> void
-override BlazeForms.Rules.ConditionRow.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
-override BlazeForms.Rules.ConditionRow.OnParametersSet() -> void
-override BlazeForms.Rules.ValidationRuleEditor.OnAfterRender(bool firstRender) -> void
-override BlazeForms.Rules.ValidationRuleEditor.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
-override BlazeForms.Rules.ValidationRuleEditor.OnParametersSet() -> void
-override BlazeForms.Rules.VisibilityRuleEditor.OnAfterRender(bool firstRender) -> void
-override BlazeForms.Rules.VisibilityRuleEditor.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
-override BlazeForms.Rules.VisibilityRuleEditor.OnInitialized() -> void
-override BlazeForms.Versioning.PublishDialog.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
-override BlazeForms.Versioning.PublishDialog.OnInitialized() -> void
-override BlazeForms.Versioning.RetireConfirmationDialog.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
-override BlazeForms.Versioning.VersionHistory.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
-override BlazeForms.Versioning.VersionHistory.OnInitializedAsync() -> System.Threading.Tasks.Task!
 static BlazeForms.Designer.DesignerAnnouncement.operator !=(BlazeForms.Designer.DesignerAnnouncement? left, BlazeForms.Designer.DesignerAnnouncement? right) -> bool
 static BlazeForms.Designer.DesignerAnnouncement.operator ==(BlazeForms.Designer.DesignerAnnouncement? left, BlazeForms.Designer.DesignerAnnouncement? right) -> bool
 static BlazeForms.Designer.DesignerSelection.ForGroupScope(string! pageId, string! sectionId, string! groupId, BlazeForms.Designer.DesignerFocusIntent intent) -> BlazeForms.Designer.DesignerSelection!
@@ -347,29 +299,3 @@ static BlazeForms.Designer.DesignerSelection.ForSection(string! pageId, string! 
 static BlazeForms.Designer.DesignerSelection.None.get -> BlazeForms.Designer.DesignerSelection!
 static BlazeForms.Designer.DesignerSelection.operator !=(BlazeForms.Designer.DesignerSelection? left, BlazeForms.Designer.DesignerSelection? right) -> bool
 static BlazeForms.Designer.DesignerSelection.operator ==(BlazeForms.Designer.DesignerSelection? left, BlazeForms.Designer.DesignerSelection? right) -> bool
-~override BlazeForms.AriaLiveRegion.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Canvas.CanvasNodeRow.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Canvas.CanvasSection.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Canvas.DesignerCanvas.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Canvas.MoveToPositionDialog.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Canvas.PageTabStrip.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Delete.DeleteProtectionDialog.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.FormDesigner.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.FormLibrary.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.KeyboardHelpDialog.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Library.FormCard.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Library.FormTable.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Linting.InlineLintMarker.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Linting.LinterDock.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Palette.FieldPalette.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Preview.PreviewPane.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Properties.OptionsEditor.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Properties.PropertiesPanel.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Rules.CalcOperandRow.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Rules.CalculationEditor.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Rules.ConditionRow.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Rules.ValidationRuleEditor.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Rules.VisibilityRuleEditor.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Versioning.PublishDialog.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Versioning.RetireConfirmationDialog.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Versioning.VersionHistory.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void

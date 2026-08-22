@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using BlazeForms.Definitions;
 using BlazeForms.Designer;
@@ -62,7 +63,8 @@ namespace BlazeForms.Canvas;
 /// row's own siblings.
 /// </para>
 /// </remarks>
-public partial class CanvasNodeRow : ComponentBase
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class CanvasNodeRow : ComponentBase
 {
     private ElementReference _element;
     private FormNode? _previousNode;

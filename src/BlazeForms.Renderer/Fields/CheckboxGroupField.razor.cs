@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using BlazeForms.Markdown;
 using Microsoft.AspNetCore.Components;
 
@@ -23,7 +24,8 @@ namespace BlazeForms.Fields;
 /// fieldset activate when <see cref="FormFieldBase.Error"/> is set. Each choice meets the 44px
 /// touch target via <c>--bf-touch-target</c>.
 /// </remarks>
-public partial class CheckboxGroupField : FormFieldBase
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class CheckboxGroupField : FormFieldBase
 {
     private IReadOnlyList<string> _renderedSelections = [];
 

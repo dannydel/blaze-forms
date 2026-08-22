@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Globalization;
 using BlazeForms.Internal;
 using BlazeForms.Markdown;
@@ -21,7 +22,8 @@ namespace BlazeForms.Fields;
 /// <see cref="Definitions.FormNode.Required"/>; <c>aria-invalid</c> activates on both inputs, and
 /// <c>aria-describedby</c> on the fieldset, when <see cref="FormFieldBase.Error"/> is set.
 /// </remarks>
-public partial class DateRangeField : FormFieldBase
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class DateRangeField : FormFieldBase
 {
     private DateOnly? _renderedStart;
     private DateOnly? _renderedEnd;

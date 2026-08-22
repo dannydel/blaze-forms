@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace BlazeForms.Designer;
 
 /// <summary>
@@ -12,6 +14,7 @@ namespace BlazeForms.Designer;
 /// <c>For*</c> factories are the only supported ways to build one -- keeping every combination of
 /// "which level is selected" to exactly the shapes the designer actually produces.
 /// </remarks>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public sealed record DesignerSelection
 {
     /// <summary>
@@ -141,6 +144,7 @@ public sealed record DesignerSelection
 /// Why a <see cref="DesignerSelection"/> is where it is, so a later phase's canvas can decide
 /// whether and how to move real DOM focus after a mutation (PRD §4.1, §11).
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public enum DesignerFocusIntent
 {
     /// <summary>

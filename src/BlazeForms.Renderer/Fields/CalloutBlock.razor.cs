@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using BlazeForms.Markdown;
 using Microsoft.AspNetCore.Components;
 
@@ -14,7 +15,8 @@ namespace BlazeForms.Fields;
 /// <b>Accessibility.</b> Rendered with <c>role="note"</c> so assistive technology announces it
 /// as a supplementary aside rather than ordinary body prose.
 /// </remarks>
-public partial class CalloutBlock : FormFieldBase
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class CalloutBlock : FormFieldBase
 {
     private string? _renderedContent;
 

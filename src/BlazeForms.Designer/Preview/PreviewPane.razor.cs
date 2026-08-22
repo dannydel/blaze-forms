@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using BlazeForms.Designer;
 using BlazeForms.Hosting;
@@ -42,7 +43,8 @@ namespace BlazeForms.Preview;
 /// open/close pair uses.
 /// </para>
 /// </remarks>
-public partial class PreviewPane : ComponentBase
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class PreviewPane : ComponentBase
 {
     private readonly string _instanceId = "bf-preview-" + Guid.NewGuid().ToString("n");
     private ElementReference _headingElement;

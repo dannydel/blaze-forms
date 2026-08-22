@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using BlazeForms.Definitions;
 using BlazeForms.Designer;
@@ -41,7 +42,8 @@ namespace BlazeForms.Rules;
 /// list from <see cref="Rules"/>' own current content, never from a row's remembered position.
 /// </para>
 /// </remarks>
-public partial class ValidationRuleEditor : ComponentBase, IAsyncDisposable
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class ValidationRuleEditor : ComponentBase, IAsyncDisposable
 {
     private readonly string _instanceId = "bf-validation-rules-" + Guid.NewGuid().ToString("n");
     private readonly List<RuleFocusRefs> _ruleRefs = [];

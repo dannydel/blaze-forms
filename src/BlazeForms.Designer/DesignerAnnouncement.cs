@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace BlazeForms.Designer;
 
 /// <summary>
@@ -5,6 +7,7 @@ namespace BlazeForms.Designer;
 /// aria-live region to speak (PRD §4.1, §11 -- e.g. "Moved to position 3 of 5 in
 /// 'Transportation'."). Exactly one of these is raised per mutation, including undo and redo.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public sealed record DesignerAnnouncement
 {
     /// <summary>
@@ -25,6 +28,7 @@ public sealed record DesignerAnnouncement
 /// <summary>
 /// The <c>aria-live</c> politeness levels an <see cref="AriaLiveRegion"/> can render.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public enum AriaLivePoliteness
 {
     /// <summary>

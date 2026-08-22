@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using BlazeForms.Internal;
 using BlazeForms.Resources;
@@ -23,7 +24,8 @@ namespace BlazeForms;
 /// <c>MoveToPositionDialog.razor.js</c> and <c>DeleteProtectionDialog.razor.js</c> both document
 /// for their own traps. <c>Escape</c> needs no JS at all, the same as those two dialogs'.
 /// </remarks>
-public partial class KeyboardHelpDialog : ComponentBase, IAsyncDisposable
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class KeyboardHelpDialog : ComponentBase, IAsyncDisposable
 {
     /// <summary>
     /// The static web asset path this component imports its focus-trap JS module from, following

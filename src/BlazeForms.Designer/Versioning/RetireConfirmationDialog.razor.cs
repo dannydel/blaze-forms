@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using BlazeForms.Hosting;
 using BlazeForms.Internal;
@@ -39,7 +40,8 @@ namespace BlazeForms.Versioning;
 /// every other dialog in this project documents for itself.
 /// </para>
 /// </remarks>
-public partial class RetireConfirmationDialog : ComponentBase, IAsyncDisposable
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class RetireConfirmationDialog : ComponentBase, IAsyncDisposable
 {
     /// <summary>
     /// The static web asset path this component imports its focus-trap JS module from, following

@@ -47,7 +47,7 @@ namespace BlazeForms;
 /// call, rather than <see cref="FormDesigner"/>'s <c>OnAfterRenderAsync</c>-plus-flag dance.
 /// </para>
 /// </remarks>
-public partial class FormLibrary : ComponentBase
+public sealed partial class FormLibrary : ComponentBase
 {
     private readonly string _searchInputId = "bf-library-search-" + Guid.NewGuid().ToString("n");
     private readonly string _statusFilterId = "bf-library-status-" + Guid.NewGuid().ToString("n");

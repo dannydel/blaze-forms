@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using BlazeForms.Internal;
 using BlazeForms.Resources;
 using Microsoft.AspNetCore.Components;
@@ -14,7 +15,8 @@ namespace BlazeForms.Linting;
 /// <c>.bf-canvas-row__lint:empty</c> rule keeps collapsing the slot to nothing for a node with no
 /// findings, the same as before this phase filled it in.
 /// </summary>
-public partial class InlineLintMarker : ComponentBase
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class InlineLintMarker : ComponentBase
 {
     /// <summary>
     /// The findings <see cref="Canvas.DesignerCanvas"/> has already narrowed to this row's own

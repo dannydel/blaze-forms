@@ -29,7 +29,6 @@ BlazeForms.Components.ErrorSummary
 BlazeForms.Components.ErrorSummary.Entries.get -> System.Collections.Generic.IReadOnlyList<BlazeForms.Components.ErrorSummaryEntry>!
 BlazeForms.Components.ErrorSummary.Entries.set -> void
 BlazeForms.Components.ErrorSummary.ErrorSummary() -> void
-BlazeForms.Components.ErrorSummary.FocusAsync() -> System.Threading.Tasks.ValueTask
 BlazeForms.Components.ErrorSummary.HeadingText.get -> string!
 BlazeForms.Components.ErrorSummary.HeadingText.set -> void
 BlazeForms.Components.ErrorSummaryEntry
@@ -132,76 +131,15 @@ BlazeForms.Fields.TextField
 BlazeForms.Fields.TextField.TextField() -> void
 BlazeForms.Fields.YesNoField
 BlazeForms.Fields.YesNoField.YesNoField() -> void
-override BlazeForms.Fields.BooleanField.CaptureValueSnapshot() -> void
-override BlazeForms.Fields.BooleanField.ShouldRender() -> bool
-override BlazeForms.Fields.CalcField.CaptureValueSnapshot() -> void
-override BlazeForms.Fields.CalcField.ShouldRender() -> bool
-override BlazeForms.Fields.CalloutBlock.CaptureValueSnapshot() -> void
-override BlazeForms.Fields.CalloutBlock.ShouldRender() -> bool
-override BlazeForms.Fields.CheckboxGroupField.CaptureValueSnapshot() -> void
-override BlazeForms.Fields.CheckboxGroupField.ShouldRender() -> bool
-override BlazeForms.Fields.CurrencyField.CaptureValueSnapshot() -> void
-override BlazeForms.Fields.CurrencyField.ShouldRender() -> bool
-override BlazeForms.Fields.DateField.CaptureValueSnapshot() -> void
-override BlazeForms.Fields.DateField.ShouldRender() -> bool
-override BlazeForms.Fields.DateRangeField.CaptureValueSnapshot() -> void
-override BlazeForms.Fields.DateRangeField.ShouldRender() -> bool
-override BlazeForms.Fields.DividerBlock.ShouldRender() -> bool
-override BlazeForms.Fields.EmailField.CaptureValueSnapshot() -> void
-override BlazeForms.Fields.EmailField.ShouldRender() -> bool
 override BlazeForms.Fields.FormFieldBase.OnParametersSet() -> void
 virtual BlazeForms.Fields.FormFieldBase.CaptureValueSnapshot() -> void
-override BlazeForms.Fields.HeadingBlock.ShouldRender() -> bool
 override BlazeForms.Components.ErrorSummaryEntry.GetHashCode() -> int
-override BlazeForms.Components.RepeatingGroup.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
 override BlazeForms.Components.RepeatingRowMove.GetHashCode() -> int
-override BlazeForms.FormRenderer.OnAfterRenderAsync(bool firstRender) -> System.Threading.Tasks.Task!
-override BlazeForms.FormRenderer.OnInitialized() -> void
-override BlazeForms.FormRenderer.OnParametersSet() -> void
-override BlazeForms.FormSubmissionView.OnParametersSet() -> void
 static BlazeForms.Components.ErrorSummaryEntry.operator !=(BlazeForms.Components.ErrorSummaryEntry left, BlazeForms.Components.ErrorSummaryEntry right) -> bool
 static BlazeForms.Components.ErrorSummaryEntry.operator ==(BlazeForms.Components.ErrorSummaryEntry left, BlazeForms.Components.ErrorSummaryEntry right) -> bool
 static BlazeForms.Components.RepeatingRowMove.operator !=(BlazeForms.Components.RepeatingRowMove left, BlazeForms.Components.RepeatingRowMove right) -> bool
 static BlazeForms.Components.RepeatingRowMove.operator ==(BlazeForms.Components.RepeatingRowMove left, BlazeForms.Components.RepeatingRowMove right) -> bool
-override BlazeForms.Fields.NumberField.CaptureValueSnapshot() -> void
-override BlazeForms.Fields.NumberField.ShouldRender() -> bool
-override BlazeForms.Fields.ParagraphBlock.CaptureValueSnapshot() -> void
-override BlazeForms.Fields.ParagraphBlock.ShouldRender() -> bool
-override BlazeForms.Fields.PhoneField.CaptureValueSnapshot() -> void
-override BlazeForms.Fields.PhoneField.ShouldRender() -> bool
-override BlazeForms.Fields.RadioGroupField.CaptureValueSnapshot() -> void
-override BlazeForms.Fields.RadioGroupField.ShouldRender() -> bool
-override BlazeForms.Fields.SelectField.CaptureValueSnapshot() -> void
-override BlazeForms.Fields.SelectField.ShouldRender() -> bool
-override BlazeForms.Fields.TextAreaField.CaptureValueSnapshot() -> void
-override BlazeForms.Fields.TextAreaField.ShouldRender() -> bool
-override BlazeForms.Fields.TextField.CaptureValueSnapshot() -> void
-override BlazeForms.Fields.TextField.ShouldRender() -> bool
-override BlazeForms.Fields.YesNoField.CaptureValueSnapshot() -> void
-override BlazeForms.Fields.YesNoField.ShouldRender() -> bool
-~override BlazeForms.Components.ErrorSummary.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Components.ErrorSummaryEntry.Equals(object obj) -> bool
 ~override BlazeForms.Components.ErrorSummaryEntry.ToString() -> string
-~override BlazeForms.Components.RepeatingGroup.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
 ~override BlazeForms.Components.RepeatingRowMove.Equals(object obj) -> bool
 ~override BlazeForms.Components.RepeatingRowMove.ToString() -> string
-~override BlazeForms.Fields.BooleanField.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Fields.CalcField.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Fields.CalloutBlock.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Fields.CheckboxGroupField.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Fields.CurrencyField.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Fields.DateField.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Fields.DateRangeField.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Fields.DividerBlock.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Fields.EmailField.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.FormRenderer.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.FormSubmissionView.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Fields.HeadingBlock.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Fields.NumberField.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Fields.ParagraphBlock.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Fields.PhoneField.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Fields.RadioGroupField.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Fields.SelectField.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Fields.TextAreaField.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Fields.TextField.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void
-~override BlazeForms.Fields.YesNoField.BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder) -> void

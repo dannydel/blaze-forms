@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace BlazeForms.Fields;
 
 /// <summary>
@@ -13,7 +15,8 @@ namespace BlazeForms.Fields;
 /// the whole of this component's accessibility contract: screen-reader users navigate by
 /// heading level, and the linter's A11Y-08 rule flags a level that skips a rung.
 /// </remarks>
-public partial class HeadingBlock : FormFieldBase
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class HeadingBlock : FormFieldBase
 {
     /// <inheritdoc />
     protected override bool ShouldRender() => HaveSharedParametersChanged();

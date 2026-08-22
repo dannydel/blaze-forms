@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using BlazeForms.Hosting;
@@ -42,7 +43,8 @@ namespace BlazeForms.Versioning;
 /// rest of the designer, not a modal blocking interaction with it.
 /// </para>
 /// </remarks>
-public partial class VersionHistory : ComponentBase
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class VersionHistory : ComponentBase
 {
     private IReadOnlyList<FormVersionSummary> _versions = [];
     private bool _isLoading = true;

@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using BlazeForms.Markdown;
 using Microsoft.AspNetCore.Components;
 
@@ -16,7 +17,8 @@ namespace BlazeForms.Fields;
 /// help text is present. The input meets the 44px touch target via <c>--bf-touch-target</c> and
 /// shows a visible focus ring, both from the shared theme (<c>blazeforms.css</c>).
 /// </remarks>
-public partial class TextField : FormFieldBase
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class TextField : FormFieldBase
 {
     private string? _renderedStringValue;
 

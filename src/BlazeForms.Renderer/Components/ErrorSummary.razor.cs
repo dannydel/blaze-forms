@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Microsoft.AspNetCore.Components;
 
 namespace BlazeForms.Components;
@@ -25,7 +26,8 @@ namespace BlazeForms.Components;
 /// changes where keyboard focus sits.
 /// </para>
 /// </remarks>
-public partial class ErrorSummary : ComponentBase
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class ErrorSummary : ComponentBase
 {
     private ElementReference _rootElement;
 
@@ -46,5 +48,5 @@ public partial class ErrorSummary : ComponentBase
     /// Moves focus to the summary's root element. A no-op if the summary is not currently
     /// rendered (an empty <see cref="Entries"/>), since there is then no element to focus.
     /// </summary>
-    public ValueTask FocusAsync() => Entries.Count > 0 ? _rootElement.FocusAsync() : ValueTask.CompletedTask;
+    internal ValueTask FocusAsync() => Entries.Count > 0 ? _rootElement.FocusAsync() : ValueTask.CompletedTask;
 }

@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace BlazeForms.Components;
 
 /// <summary>
@@ -20,4 +22,5 @@ namespace BlazeForms.Components;
 /// itself — see the remarks on <see cref="ErrorSummary"/>. Composed of two plain strings, so it
 /// carries nothing that could fail the agnosticism architecture test.
 /// </remarks>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public readonly record struct ErrorSummaryEntry(string FieldDomId, string Message);

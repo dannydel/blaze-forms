@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using BlazeForms.Definitions;
 using BlazeForms.Internal;
@@ -23,6 +24,7 @@ namespace BlazeForms.Components;
 /// <param name="Delta">
 /// The number of positions to move the row by.
 /// </param>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public readonly record struct RepeatingRowMove(string RowId, int Delta);
 
 /// <summary>
@@ -56,7 +58,8 @@ public readonly record struct RepeatingRowMove(string RowId, int Delta);
 /// no-op click that still announces why, never native <c>disabled</c>, which would eject focus
 /// from the very button the respondent just used.
 /// </remarks>
-public partial class RepeatingGroup : ComponentBase, IAsyncDisposable
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class RepeatingGroup : ComponentBase, IAsyncDisposable
 {
     /// <summary>
     /// The static web asset path this component imports its Add-row focus module from, following

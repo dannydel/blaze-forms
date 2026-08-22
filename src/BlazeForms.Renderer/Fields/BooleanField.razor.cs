@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using BlazeForms.Markdown;
 using Microsoft.AspNetCore.Components;
 
@@ -15,7 +16,8 @@ namespace BlazeForms.Fields;
 /// activate when <see cref="FormFieldBase.Error"/> is set. The checkbox meets the 44px touch
 /// target via <c>--bf-touch-target</c>.
 /// </remarks>
-public partial class BooleanField : FormFieldBase
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class BooleanField : FormFieldBase
 {
     private bool _renderedBoolValue;
 

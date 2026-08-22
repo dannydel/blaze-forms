@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using BlazeForms.Definitions;
 using BlazeForms.Internal;
 using BlazeForms.Resources;
@@ -28,7 +29,8 @@ namespace BlazeForms.Palette;
 /// parameter a parent observes — which is what keeps the rest of the designer shell untouched
 /// while an author searches (AGENTS.md render-discipline standard).
 /// </remarks>
-public partial class FieldPalette : ComponentBase
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class FieldPalette : ComponentBase
 {
     private sealed record PaletteGroup(string ResourceKey, IReadOnlyList<NodeType> Types);
 

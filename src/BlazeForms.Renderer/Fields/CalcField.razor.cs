@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using BlazeForms.Markdown;
 using Microsoft.AspNetCore.Components;
 
@@ -33,7 +34,8 @@ namespace BlazeForms.Fields;
 /// field's label is, and its current value stays perceivable on demand (a screen reader can
 /// still navigate to and read it) even between announcements.
 /// </remarks>
-public partial class CalcField : FormFieldBase
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class CalcField : FormFieldBase
 {
     private string? _renderedDisplayText;
 

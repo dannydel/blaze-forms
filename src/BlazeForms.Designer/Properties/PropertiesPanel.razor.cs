@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using BlazeForms.Definitions;
@@ -58,7 +59,8 @@ namespace BlazeForms.Properties;
 /// to help and content is only ever a label, never a render of the author's own text.
 /// </para>
 /// </remarks>
-public partial class PropertiesPanel : ComponentBase, IAsyncDisposable
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class PropertiesPanel : ComponentBase, IAsyncDisposable
 {
     private DesignerEditContext? _subscribedContext;
     private string? _lastFocusedNodeId;

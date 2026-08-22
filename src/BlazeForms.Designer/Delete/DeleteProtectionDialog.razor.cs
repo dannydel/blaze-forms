@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using BlazeForms.Definitions;
 using BlazeForms.Designer;
@@ -46,7 +47,8 @@ namespace BlazeForms.Delete;
 /// documents for itself.
 /// </para>
 /// </remarks>
-public partial class DeleteProtectionDialog : ComponentBase, IAsyncDisposable
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class DeleteProtectionDialog : ComponentBase, IAsyncDisposable
 {
     /// <summary>
     /// The static web asset path this component imports its focus-trap JS module from, following

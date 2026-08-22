@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using BlazeForms.Definitions;
 using BlazeForms.Designer;
@@ -45,7 +46,8 @@ namespace BlazeForms.Linting;
 /// acted on, never a transition worth interrupting them for.
 /// </para>
 /// </remarks>
-public partial class LinterDock : ComponentBase, IAsyncDisposable
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class LinterDock : ComponentBase, IAsyncDisposable
 {
     private readonly string _instanceId = "bf-linter-dock-" + Guid.NewGuid().ToString("n");
     private LintScheduler? _scheduler;

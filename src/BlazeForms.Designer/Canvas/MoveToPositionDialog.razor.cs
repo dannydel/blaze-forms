@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using BlazeForms.Definitions;
 using BlazeForms.Designer;
@@ -56,7 +57,8 @@ namespace BlazeForms.Canvas;
 /// the node this dialog was opened for is exactly the row the roving cursor was already sitting on.
 /// </para>
 /// </remarks>
-public partial class MoveToPositionDialog : ComponentBase, IAsyncDisposable
+[EditorBrowsable(EditorBrowsableState.Never)]
+public sealed partial class MoveToPositionDialog : ComponentBase, IAsyncDisposable
 {
     /// <summary>
     /// The static web asset path this component imports its focus-trap JS module from,
