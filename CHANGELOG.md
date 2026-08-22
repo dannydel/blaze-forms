@@ -30,6 +30,11 @@ git tags by [MinVer](https://github.com/adamralph/minver) (`v*` tag prefix), not
 - **API hygiene**: components with no public inheritance contract sealed and hidden from
   IntelliSense (`[EditorBrowsable(EditorBrowsableState.Never)]`) to keep each package's
   IntelliSense surface limited to its documented contract types.
+- **Published JSON Schema**: `FormJsonSchema.CreateDefinitionSchema()` exports the definition
+  format as a draft 2020-12 JSON Schema, golden-pinned like the wire format; the generated file
+  is published at `docs/schemas/form-definition-v3.schema.json`, attached to GitHub releases, and
+  served from GitHub Pages via a new `pages.yml` workflow. See `docs/schema.md` for consumption
+  and the add-only publish policy.
 
 ### Changed
 

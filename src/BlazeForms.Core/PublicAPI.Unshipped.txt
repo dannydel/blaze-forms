@@ -298,6 +298,7 @@ BlazeForms.Markdown.SafeHtml.SafeHtml(string! value) -> void
 BlazeForms.Markdown.SafeHtml.Value.get -> string!
 BlazeForms.Markdown.SafeMarkdown
 BlazeForms.Serialization.FormJson
+BlazeForms.Serialization.FormJsonSchema
 BlazeForms.Serialization.FormValues
 BlazeForms.Versioning.FormLifecycle
 BlazeForms.Versioning.FormLifecycleState
@@ -474,6 +475,7 @@ static BlazeForms.Serialization.FormJson.SerializeConditionGroup(BlazeForms.Expr
 static BlazeForms.Serialization.FormJson.SerializeDefinition(BlazeForms.Definitions.FormDefinition! definition, bool indented = false) -> string!
 static BlazeForms.Serialization.FormJson.SerializeEnvelope(BlazeForms.Hosting.FormSubmissionEnvelope! envelope, bool indented = false) -> string!
 static BlazeForms.Serialization.FormJson.TypeInfoResolver.get -> System.Text.Json.Serialization.Metadata.IJsonTypeInfoResolver!
+static BlazeForms.Serialization.FormJsonSchema.CreateDefinitionSchema() -> string!
 static BlazeForms.Serialization.FormValues.FromJsonValues(System.Collections.Generic.IReadOnlyDictionary<string!, System.Text.Json.JsonElement>! values) -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>!
 static BlazeForms.Serialization.FormValues.ToJsonValues(System.Collections.Generic.IReadOnlyDictionary<string!, object?>! values) -> System.Collections.Generic.IReadOnlyDictionary<string!, System.Text.Json.JsonElement>!
 static BlazeForms.Versioning.FormLifecycle.CreateDraft(BlazeForms.Definitions.FormDefinition! definition) -> BlazeForms.Versioning.FormVersion!

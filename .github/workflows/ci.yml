@@ -36,6 +36,14 @@ jobs:
           dotnet test -c Release --no-build
           --collect:"XPlat Code Coverage" --results-directory coverage
 
+      - name: Validate the published JSON Schema against the golden definition
+        run: |
+          schema=$(ls docs/schemas/form-definition-v*.schema.json | sort -V | tail -n1)
+          version=$(basename "$schema" | sed -E 's/form-definition-v([0-9]+)\.schema\.json/\1/')
+          golden="tests/BlazeForms.Core.Tests/Golden/form-definition-v${version}.json"
+          echo "Validating $golden against $schema"
+          npx --yes ajv-cli validate -s "$schema" -d "$golden" --spec=draft2020
+
       - name: Pack packable projects
         run: |
           dotnet pack src/BlazeForms.Core -c Release --no-build -o artifacts

@@ -50,6 +50,11 @@ come with a `schemaVersion` bump, round-trip tests, and a `CHANGELOG.md` entry, 
 principle as invariant #2. An unexpected diff (one you didn't intend) is a regression, not
 something to regenerate away.
 
+The same `BLAZEFORMS_UPDATE_GOLDEN=1` run also regenerates the exported JSON Schema golden file
+and its `docs/schemas` copy together, so the two never desync — see
+[docs/schema.md](docs/schema.md) for the schema-specific publish policy (add-only once a version
+ships) before regenerating it.
+
 ## Public API changes
 
 Public surface changes to `BlazeForms.Core`, `BlazeForms.Renderer`, and `BlazeForms.Designer`

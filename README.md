@@ -224,6 +224,10 @@ Persist each `FormSubmissionEnvelope` with its `FormId` and `DefinitionVersion`.
 
 The library intentionally ships no database, authentication scheme, tenant model, or workflow engine. Production stores and submission handlers should enforce authorization, use idempotent submission persistence, and retain the captured definition version alongside each submission.
 
+## JSON Schema
+
+The definition format has a published [JSON Schema](https://github.com/dannydel/blaze-forms/blob/main/docs/schemas/form-definition-v3.schema.json) for editor tooling and validation. See [docs/schema.md](https://github.com/dannydel/blaze-forms/blob/main/docs/schema.md) for how to consume it and the versioning policy.
+
 ## Theming and component replacement
 
 The default renderer is neutral HTML and CSS. Restyle it through the documented `--bf-*` token contract, scoped globally or around one form. See [docs/theming.md](https://github.com/dannydel/blaze-forms/blob/main/docs/theming.md) for every token and a Bootstrap mapping.

@@ -1,0 +1,357 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dannydel.github.io/blaze-forms/schemas/form-definition-v3.schema.json",
+  "title": "BlazeForms form definition (schemaVersion 3)",
+  "description": "JSON Schema for a BlazeForms form definition document, as read and written by BlazeForms.Serialization.FormJson.",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3
+    },
+    "id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "program": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "owner": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "pages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "nodes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "enum": [
+                          "text",
+                          "textarea",
+                          "email",
+                          "phone",
+                          "number",
+                          "currency",
+                          "date",
+                          "daterange",
+                          "select",
+                          "radio",
+                          "checkboxgroup",
+                          "yesno",
+                          "boolean",
+                          "heading",
+                          "paragraph",
+                          "callout",
+                          "divider",
+                          "calc",
+                          "repeating",
+                          "file",
+                          "lookup"
+                        ]
+                      },
+                      "label": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "help": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "placeholder": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "content": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "required": {
+                        "type": "boolean"
+                      },
+                      "requiredWhenVisible": {
+                        "type": "boolean"
+                      },
+                      "half": {
+                        "type": "boolean"
+                      },
+                      "options": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "value": {
+                              "type": "string"
+                            },
+                            "label": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "value",
+                            "label"
+                          ]
+                        }
+                      },
+                      "min": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "max": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "level": {
+                        "type": [
+                          "integer",
+                          "null"
+                        ]
+                      },
+                      "children": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/properties/pages/items/properties/sections/items/properties/nodes/items"
+                        }
+                      },
+                      "minRows": {
+                        "type": [
+                          "integer",
+                          "null"
+                        ]
+                      },
+                      "maxRows": {
+                        "type": [
+                          "integer",
+                          "null"
+                        ]
+                      },
+                      "itemLabel": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "visibleWhen": {
+                        "type": [
+                          "object",
+                          "null"
+                        ],
+                        "properties": {
+                          "join": {
+                            "enum": [
+                              "all",
+                              "any"
+                            ]
+                          },
+                          "conditions": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "field": {
+                                  "type": "string"
+                                },
+                                "op": {
+                                  "enum": [
+                                    "is",
+                                    "isNot",
+                                    "isTrue",
+                                    "isFalse",
+                                    "isBlank",
+                                    "isNotBlank",
+                                    "gt",
+                                    "lt",
+                                    "contains"
+                                  ]
+                                },
+                                "value": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "field",
+                                "op"
+                              ]
+                            }
+                          }
+                        }
+                      },
+                      "calculation": {
+                        "type": [
+                          "object",
+                          "null"
+                        ],
+                        "properties": {
+                          "op": {
+                            "enum": [
+                              "sum",
+                              "subtract",
+                              "multiply",
+                              "divide",
+                              "dateAddDays",
+                              "dateDiffDays"
+                            ]
+                          },
+                          "operands": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "field": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                "number": {
+                                  "type": [
+                                    "number",
+                                    "null"
+                                  ]
+                                },
+                                "function": {
+                                  "enum": [
+                                    "today",
+                                    null
+                                  ]
+                                }
+                              }
+                            }
+                          },
+                          "format": {
+                            "enum": [
+                              "number",
+                              "integer",
+                              "currency",
+                              "date"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "op"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "type"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "id"
+              ]
+            }
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    },
+    "validationRules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "expression": {
+            "type": "object",
+            "properties": {
+              "join": {
+                "enum": [
+                  "all",
+                  "any"
+                ]
+              },
+              "conditions": {
+                "$ref": "#/properties/pages/items/properties/sections/items/properties/nodes/items/properties/visibleWhen/properties/conditions"
+              }
+            }
+          }
+        },
+        "required": [
+          "target",
+          "message",
+          "expression"
+        ]
+      }
+    }
+  },
+  "required": [
+    "id",
+    "name"
+  ]
+}
