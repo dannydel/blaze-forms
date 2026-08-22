@@ -1,0 +1,62 @@
+name: Bug report
+description: Report a bug in a BlazeForms package
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Do not report security vulnerabilities here.** See [SECURITY.md](https://github.com/dannydel/blaze-forms/blob/main/SECURITY.md) for private reporting via GitHub Security Advisories.
+  - type: input
+    id: packages
+    attributes:
+      label: Package(s) and version
+      description: Which BlazeForms package(s) are affected, and which version(s)? (e.g. `BlazeForms.Renderer 0.2.0-preview.1`)
+      placeholder: BlazeForms.Core 0.2.0-preview.1
+    validations:
+      required: true
+  - type: input
+    id: dotnet-render-mode
+    attributes:
+      label: .NET version and render mode
+      description: .NET SDK/runtime version, and — if this involves the Renderer or Designer — the Blazor render mode (Server, WebAssembly, Auto, prerendered, etc.)
+      placeholder: .NET 10.0, InteractiveServer
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: The minimal steps to reproduce the issue. Include a minimal definition JSON snippet if the bug depends on a specific form shape.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: definition-json
+    attributes:
+      label: Definition JSON (if relevant)
+      description: Paste the minimal `FormDefinition` JSON that reproduces the issue, if applicable.
+      render: json
+    validations:
+      required: false
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Stack traces, screenshots, browser/OS details, or anything else useful.
+    validations:
+      required: false

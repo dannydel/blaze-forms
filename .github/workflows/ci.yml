@@ -6,6 +6,13 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -25,7 +32,9 @@ jobs:
         run: dotnet build -c Release
 
       - name: Test
-        run: dotnet test -c Release --no-build
+        run: >
+          dotnet test -c Release --no-build
+          --collect:"XPlat Code Coverage" --results-directory coverage
 
       - name: Pack packable projects
         run: |
@@ -40,7 +49,32 @@ jobs:
           path: artifacts/*.nupkg
           retention-days: 7
 
-  # Deliberately outside BlazeForms.sln (AGENTS.md §Testing; PRD §11, §14 #3): this job needs
+      # Coverage is informational — it must never block the pack signal above, hence
+      # if: always() plus continue-on-error and the file-existence guard below.
+      - name: Generate coverage summary
+        if: always()
+        continue-on-error: true
+        uses: danielpalme/ReportGenerator-GitHub-Action@v5
+        with:
+          reports: coverage/**/coverage.cobertura.xml
+          targetdir: coverage-report
+          reporttypes: MarkdownSummaryGithub
+
+      - name: Append coverage summary
+        if: always()
+        continue-on-error: true
+        run: '[ -f coverage-report/SummaryGithub.md ] && cat coverage-report/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY" || true'
+
+      - name: Upload coverage reports
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-cobertura
+          path: coverage/**/coverage.cobertura.xml
+          retention-days: 7
+
+  # Deliberately outside BlazeForms.sln (PRD §11; PRD §14 #3): this job needs
   # Playwright's Chromium download and a real socket for an Interactive Server circuit, neither of
   # which the build-and-test job above should ever have to pay for. Gates the renderer half of the
   # "Playwright + axe report zero WCAG 2.2 AA violations" success criterion — AGENTS.md invariant

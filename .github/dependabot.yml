@@ -1,0 +1,41 @@
+version: 2
+updates:
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      # Listed before `microsoft` — dependabot assigns a package to the first group whose
+      # pattern matches, and Microsoft.NET.Test.Sdk / Microsoft.Playwright* would otherwise be
+      # swept into the microsoft group by its Microsoft.* pattern.
+      test-dependencies:
+        patterns:
+          - "xunit*"
+          - "bunit*"
+          - "coverlet*"
+          - "Deque.AxeCore.Playwright"
+          - "Microsoft.Playwright*"
+          - "Microsoft.NET.Test.Sdk"
+      microsoft:
+        patterns:
+          - "Microsoft.*"
+          - "System.*"
+    # MudBlazor and Markdig are deliberately left out of any group — each is a single-source
+    # third-party dependency (the sample's MudBlazor adapter; Core's sole safe-Markdown pipeline
+    # dependency, see AGENTS.md invariant #6) and warrants its own PR and changelog line rather
+    # than being bundled with an unrelated group bump.
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      actions:
+        patterns:
+          - "*"
