@@ -10,10 +10,10 @@
     <!-- ChangeEventArgs, for driving the palette search box through InputAsync in the
          render-discipline test (CA1849 requires the async dispatch overload once a test method
          is itself async). -->
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.11" />
     <!-- Registers InMemoryFormDefinitionStore as a test double via Services.AddSingleton. -->
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
   </ItemGroup>
