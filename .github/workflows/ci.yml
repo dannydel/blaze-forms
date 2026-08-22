@@ -137,8 +137,12 @@ jobs:
       - name: Assemble the demo at a Pages-shaped base href
         run: eng/assemble-demo.sh /tmp/demo-site/blaze-forms/demo "/blaze-forms/demo/"
 
-      - name: Install Playwright's Chromium
-        run: npx --yes playwright install --with-deps chromium
+      # A real npm install (not npx -p): the smoke script imports 'playwright', and Node resolves
+      # that from node_modules, which npx's ephemeral install does not provide to external scripts.
+      - name: Install Playwright
+        run: |
+          npm install --no-save --no-package-lock playwright
+          npx playwright install --with-deps chromium
 
       - name: Serve the assembled demo (mimicking GitHub Pages' 404.html fallback)
         run: |
@@ -152,4 +156,4 @@ jobs:
       # Catches exactly the class of bug a green publish can't: base-href-relative navigation,
       # a real fill-and-submit flow, and a hard-refresh deep link through the 404.html fallback.
       - name: Run the demo smoke test
-        run: npx --yes -p playwright node eng/demo-smoke-test.mjs "http://127.0.0.1:8123/blaze-forms/demo/"
+        run: node eng/demo-smoke-test.mjs "http://127.0.0.1:8123/blaze-forms/demo/"

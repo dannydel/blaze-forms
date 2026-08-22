@@ -19,6 +19,8 @@
     <PackageReleaseNotes>https://github.com/dannydel/blaze-forms/blob/main/CHANGELOG.md</PackageReleaseNotes>
     <MinVerTagPrefix>v</MinVerTagPrefix>
     <MinVerMinimumMajorMinor>0.2</MinVerMinimumMajorMinor>
+    <!-- Packable projects only: deterministic /_/ source paths break [CallerFilePath]-anchored tests. -->
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
   <ItemGroup>
