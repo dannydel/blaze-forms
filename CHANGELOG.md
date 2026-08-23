@@ -60,6 +60,60 @@ git tags by [MinVer](https://github.com/adamralph/minver) (`v*` tag prefix), not
   reference enrollment form's data seed with the sample host via a linked compile item so the two
   can never drift. Deployed by `pages.yml` to `/blaze-forms/demo/`; `ci.yml` publishes it on every
   PR so a trim or publish regression surfaces at review time, not at deploy time.
+- **High-contrast theme and `forced-colors` hardening** (docs/accessibility-statement-plan.md,
+  Increment C): an opt-in `[data-bf-theme="high-contrast"]` token block in `blazeforms.css`
+  (`text`/`border` `#000000`, `surface`/`bg` `#ffffff`, `primary` `#0b3d91`, `danger` `#8c0f0f`,
+  both `*-contrast` tokens `#ffffff`, `--bf-focus-ring-width` `3px`) where every RENDERER text and
+  non-text pair clears **7:1**, computed and pinned by new `ThemeContrastTests` cases — well above
+  the 4.5:1/3:1 the shipped default theme itself has to clear. The selector is the BARE attribute
+  (not `:root[data-bf-theme=...]`), so the theme also applies scoped to any ancestor of a rendered
+  form, not only `<html>`. `@media (prefers-contrast: more)` folds into the identical values,
+  guarded against drift by a dedicated test — that fold is a plain `:root`-specificity rule, so a
+  host re-declaring `--bf-color-*` and loading after `blazeforms.css` cancels it for that host, by
+  design (documented, not treated as "automatic"). No `.razor.css` file was edited to make the
+  RENDERER half of the theme work — a color-only token re-declaration is the whole implementation
+  there. The DESIGNER half needed one exception: `blazeforms-designer.css` gained its own
+  `[data-bf-theme="high-contrast"]` override for `--bf-canvas-row-selected-bg`, because that token
+  derives from the renderer's own primary/bg tokens via `color-mix()` and cannot clear even the
+  default theme's 3:1 floor under the high-contrast palette at any mix percentage — a real
+  token-contract gap this override discloses (new `DesignerContrastTests` cases), not silently
+  papers over: `--bf-color-muted` rendered on that background still does not clear 4.5:1, and is
+  documented as a known limitation rather than fixed. Separately (and unconditionally, not
+  opt-in), new `@media (forced-colors: active)` rules hold three affordances that would otherwise
+  rely on color alone distinguishable once the UA replaces every author color: every focus ring
+  maps to the `Highlight` system color (matching `:root, [data-bf-theme="high-contrast"]` and
+  placed AFTER the opt-in theme block, so opting into the theme while forced colors is active
+  cannot silently defeat this hardening); an invalid `.bf-field` input's border maps to `Mark`,
+  reinforcing (not replacing) its existing text error message, placed AFTER the unconditional
+  danger-border rule it shares a selector with (a media query adds no specificity — source order
+  alone decided the original, since-fixed ordering bug); and `BlazeForms.Designer`'s selected
+  canvas row — previously a `color-mix()` **background only**, erased entirely under forced
+  colors — gains a structural, non-color `border-inline-start` plus the
+  `SelectedItem`/`SelectedItemText` system colors (`CanvasNodeRow.razor.css`, the one hardening
+  change that did touch component CSS, as the plan's own correctness/marketable split allows).
+  New `HighContrastAccessibilityTests` (`BlazeForms.E2E.Tests`) axe-scan `/fill`, `/design`, and
+  `/library` under the opt-in theme, and `/fill` and `/design` under `forced-colors: active`
+  (consolidated onto as few full app boots as this suite's shared Blazor Server host can afford),
+  directly asserting the selected canvas row's computed `border-inline-start-width` under forced
+  colors, and a dedicated combined theme-plus-forced-colors case
+  (`TheOptInThemeDoesNotDefeatForcedColorsFocusRingHardening`) — never via a click-then-assert-
+  focus pattern, per the caution the plan itself records. Every scenario applying the theme or
+  forced colors asserts a POSITIVE PRECONDITION (a real computed-style check, not just that the
+  enabling API call didn't throw) before scanning — an earlier version of this theme's own tests
+  used `Page.AddInitScriptAsync` to set the attribute, which runs before
+  `document.documentElement` exists and silently no-ops, so every one of those scans was actually
+  scanning the DEFAULT theme; fixed to apply the attribute via `EvaluateAsync` after navigation,
+  with the precondition catching any recurrence.
+  `samples/BlazeForms.Demo.Wasm`'s `MainLayout` ships a real toggle button for the opt-in theme —
+  Blazor-managed state (`_isHighContrast`, re-rendered declaratively into `aria-pressed`), not a
+  JS module mutating the DOM behind Blazor's back — with `aria-pressed` as its ONE state signal
+  (no redundant "On"/"Off" text double-announcing the same state), in normal document flow rather
+  than a fixed overlay (WCAG 2.4.11 Focus Not Obscured), and does not persist across a reload.
+  Scanned by `eng/demo-smoke-test.mjs` in both states — a procurement reviewer can click the
+  claim, not just read about it. `docs/theming.md` gains a "High contrast" section, including a
+  "Known limitations" subsection (no dark high-contrast variant; `prefers-contrast: more`
+  force-flips a host's own dark theme to white with no built-in opt-out; radio/checkbox/yes-no/
+  date-range fields get no border-based invalid cue in any theme).
 
 ### Changed
 

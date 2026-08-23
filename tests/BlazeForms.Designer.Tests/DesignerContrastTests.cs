@@ -47,7 +47,86 @@ public sealed class DesignerContrastTests
             $"{textToken} against --bf-canvas-row-selected-bg ({selectedBackground}) is {Format(ratio)}:1, below the {TextContrastMinimum}:1 WCAG 1.4.3 minimum.");
     }
 
+    [Fact]
+    public void HighContrastThemeCanvasRowSelectedBackgroundMeetsBoundaryContrastAgainstBorder()
+    {
+        var selectedBackground = HighContrastSelectedRowBackground();
+        var border = HighContrastRendererTokens()["--bf-color-border"];
+
+        var ratio = WcagContrast.Ratio(selectedBackground, border);
+
+        Assert.True(
+            ratio >= NonTextContrastMinimum,
+            $"[data-bf-theme=\"high-contrast\"] --bf-canvas-row-selected-bg ({selectedBackground}) against --bf-color-border is {Format(ratio)}:1, below the {NonTextContrastMinimum}:1 WCAG 1.4.11 minimum.");
+    }
+
+    [Fact]
+    public void HighContrastThemeCanvasRowSelectedBackgroundMeetsTextContrastForPrimaryText()
+    {
+        var selectedBackground = HighContrastSelectedRowBackground();
+        var text = HighContrastRendererTokens()["--bf-color-text"];
+
+        var ratio = WcagContrast.Ratio(text, selectedBackground);
+
+        Assert.True(
+            ratio >= TextContrastMinimum,
+            $"[data-bf-theme=\"high-contrast\"] --bf-color-text against --bf-canvas-row-selected-bg ({selectedBackground}) is {Format(ratio)}:1, below the {TextContrastMinimum}:1 WCAG 1.4.3 minimum.");
+    }
+
+    /// <summary>
+    /// A DISCLOSED, NOT SOLVED, token-contract gap (docs/accessibility-statement-plan.md
+    /// Increment C review, S1; docs/theming.md's "High contrast" section): the high-contrast
+    /// theme's own pure black/white palette leaves no single background color that clears BOTH
+    /// this pairing's 3:1 boundary floor against a pure white page background AND 4.5:1 text
+    /// contrast for <c>--bf-color-muted</c> specifically (its very dark, ~0.05 relative-luminance
+    /// value forces the background half of that trade well above the boundary ceiling — see
+    /// <c>blazeforms-designer.css</c>'s own remarks on the arithmetic). This test pins the ACTUAL
+    /// ratio as a known limitation, not a silent one: it must stay firmly below the text floor
+    /// (so a future edit doesn't accidentally make the situation worse by fooling itself into
+    /// thinking it passes) and firmly at or above the boundary floor (so it never regresses to
+    /// something even less legible without this test failing loudly). If either bound is ever
+    /// crossed, update this test's own assertions AND docs/theming.md's disclosure together.
+    /// </summary>
+    [Fact]
+    public void HighContrastThemeMutedTextOnSelectedRowDoesNotClearTheTextFloor()
+    {
+        var selectedBackground = HighContrastSelectedRowBackground();
+        var muted = HighContrastRendererTokens()["--bf-color-muted"];
+
+        var ratio = WcagContrast.Ratio(muted, selectedBackground);
+
+        Assert.True(
+            ratio >= NonTextContrastMinimum,
+            $"[data-bf-theme=\"high-contrast\"] --bf-color-muted against --bf-canvas-row-selected-bg ({selectedBackground}) regressed below even the {NonTextContrastMinimum}:1 boundary floor, at {Format(ratio)}:1.");
+        Assert.True(
+            ratio < TextContrastMinimum,
+            $"""
+            [data-bf-theme="high-contrast"] --bf-color-muted against --bf-canvas-row-selected-bg
+            ({selectedBackground}) now measures {Format(ratio)}:1, which clears the
+            {TextContrastMinimum}:1 text floor -- update docs/theming.md's "High contrast" section
+            to remove the disclosed muted-text limitation, since it no longer applies.
+            """);
+    }
+
     private static string Format(double ratio) => ratio.ToString("F3", CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// The opt-in high-contrast theme's own literal <c>--bf-canvas-row-selected-bg</c> override —
+    /// a plain <c>#rrggbb</c>, not a <c>color-mix()</c> formula like the default theme's
+    /// (<see cref="ResolveSelectedRowBackground"/>), since the whole point of this override is
+    /// that the derived formula cannot clear this pairing's floor under the high-contrast
+    /// palette — see <c>blazeforms-designer.css</c>'s own remarks.
+    /// </summary>
+    private static string HighContrastSelectedRowBackground() =>
+        CssRootTokenParser.ParseTokensForSelector(File.ReadAllText(DesignerCssPath()), "[data-bf-theme=\"high-contrast\"]")["--bf-canvas-row-selected-bg"];
+
+    /// <summary>
+    /// The renderer's high-contrast theme tokens — the ones the Designer's own high-contrast
+    /// override above measures itself against, mirroring <see cref="RendererTokens"/>'s default-
+    /// theme counterpart.
+    /// </summary>
+    private static Dictionary<string, string> HighContrastRendererTokens() =>
+        CssRootTokenParser.ParseTokensForSelector(File.ReadAllText(RendererCssPath()), "[data-bf-theme=\"high-contrast\"]");
 
     /// <summary>
     /// Resolves <c>--bf-canvas-row-selected-bg</c>'s

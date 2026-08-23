@@ -84,6 +84,21 @@ try {
   assert(consoleErrors.length === 0, 'zero console/page errors through boot + client nav');
   await assertNoAxeViolations(page, '/fill');
 
+  // 2a. The high-contrast theme toggle (docs/accessibility-statement-plan.md, Increment C4) is a
+  //     real toggle button, not decoration: aria-pressed is its ONE state signal (Blazor owns it
+  //     declaratively, MainLayout.razor.cs), and the resulting [data-bf-theme="high-contrast"]
+  //     state on <html> is itself an axe-clean scan -- the whole point of shipping the toggle is
+  //     that this state is reachable by a click, so it is scanned exactly the way a reviewer
+  //     would reach it, not just asserted against the CSS.
+  await page.click('#demo-theme-toggle');
+  assert((await page.getAttribute('#demo-theme-toggle', 'aria-pressed')) === 'true', 'high-contrast toggle reports aria-pressed="true" after one click');
+  assert((await page.getAttribute('html', 'data-bf-theme')) === 'high-contrast', '<html> carries data-bf-theme="high-contrast" after one click');
+  await assertNoAxeViolations(page, '/fill with the high-contrast theme toggled on');
+
+  await page.click('#demo-theme-toggle');
+  assert((await page.getAttribute('#demo-theme-toggle', 'aria-pressed')) === 'false', 'high-contrast toggle reports aria-pressed="false" after a second click');
+  assert((await page.getAttribute('html', 'data-bf-theme')) === null, '<html> no longer carries data-bf-theme after toggling back off');
+
   // 3. Filling and submitting the three-page reference form reaches the Submission page.
   await page.getByLabel('Full legal name').fill('Jordan Rivera');
   await page.getByLabel('Email address').fill('jordan.rivera@example.com');

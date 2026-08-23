@@ -29,6 +29,29 @@
     background-color: var(--bf-canvas-row-selected-bg);
 }
 
+/* forced-colors hardening (docs/accessibility-statement-plan.md, Increment C1; resolved decision
+ * 1's "correctness" half). --bf-canvas-row-selected-bg is a color-mix() BACKGROUND, and forced
+ * colors mode maps every author background to a single flat `Canvas` regardless of its own value
+ * -- so the selected row's only sighted cue collapses to page background, indistinguishable from
+ * every unselected row, for exactly the users forced colors exists for (this row's own aria-
+ * selected state can sit unfocused for a while: selecting a node moves real DOM focus to the
+ * properties panel's Label input, per PropertiesPanel's own documented focus-steal, so the
+ * :focus-visible outline below is not a substitute). Two changes, both scoped to this media query
+ * only:
+ * 1. `border-inline-start` widens to a geometric marker independent of any specific color the UA
+ *    assigns it -- a shape difference, not a color-only one, so it survives even a UA that
+ *    ignores the system-color keyword below entirely.
+ * 2. `SelectedItem`/`SelectedItemText` are the system colors forced-colors mode reserves exactly
+ *    for "the currently selected item in a list" -- unlike an arbitrary author color, the UA is
+ *    contractually bound to render these distinctly from the unselected default. */
+@media (forced-colors: active) {
+    .bf-canvas-row[aria-selected="true"] {
+        border-inline-start: calc(var(--bf-border-width) * 4) solid Highlight;
+        background-color: SelectedItem;
+        color: SelectedItemText;
+    }
+}
+
 /* Visible focus ring for the roving-tabindex row that currently holds real DOM focus (PRD §11);
  * :focus-visible so a mouse click (which also moves focus here) stays quiet. */
 .bf-canvas-row:focus-visible {

@@ -47,3 +47,32 @@
      token families to agree on a unit). */
   --bf-breakpoint-dock-collapse: 60rem;
 }
+
+/* ---------------------------------------------------------------------------------------------
+ * Opt-in high-contrast theme override (docs/accessibility-statement-plan.md, Increment C2; S1
+ * finding). `blazeforms.css`'s own `[data-bf-theme="high-contrast"]` block re-declares every
+ * RENDERER color token -- --bf-color-primary and --bf-color-bg among them -- and this file's
+ * --bf-canvas-row-selected-bg derives from exactly those two via color-mix(). Left alone, that
+ * derivation is a TOKEN-CONTRACT HOLE the renderer stylesheet cannot see or fix: re-mixing the
+ * high-contrast theme's primary (#0b3d91, a dark navy) at 12% into its bg (#ffffff) produces
+ * #e2e8f2 -- 1.23:1 against that same white bg and, separately, the selected row's own
+ * border-color (also var(--bf-color-primary)) measures only 2.09:1 against the high-contrast
+ * theme's pure-black --bf-color-border. Both are well under even the shipped default theme's own
+ * 3:1 floor for this exact token (DesignerContrastTests), let alone the 7:1 ambition the renderer
+ * token set holds itself to under this theme -- a real gap, not a false alarm, and the reason this
+ * override exists: a SECOND package's OWN `[data-bf-theme="high-contrast"]` block, since the
+ * renderer's stylesheet has no way to know a Designer-only token derives from its own values.
+ *
+ * #8595ad is not derived from a renderer token -- picked directly to clear DesignerContrastTests'
+ * own established floor for this pairing (>=3:1 boundary, >=4.5:1 text-on-it) against a PURE BLACK
+ * border and PURE WHITE background, which the derived color-mix() value cannot reach at any mix
+ * percentage (--bf-color-primary and --bf-color-bg alone don't span a luminance range wide enough
+ * -- see DesignerContrastTests' own remarks). DISCLOSED, NOT SOLVED: --bf-color-muted (#3f3f3f)
+ * rendered on this background (a row's own visibility-summary/chip text, `.bf-canvas-row__help`/
+ * `__chip`) measures only ~3.46:1 -- below the 4.5:1 floor primary text on the same background
+ * clears. `--bf-color-text` (the row's own label) is unaffected. See docs/theming.md's "High
+ * contrast" section and DesignerContrastTests.HighContrastThemeMutedTextOnSelectedRowDoesNotClearTheTextFloor
+ * for the test that pins this as a known limitation rather than a silent regression. */
+[data-bf-theme="high-contrast"] {
+  --bf-canvas-row-selected-bg: #8595ad;
+}

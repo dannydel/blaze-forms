@@ -239,3 +239,125 @@ fieldset.bf-fieldset:focus-visible {
   white-space: nowrap;
   border: 0;
 }
+
+/* ---------------------------------------------------------------------------------------------
+ * Opt-in high-contrast theme (docs/accessibility-statement-plan.md, Increment C2;
+ * docs/theming.md "High contrast"). A COLOR-ONLY re-declaration -- every value below is one of
+ * the tokens the "Restyling" section above already documents, so a host toggling
+ * `data-bf-theme="high-contrast"` on ANY element (an ancestor of a rendered form -- `<html>` or a
+ * scoped wrapper) gets the same re-theming path any other restyle uses via ordinary custom-
+ * property inheritance, no separate stylesheet or component-CSS edit involved. Deliberately a
+ * bare attribute selector, not `:root[data-bf-theme=...]` -- `:root` only ever matches the
+ * document root, which would silently no-op a scoped (non-`<html>`) opt-in.
+ *
+ * DELIBERATELY PLACED AFTER every unconditional rule above (the reset, baseline element styling,
+ * the aria-invalid border rule, focus rings): this block, the `prefers-contrast: more` fold, and
+ * the `forced-colors: active` hardening below only ever re-declare `--bf-*` CUSTOM PROPERTIES, so
+ * their position relative to rules that CONSUME those properties (`color: var(--bf-color-text)`,
+ * etc.) has no cascade effect either way -- properties and their consumers are resolved
+ * independently. Positioning matters only relative to EACH OTHER and to any other rule that also
+ * targets `:root`/`[data-bf-theme]` directly (none exist elsewhere in this file) -- kept together
+ * and last so the three blocks' own relative order (documented at the forced-colors block below)
+ * is visibly in one place rather than depending on where a future unrelated rule gets inserted.
+ *
+ * Every text/background and non-text pair here is computed (ThemeContrastTests) to clear 7:1 --
+ * deliberately above the 4.5:1/3:1 floor the shipped default theme itself only has to clear, since
+ * a high-contrast theme that merely scrapes AA defeats its own purpose. `--bf-focus-ring-width`
+ * is the one non-color token in this block: a thicker ring is part of the same "more legible, not
+ * just more contrasty" intent, and re-declaring it here costs nothing extra since it is already a
+ * token, not a `.razor.css` literal.
+ * ------------------------------------------------------------------------------------------- */
+
+[data-bf-theme="high-contrast"] {
+  --bf-color-bg: #ffffff;
+  --bf-color-surface: #ffffff;
+  --bf-color-text: #000000;
+  --bf-color-muted: #3f3f3f;
+  --bf-color-border: #000000;
+  --bf-color-primary: #0b3d91;
+  --bf-color-primary-contrast: #ffffff;
+  --bf-color-danger: #8c0f0f;
+  --bf-color-danger-contrast: #ffffff;
+  --bf-color-focus-ring: #0b3d91;
+  --bf-focus-ring-width: 3px;
+}
+
+/* `prefers-contrast: more` folds into the SAME values as the opt-in theme above rather than
+ * becoming a third, independently-maintained palette (docs/accessibility-statement-plan.md
+ * resolved decision 1) -- a user with the OS preference set gets the identical theme a host would
+ * otherwise have to remember to toggle on their behalf. Drift coverage lives in
+ * ThemeContrastTests.PrefersContrastMoreMediaQueryTokensMatchTheOptInHighContrastThemeTokens,
+ * which parses both blocks and asserts they agree token-for-token -- keep this block's literals in
+ * sync with `[data-bf-theme="high-contrast"]` above if either ever changes.
+ *
+ * PRECONDITION, not automatic: this is a `:root`-specificity rule like every other token
+ * re-declaration in this file, so a host stylesheet that re-declares `--bf-color-*` on `:root`
+ * and loads AFTER this one (the documented "last `<link>` wins" cascade order under "Restyling:
+ * the token contract" above) silently cancels this fold for that host, the same way it would
+ * cancel any other default. This is not raised in specificity on purpose -- doing so would make
+ * this one media feature harder for a host to override than every other token, which is a worse
+ * inconsistency than the fold being cancelable. */
+@media (prefers-contrast: more) {
+  :root {
+    --bf-color-bg: #ffffff;
+    --bf-color-surface: #ffffff;
+    --bf-color-text: #000000;
+    --bf-color-muted: #3f3f3f;
+    --bf-color-border: #000000;
+    --bf-color-primary: #0b3d91;
+    --bf-color-primary-contrast: #ffffff;
+    --bf-color-danger: #8c0f0f;
+    --bf-color-danger-contrast: #ffffff;
+    --bf-color-focus-ring: #0b3d91;
+    --bf-focus-ring-width: 3px;
+  }
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * `forced-colors: active` hardening (docs/accessibility-statement-plan.md, Increment C1). This is
+ * the CORRECTNESS half of resolved decision 1, not the marketable theme above: under forced
+ * colors the UA replaces every author background/text/border color with a small system palette,
+ * which erases any affordance that relies on an author COLOR alone rather than on a system-color
+ * keyword the UA is contractually bound to render distinctly. Two hardening moves:
+ *
+ * 1. The focus ring maps to `Highlight` -- the system color forced-colors mode reserves exactly
+ *    for "the thing with current focus/selection" -- instead of `--bf-color-focus-ring`'s
+ *    arbitrary author blue, on every focusable element in both RCLs (this token, not a
+ *    `.razor.css` edit, is what every focus-visible rule in both RCLs already references).
+ *    Selector is `:root, [data-bf-theme="high-contrast"]` -- NOT `:root` alone -- and this block
+ *    is placed AFTER both blocks above ON PURPOSE: the opt-in theme's own selector shares this
+ *    rule's exact (0,1,0) specificity (a deliberate consequence of the bare attribute selector
+ *    above), so on an element carrying BOTH the opt-in theme attribute AND forced-colors active,
+ *    only source order decides the tie -- and this hardening is meant to be unconditional,
+ *    winning over the theme's own `#0b3d91`, not the other way around. Repeating the attribute
+ *    selector here (rather than relying on `:root` alone) is what makes this win even when the
+ *    theme attribute sits on a SCOPED ancestor other than `<html>`, where `:root` never matches
+ *    that ancestor at all. `HighContrastAccessibilityTests.TheOptInThemeDoesNotDefeatForcedColorsFocusRingHardening`
+ *    proves this combination directly.
+ * 2. An invalid field's border maps to `Mark` -- distinct from the plain `CanvasText` forced
+ *    colors gives every other border -- so the boundary stays visually distinguishable from a
+ *    valid field's border even though both would otherwise collapse to the same forced color.
+ *    This reinforces, but does not replace, the text error message every invalid field already
+ *    renders (`Fields/*.razor`'s own `<span class="bf-field__error">`) -- 1.4.1 is satisfied by
+ *    that text regardless. Selector matches `.bf-field input[aria-invalid="true"]` etc. exactly,
+ *    the SAME selector (hence identical specificity) as the unconditional invalid-border rule
+ *    above this comment in source -- this block MUST stay textually after that rule (and after
+ *    the `border:` shorthand above it, whose own `border-color`/`border-width` components a
+ *    longhand declared earlier can never durably override) or its `border-color`/`border-width`
+ *    are silently discarded by the later, unconditional rule. There is no media-query-based
+ *    specificity bonus in CSS -- `@media` changes only whether a rule's declarations exist at
+ *    all for a given evaluation, never their specificity once they do.
+ * ------------------------------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  :root,
+  [data-bf-theme="high-contrast"] {
+    --bf-color-focus-ring: Highlight;
+  }
+
+  .bf-field input[aria-invalid="true"],
+  .bf-field textarea[aria-invalid="true"],
+  .bf-field select[aria-invalid="true"] {
+    border-color: Mark;
+    border-width: calc(var(--bf-border-width) * 2);
+  }
+}

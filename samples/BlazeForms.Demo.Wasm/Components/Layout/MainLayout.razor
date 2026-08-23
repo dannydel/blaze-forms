@@ -1,8 +1,28 @@
 @inherits LayoutComponentBase
 
-<div class="bf-demo-banner" role="note">
+<div class="demo-banner" role="note">
     <strong>In-browser demo.</strong> Everything here — forms, drafts, and submissions — lives
     only in this tab's memory. Refreshing the page loses it.
+</div>
+
+@* A real toggle button, not a decorative link. aria-pressed is the ONE state signal -- the
+   button's own accessible name ("High contrast") never changes, so assistive technology
+   announces exactly "High contrast, pressed" / "not pressed" on activation, rather than that
+   PLUS a redundant textual "On"/"Off" suffix double-announcing the same state. The sighted
+   signal is a CSS treatment keyed off aria-pressed itself (MainLayout.razor.css), not separate
+   text. _isHighContrast (MainLayout.razor.cs) is the single source of truth Blazor re-renders
+   this attribute from; JS interop (MainLayout.razor.js) is used for nothing but the one DOM
+   mutation outside Blazor's own component tree -- data-bf-theme lives on <html> itself
+   (docs/accessibility-statement-plan.md, Increment C4). In normal document flow, not a fixed
+   overlay -- see MainLayout.razor.css's own remarks on WCAG 2.4.11. *@
+<div class="demo-toolbar">
+    <button type="button"
+            id="demo-theme-toggle"
+            class="demo-theme-toggle"
+            aria-pressed="@(_isHighContrast ? "true" : "false")"
+            @onclick="ToggleHighContrastAsync">
+        High contrast
+    </button>
 </div>
 
 <main class="bf-page">
