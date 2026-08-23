@@ -65,13 +65,12 @@ body {
     color: var(--bf-ink-muted);
 }
 
+/* underline (not color alone) distinguishes an inline link from its surrounding paragraph text --
+   the same WCAG 1.4.1 Use of Color defect the WASM demo's own identical pattern had
+   (docs/accessibility-statement-plan.md, Increment B5); this host's own "/" is not scanned by
+   any Playwright suite today, so nothing else would have caught it here either. */
 .bf-page a {
     color: var(--bf-accent);
-    text-decoration: none;
-}
-
-.bf-page a:hover,
-.bf-page a:focus-visible {
     text-decoration: underline;
 }
 

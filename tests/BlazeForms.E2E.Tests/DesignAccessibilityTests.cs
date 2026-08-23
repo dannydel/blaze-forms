@@ -296,7 +296,7 @@ public sealed class DesignAccessibilityTests : E2ETestBase
         // accessibility defect in whatever form is being previewed (the linter's own blocking
         // A11Y-01), not in the preview surface itself, so this scenario labels the field first to
         // scan the shipped-default chrome rather than deliberately inaccessible test content.
-        await Page.GetByLabel("Label").FillAsync("Full legal name");
+        await Page.GetByLabel("Label", new PageGetByLabelOptions { Exact = true }).FillAsync("Full legal name");
         await Page.Keyboard.PressAsync("Tab");
 
         await Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Preview" }).ClickAsync();
@@ -343,7 +343,7 @@ public sealed class DesignAccessibilityTests : E2ETestBase
         // Tab twice -- past the read-only Field ID input -- to the Label input, type a label, and
         // Tab away to commit it on blur. This is the one blocking issue the fresh field carries
         // (A11Y-01: "This field has no label.").
-        var labelInput = Page.GetByLabel("Label");
+        var labelInput = Page.GetByLabel("Label", new PageGetByLabelOptions { Exact = true });
         Assert.True(await DesignerDriver.TabUntilFocusedAsync(Page, labelInput, maxSteps: 5));
         await Page.Keyboard.TypeAsync("Full legal name");
         await Page.Keyboard.PressAsync("Tab");
@@ -375,8 +375,12 @@ public sealed class DesignAccessibilityTests : E2ETestBase
         // down dialog's own focus-restore (FormDesigner's toolbar button regains focus only on the
         // reloaded draft it never gets to show here, since the navigation pre-empts it). The
         // published card below is that independent, click-free proof: the version this session
-        // just published is now visible there as version 1, Published. This test is the only one
-        // in the whole suite that ever confirms a publish, so the card is unambiguous.
+        // just published is now visible there as version 1, Published.
+        // DesignerDialogAccessibilityTests.VersionHistoryWithAPublishedVersionAndRetireConfirmationDialogHaveNoAccessibilityViolations
+        // also confirms a publish of its own "Untitled form" draft, but always retires it again
+        // in a finally block before that test returns -- by the time this assertion runs, that
+        // other session's own card reads Retired, not Published, so exactly one Published
+        // "Untitled form" card is still unambiguous here.
         var publishedCard = Page.Locator("article.bf-form-card")
             .Filter(new LocatorFilterOptions { HasTextString = "Untitled form" })
             .Filter(new LocatorFilterOptions { HasTextString = "Published" });

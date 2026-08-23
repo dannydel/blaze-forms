@@ -1,5 +1,5 @@
 @page "/library"
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @inject NavigationManager Navigation
 
 <PageTitle>Library — BlazeForms Sample</PageTitle>

@@ -7,6 +7,7 @@
 // Usage: node eng/demo-smoke-test.mjs <baseUrl>
 
 import { chromium } from 'playwright';
+import { AxeBuilder } from '@axe-core/playwright';
 
 const baseUrl = process.argv[2];
 if (!baseUrl) {
@@ -14,9 +15,32 @@ if (!baseUrl) {
   process.exit(1);
 }
 
+// The exact same five WCAG 2.2 AA tags BlazeForms.E2E.Tests/AccessibilityAssertions.cs's own
+// Wcag22AaTags gates on (referenced by symbol name, not line number, since line numbers drift).
+// This list is duplicated across the C#/Node boundary on purpose (abstracting two consumers of a
+// five-element literal is not worth the indirection) -- if you change one, change the other.
+const wcag22AaTags = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
+
+async function assertNoAxeViolations(page, scenario) {
+  const results = await new AxeBuilder({ page }).withTags(wcag22AaTags).analyze();
+  if (results.violations.length === 0) {
+    console.log(`PASS: axe found zero WCAG 2.2 AA violations in "${scenario}"`);
+    return;
+  }
+
+  const report = results.violations
+    .map((v) => `[${v.impact}] ${v.id} — ${v.help} (${v.helpUrl})\n  targets: ${v.nodes.map((n) => n.target.join(', ')).join('; ')}`)
+    .join('\n\n');
+  throw new Error(`FAIL: axe found ${results.violations.length} WCAG 2.2 AA violation(s) in "${scenario}":\n${report}`);
+}
+
 const consoleErrors = [];
 const browser = await chromium.launch();
-const page = await browser.newPage();
+// browser.newContext() explicitly, not the browser.newPage() shorthand: @axe-core/playwright's
+// own AxeBuilder refuses to run against a page it can't trace back to a real context (see
+// https://github.com/dequelabs/axe-core-npm/blob/develop/packages/playwright/error-handling.md).
+const context = await browser.newContext();
+const page = await context.newPage();
 page.on('console', (msg) => {
   if (msg.type() === 'error') consoleErrors.push(msg.text());
 });
@@ -34,6 +58,23 @@ try {
   await page.goto(baseUrl, { waitUntil: 'networkidle' });
   await page.waitForSelector('h1', { timeout: 30000 });
   assert((await page.textContent('h1')) === 'BlazeForms live demo', 'home page boots to its h1');
+  await assertNoAxeViolations(page, '/ (demo home)');
+
+  // 1a. The library and designer shell -- the two other demo pages the smoke flow below never
+  //     otherwise visits. Both link back to home so this detour rejoins the original flow.
+  await page.click('a[href="library"]');
+  await page.waitForSelector('h1', { timeout: 30000 });
+  assert((await page.textContent('h1')) === 'Form library', 'client-side nav to /library renders the form library');
+  await assertNoAxeViolations(page, '/library');
+
+  await page.click('a[href="./"]');
+  await page.waitForSelector('h1', { timeout: 30000 });
+  await page.click('a[href="design"]');
+  await page.waitForSelector('.bf-designer', { timeout: 30000 });
+  await assertNoAxeViolations(page, '/design');
+
+  await page.click('a[href="./"]');
+  await page.waitForSelector('h1', { timeout: 30000 });
 
   // 2. Client-side nav Home -> Fill works (base-href-relative <a href>, the blocker this test
   //    exists to catch: a root-absolute href here would bypass the router for a full page load).
@@ -41,6 +82,22 @@ try {
   await page.waitForSelector('h1', { timeout: 30000 });
   assert((await page.textContent('h1')) === 'Benefits Enrollment', 'client-side nav to /fill renders the reference form');
   assert(consoleErrors.length === 0, 'zero console/page errors through boot + client nav');
+  await assertNoAxeViolations(page, '/fill');
+
+  // 2a. The high-contrast theme toggle (docs/accessibility-statement-plan.md, Increment C4) is a
+  //     real toggle button, not decoration: aria-pressed is its ONE state signal (Blazor owns it
+  //     declaratively, MainLayout.razor.cs), and the resulting [data-bf-theme="high-contrast"]
+  //     state on <html> is itself an axe-clean scan -- the whole point of shipping the toggle is
+  //     that this state is reachable by a click, so it is scanned exactly the way a reviewer
+  //     would reach it, not just asserted against the CSS.
+  await page.click('#demo-theme-toggle');
+  assert((await page.getAttribute('#demo-theme-toggle', 'aria-pressed')) === 'true', 'high-contrast toggle reports aria-pressed="true" after one click');
+  assert((await page.getAttribute('html', 'data-bf-theme')) === 'high-contrast', '<html> carries data-bf-theme="high-contrast" after one click');
+  await assertNoAxeViolations(page, '/fill with the high-contrast theme toggled on');
+
+  await page.click('#demo-theme-toggle');
+  assert((await page.getAttribute('#demo-theme-toggle', 'aria-pressed')) === 'false', 'high-contrast toggle reports aria-pressed="false" after a second click');
+  assert((await page.getAttribute('html', 'data-bf-theme')) === null, '<html> no longer carries data-bf-theme after toggling back off');
 
   // 3. Filling and submitting the three-page reference form reaches the Submission page.
   await page.getByLabel('Full legal name').fill('Jordan Rivera');
@@ -61,6 +118,9 @@ try {
 
   await page.waitForSelector('h1', { timeout: 30000 });
   assert((await page.textContent('h1')) === 'Submission received', 'submitting the form reaches the Submission page');
+  // Submit navigates client-side straight to /submission/{id} -- this is that real page, not a
+  // stand-in, so this scan is /submission/{id} itself, not a proxy for it.
+  await assertNoAxeViolations(page, '/submission/{id}');
 
   // 4. Hard-refresh deep link: a full navigation (not client-side) straight to a client-routed
   //    path must still boot the shell -- this is exactly what the 404.html SPA fallback exists

@@ -1,5 +1,5 @@
 @page "/design/{FormId?}"
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @inject IFormDefinitionStore DefinitionStore
 @inject NavigationManager Navigation
 
@@ -9,15 +9,24 @@
 
 @if (_isResolving)
 {
+    <h1>Design</h1>
     <p>Loading the designer…</p>
 }
 else if (_resolvedFormId is null)
 {
+    <h1>Design</h1>
     <p>No forms are available to design yet.</p>
     <p><a href="/library">Back to the library</a></p>
 }
 else
 {
+    @* FormDesigner renders no heading of its own (docs/theming.md's heading contract: the host
+       owns the document h1; FormRenderer/FormDesigner start at h2) -- this h1 is visually hidden
+       (.bf-visually-hidden, BlazeForms.Renderer's own global blazeforms.css) so this page's own
+       Routes.razor's <FocusOnNavigate Selector="h1"> still has a route-change landing target,
+       without a redundant "Design" caption above the three-pane shell. Matches the demo host's
+       own Design.razor. *@
+    <h1 class="bf-visually-hidden">Design</h1>
     <FormDesigner FormId="@_resolvedFormId" Author="Sample Author" OnPublished="HandlePublishedAsync" OnClosed="HandleClosed" />
 }
 

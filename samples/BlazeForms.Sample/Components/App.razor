@@ -6,16 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
     <ResourcePreloader />
-    <link rel="stylesheet" href="@Assets["app.css"]" />
+    @* docs/theming.md's "re-declare these tokens and change nothing else" contract: blazeforms.css
+       and blazeforms-designer.css load BEFORE app.css so that, at equal specificity, this host's
+       own --bf-* re-declarations win the cascade. *@
     <link rel="stylesheet" href="_content/BlazeForms.Renderer/blazeforms.css" />
     <link rel="stylesheet" href="_content/BlazeForms.Designer/blazeforms-designer.css" />
+    <link rel="stylesheet" href="@Assets["app.css"]" />
     @* MudBlazor lives only in this sample (never src/) -- see Mud/MudFieldComponentRegistry.cs.
        Its stylesheet and Roboto webfont are the two assets its own setup docs require in <head>. *@
     <link rel="stylesheet" href="_content/MudBlazor/MudBlazor.min.css" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
     <link rel="stylesheet" href="@Assets["BlazeForms.Sample.styles.css"]" />
     <ImportMap />
-    <HeadOutlet />
+    <HeadOutlet @rendermode="InteractiveServer" />
 </head>
 
 <body>

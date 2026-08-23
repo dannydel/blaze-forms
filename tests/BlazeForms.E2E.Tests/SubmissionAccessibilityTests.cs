@@ -31,8 +31,11 @@ public sealed class SubmissionAccessibilityTests : E2ETestBase
         await Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Submit" }).ClickAsync();
 
         // FormRenderer's OnSubmitted handler (samples/BlazeForms.Sample/Components/Pages/Fill.razor)
-        // navigates to /submission/{id} once the sink accepts the envelope.
-        await Page.WaitForURLAsync(new Regex(@"/submission/[^/]+$"));
+        // navigates to /submission/{id} once the sink accepts the envelope -- as a same-document
+        // client-side transition within the live circuit, not a full browser navigation, so this
+        // asserts via polling (Expect...ToHaveURLAsync) rather than Page.WaitForURLAsync, which
+        // waits on a navigation-lifecycle event ("Load") that a same-document transition never fires.
+        await Assertions.Expect(Page).ToHaveURLAsync(new Regex(@"/submission/[^/]+$"));
         await Page.GetByRole(AriaRole.Heading, new PageGetByRoleOptions { Name = "Submission received" }).WaitForAsync();
 
         await AccessibilityAssertions.AssertNoViolationsAsync(Page, "/submission/{id} after a complete fill");

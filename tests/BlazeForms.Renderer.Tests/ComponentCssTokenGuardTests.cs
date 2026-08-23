@@ -7,8 +7,12 @@ namespace BlazeForms.Renderer.Tests;
 /// Enforces the "Styles = CSS isolation only" rule from AGENTS.md's Blazor standards: every
 /// collocated <c>.razor.css</c> file expresses color, spacing, radius, and font values through
 /// <c>--bf-*</c> custom properties, never a hard-coded hex or <c>rgb()</c>/<c>rgba()</c> literal.
-/// <c>wwwroot/blazeforms.css</c> is exempt — it is where the tokens themselves are declared with
-/// real values (PRD §10, Phase 1) — this guard scans only the component-scoped stylesheets.
+/// Each package's own <c>wwwroot/*.css</c> is exempt — that is where the tokens themselves are
+/// declared with real values (PRD §10, Phase 1) — this guard scans only the component-scoped
+/// stylesheets. A <see cref="Theory"/> over both RCLs rather than a second verbatim copy in
+/// <c>BlazeForms.Designer.Tests</c> — this project reads <c>src/BlazeForms.Designer</c> by a
+/// plain repo-root-relative path, the same way it locates its own <c>src/BlazeForms.Renderer</c>,
+/// so this stays a file-path check with no <c>ProjectReference</c> to that package.
 /// </summary>
 public sealed class ComponentCssTokenGuardTests
 {
@@ -20,12 +24,14 @@ public sealed class ComponentCssTokenGuardTests
         @"\brgba?\s*\(",
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-    [Fact]
-    public void NoRazorCssFileContainsARawColorLiteral()
+    [Theory]
+    [InlineData("BlazeForms.Renderer")]
+    [InlineData("BlazeForms.Designer")]
+    public void NoRazorCssFileContainsARawColorLiteral(string packageName)
     {
         var violations = new List<string>();
 
-        foreach (var path in FindRazorCssFiles())
+        foreach (var path in FindRazorCssFiles(packageName))
         {
             var css = StripComments(File.ReadAllText(path));
 
@@ -44,22 +50,24 @@ public sealed class ComponentCssTokenGuardTests
             """);
     }
 
-    [Fact]
-    public void AtLeastOneRazorCssFileWasFound()
+    [Theory]
+    [InlineData("BlazeForms.Renderer")]
+    [InlineData("BlazeForms.Designer")]
+    public void AtLeastOneRazorCssFileWasFound(string packageName)
     {
         // Guards the guard: if the glob ever stops matching anything (a folder move, a renamed
         // extension), the positive test above would pass vacuously and hide a real regression.
-        Assert.NotEmpty(FindRazorCssFiles());
+        Assert.NotEmpty(FindRazorCssFiles(packageName));
     }
 
     private static string StripComments(string css) => Regex.Replace(css, @"/\*.*?\*/", "", RegexOptions.Singleline);
 
-    private static string[] FindRazorCssFiles([CallerFilePath] string testFilePath = "")
+    private static string[] FindRazorCssFiles(string packageName, [CallerFilePath] string testFilePath = "")
     {
         var testsDirectory = Path.GetDirectoryName(testFilePath)!;
         var repositoryRoot = Path.GetFullPath(Path.Combine(testsDirectory, "..", ".."));
-        var rendererSourceRoot = Path.Combine(repositoryRoot, "src", "BlazeForms.Renderer");
+        var packageSourceRoot = Path.Combine(repositoryRoot, "src", packageName);
 
-        return Directory.GetFiles(rendererSourceRoot, "*.razor.css", SearchOption.AllDirectories);
+        return Directory.GetFiles(packageSourceRoot, "*.razor.css", SearchOption.AllDirectories);
     }
 }

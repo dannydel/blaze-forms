@@ -6,15 +6,15 @@
    own classes). No MudBlazor here -- the demo is Renderer + Designer only.
    --------------------------------------------------------------------------- */
 :root {
-    --bf-font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    --bf-ink: #1f2933;
-    --bf-ink-muted: #52606d;
-    --bf-accent: #2563eb;
-    --bf-surface: #ffffff;
-    --bf-canvas: #f4f6f8;
-    --bf-border: #e2e6ea;
-    --bf-page-max: 46rem;
-    --bf-space: 1rem;
+    --demo-font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --demo-ink: #1f2933;
+    --demo-ink-muted: #52606d;
+    --demo-accent: #2563eb;
+    --demo-surface: #ffffff;
+    --demo-canvas: #f4f6f8;
+    --demo-border: #e2e6ea;
+    --demo-page-max: 46rem;
+    --demo-space: 1rem;
 }
 
 *,
@@ -30,30 +30,30 @@ html {
 body {
     margin: 0;
     min-height: 100vh;
-    font-family: var(--bf-font-sans);
+    font-family: var(--demo-font-sans);
     font-size: 1rem;
     line-height: 1.6;
-    color: var(--bf-ink);
-    background-color: var(--bf-canvas);
+    color: var(--demo-ink);
+    background-color: var(--demo-canvas);
 }
 
 /* Centered, comfortably measured reading column for every host page. */
 .bf-page {
     margin-inline: auto;
-    padding: clamp(1.5rem, 4vw, 3rem) var(--bf-space) 4rem;
+    padding: clamp(1.5rem, 4vw, 3rem) var(--demo-space) 4rem;
 }
 
 /* Shown in #app while blazor.webassembly.js downloads and boots the runtime; Blazor removes
    the div's contents on first render, so this needs no JS of its own to clear. */
 .bf-loading {
-    color: var(--bf-ink-muted);
-    padding: 3rem var(--bf-space);
+    color: var(--demo-ink-muted);
+    padding: 3rem var(--demo-space);
     text-align: center;
 }
 
 .bf-container{
-    max-width: var(--bf-page-max);
-    padding: clamp(1.5rem, 4vw, 3rem) var(--bf-space) 4rem;
+    max-width: var(--demo-page-max);
+    padding: clamp(1.5rem, 4vw, 3rem) var(--demo-space) 4rem;
 }
 
 /* Every page's content is a .bf-container inside .bf-page except Design.razor, which renders
@@ -76,31 +76,30 @@ body {
 
 .bf-page > p,
 .bf-container > p {
-    margin: 0 0 var(--bf-space);
-    color: var(--bf-ink-muted);
+    margin: 0 0 var(--demo-space);
+    color: var(--demo-ink-muted);
 }
 
+/* underline (not color alone) distinguishes an inline link from its surrounding paragraph text --
+   a real WCAG 1.4.1 Use of Color defect axe's own link-in-text-block rule caught on this page's
+   own "Open the form library"/"Design the reference enrollment form" links, both inline in a
+   <p> with plain text around them (docs/accessibility-statement-plan.md, Increment B5). */
 .bf-page a {
-    color: var(--bf-accent);
-    text-decoration: none;
-}
-
-.bf-page a:hover,
-.bf-page a:focus-visible {
+    color: var(--demo-accent);
     text-decoration: underline;
 }
 
 .bf-page code {
     padding: 0.1em 0.35em;
     font-size: 0.9em;
-    background-color: var(--bf-surface);
-    border: 1px solid var(--bf-border);
+    background-color: var(--demo-surface);
+    border: 1px solid var(--demo-border);
     border-radius: 4px;
 }
 
 .bf-page > ul,
 .bf-container > ul {
-    margin: 0 0 var(--bf-space);
+    margin: 0 0 var(--demo-space);
     padding: 0;
     list-style: none;
     display: flex;
@@ -111,8 +110,8 @@ body {
 .bf-page > ul > li,
 .bf-container > ul > li {
     padding: 0.75rem 1rem;
-    background-color: var(--bf-surface);
-    border: 1px solid var(--bf-border);
+    background-color: var(--demo-surface);
+    border: 1px solid var(--demo-border);
     border-radius: 8px;
 }
 
@@ -120,20 +119,8 @@ h1:focus {
     outline: none;
 }
 
-/* Visually hidden but still reachable by FocusOnNavigate and screen readers -- used where a
-   component (FormDesigner) supplies its own visual chrome but the page still needs a heading
-   for route-change focus and correct heading order. */
-.bf-visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-}
+/* .bf-visually-hidden ships in BlazeForms.Renderer's own global blazeforms.css, linked above
+   this file, so it is gone from here. */
 
 /* Global (unscoped) because index.html's #blazor-error-ui div sits outside the Blazor app root,
    where CSS isolation can never reach. Matches every default Blazor WASM template's app.css. */

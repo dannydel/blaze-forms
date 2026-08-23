@@ -1,5 +1,5 @@
 @page "/fill-mud"
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @using BlazeForms.Sample.Mud
 @inject IFormDefinitionStore DefinitionStore
 @inject NavigationManager Navigation

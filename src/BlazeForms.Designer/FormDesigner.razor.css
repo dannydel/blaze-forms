@@ -96,3 +96,19 @@
 .bf-designer__placeholder {
     color: var(--bf-color-muted);
 }
+
+/* Below the dock-collapse breakpoint (WCAG 1.4.10 Reflow), the three docked panes stack to a
+ * single column in DOM order -- palette, then canvas, then properties, same order keyboard
+ * traversal and roving focus already use, so this is a layout-only change. A `@media` condition
+ * cannot reference a custom property, so this literal mirrors --bf-breakpoint-dock-collapse
+ * (blazeforms-designer.css) -- keep the two in sync if that token's value ever changes.
+ * min-block-size also drops to auto here: at the desktop width it reserves room for three panes
+ * side by side, but stacked in one column it would just force ~40rem of extra scroll beneath
+ * three already-scrollable panes -- a reflow fix that traded a horizontal scroll trap for a
+ * vertical one. */
+@media (max-width: 60rem) {
+    .bf-designer__panes {
+        grid-template-columns: 1fr;
+        min-block-size: auto;
+    }
+}
