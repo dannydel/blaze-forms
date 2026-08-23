@@ -34,9 +34,15 @@ namespace BlazeForms.Canvas;
 /// <see cref="CanvasSection"/> as the <c>role="group"</c> and <see cref="DesignerCanvas"/>'s own
 /// root as the <c>role="listbox"</c>. A click always moves both the roving cursor and commits
 /// <c>DesignerEditContext.Selection</c> to this row, in one step; the native focus a mouse click
-/// already gives a <c>tabindex</c>-bearing element means no extra
-/// <see cref="ElementReferenceExtensions.FocusAsync(ElementReference)"/> call is needed for that
-/// path — only keyboard-driven moves (<see cref="RequestFocus"/>) call it explicitly.
+/// already gives a <c>tabindex</c>-bearing element means THIS component needs no extra
+/// <see cref="ElementReferenceExtensions.FocusAsync(ElementReference)"/> call of its own for that
+/// path — only keyboard-driven moves (<see cref="RequestFocus"/>) call it explicitly. That is not
+/// the same as focus staying on this row: committing a NEW selection is itself a signal
+/// <c>Properties.PropertiesPanel</c> reacts to independently, moving real DOM focus on to its own
+/// Label input the moment it next renders (deliberate and unit-tested — see that type's own
+/// remarks) unless the newly-selected node is the one already selected. A caller of this row's
+/// own click that needs focus to STAY inside the canvas afterward must route around that, not
+/// assume this row keeps it.
 /// </para>
 /// <para>
 /// <b>Drag-and-drop (PRD §4.1's third reorder path).</b> This row is <c>draggable="true"</c>

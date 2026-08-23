@@ -19,9 +19,10 @@ else if (_resolvedFormId is null)
 }
 else
 {
-    @* FormDesigner renders no heading of its own -- this h1 is visually hidden (.bf-visually-hidden,
-       wwwroot/app.css) so FocusOnNavigate still has a route-change landing target without a
-       redundant "Design" caption above the three-pane shell. *@
+    @* FormDesigner renders no heading of its own -- this h1 is visually hidden
+       (.bf-visually-hidden, BlazeForms.Renderer's own global blazeforms.css) so FocusOnNavigate
+       still has a route-change landing target without a redundant "Design" caption above the
+       three-pane shell. *@
     <h1 class="bf-visually-hidden">Design</h1>
     <FormDesigner FormId="@_resolvedFormId" Author="Demo Author" OnPublished="HandlePublishedAsync" OnClosed="HandleClosed" />
 }

@@ -94,6 +94,42 @@ public sealed class ThemeCssTests
     }
 
     /// <summary>
+    /// <c>.bf-visually-hidden</c> must live in this GLOBAL stylesheet, not a CSS-isolated
+    /// <c>.razor.css</c> (docs/accessibility-statement-plan.md, Increment B3; resolved decision
+    /// 7): a host applying the class to markup of its own -- an <c>&lt;h1&gt;</c>
+    /// <c>&lt;FocusOnNavigate Selector="h1"&gt;</c> needs, say -- needs the rule to exist
+    /// unscoped here, not compiled to <c>.bf-visually-hidden[b-xxxxxxx]</c> inside
+    /// <c>FormRenderer.razor.css</c> where only markup <c>FormRenderer</c> itself renders can
+    /// ever match it. Asserts the actual clip-based properties, not just that the selector
+    /// appears (an empty <c>.bf-visually-hidden {}</c> rule would satisfy a bare
+    /// <c>Contains(".bf-visually-hidden {")</c> check without hiding anything), and asserts the
+    /// selector is ABSENT from the isolated file so "declared exactly once, globally" is an
+    /// enforced invariant rather than something hand-verified at review time.
+    /// </summary>
+    [Fact]
+    public void DeclaresTheVisuallyHiddenClassGloballyAndOnlyGlobally()
+    {
+        var globalCss = File.ReadAllText(BlazeFormsCssPath());
+        var isolatedCss = File.ReadAllText(FormRendererIsolatedCssPath());
+
+        var ruleStart = globalCss.IndexOf(".bf-visually-hidden {", StringComparison.Ordinal);
+        Assert.True(ruleStart >= 0, "blazeforms.css does not declare .bf-visually-hidden.");
+
+        var ruleEnd = globalCss.IndexOf('}', ruleStart);
+        Assert.True(ruleEnd > ruleStart, ".bf-visually-hidden's own rule block in blazeforms.css never closes.");
+        var rule = globalCss[ruleStart..ruleEnd];
+
+        Assert.Contains("position: absolute", rule, StringComparison.Ordinal);
+        Assert.Contains("clip:", rule, StringComparison.Ordinal);
+        Assert.Contains("overflow: hidden", rule, StringComparison.Ordinal);
+
+        // Checks for the RULE (selector immediately followed by its declaration block), not a
+        // bare substring match -- FormRenderer.razor.css's own remaining comment about where
+        // .bf-visually-hidden moved to necessarily still names the class by text.
+        Assert.DoesNotContain(".bf-visually-hidden {", isolatedCss, StringComparison.Ordinal);
+    }
+
+    /// <summary>
     /// Locates the shipped stylesheet relative to this test file's own path, using
     /// <see cref="CallerFilePathAttribute"/> — robust regardless of the test runner's working
     /// directory or output folder, unlike a path derived from <see cref="AppContext.BaseDirectory"/>.
@@ -104,5 +140,17 @@ public sealed class ThemeCssTests
         var repositoryRoot = Path.GetFullPath(Path.Combine(testsDirectory, "..", ".."));
 
         return Path.Combine(repositoryRoot, "src", "BlazeForms.Renderer", "wwwroot", "blazeforms.css");
+    }
+
+    /// <summary>
+    /// <c>FormRenderer</c>'s own CSS-isolated stylesheet — the file <c>.bf-visually-hidden</c>
+    /// used to live in before Increment B3 moved it into the global sheet above.
+    /// </summary>
+    private static string FormRendererIsolatedCssPath([CallerFilePath] string testFilePath = "")
+    {
+        var testsDirectory = Path.GetDirectoryName(testFilePath)!;
+        var repositoryRoot = Path.GetFullPath(Path.Combine(testsDirectory, "..", ".."));
+
+        return Path.Combine(repositoryRoot, "src", "BlazeForms.Renderer", "FormRenderer.razor.css");
     }
 }

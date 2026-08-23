@@ -52,16 +52,8 @@
     color: var(--bf-color-primary-contrast);
 }
 
-/* Visually hidden but still reachable by assistive technology -- the classic clip-based pattern,
- * so the aria-live step announcement never shows up as visible chrome. */
-.bf-visually-hidden {
-    position: absolute;
-    inline-size: 1px;
-    block-size: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-}
+/* .bf-visually-hidden lives in the GLOBAL wwwroot/blazeforms.css now, not here -- see
+ * docs/theming.md's "Headings and document structure" section. */
 
 /* ---------------------------------------------------------------------------------------------
  * Current step content.

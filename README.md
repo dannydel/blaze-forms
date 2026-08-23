@@ -62,7 +62,10 @@ Use `AddInteractiveWebAssemblyComponents` or another interactive mode when that 
 
 ### 2. Add the stylesheets
 
-Add the renderer theme to the host page's `<head>`. Keep the app's generated `*.styles.css` stylesheet in place; Blazor uses it to load isolated component CSS.
+Add the renderer theme to the host page's `<head>`. This is functionally required, not an
+optional default look — it carries structural CSS with no token equivalent (reflow/motion media
+queries, and the global `.bf-visually-hidden` rule the RCLs' own aria-live announcer regions
+depend on), so link it even if you re-declare every `--bf-*` token elsewhere. Keep the app's generated `*.styles.css` stylesheet in place; Blazor uses it to load isolated component CSS.
 
 ```razor
 <link rel="stylesheet" href="_content/BlazeForms.Renderer/blazeforms.css" />
@@ -223,6 +226,7 @@ Persist each `FormSubmissionEnvelope` with its `FormId` and `DefinitionVersion`.
 | `IFormDraftStore` | Persist in-progress answers by form, definition version, and respondent key. Define retention and expiry policy. |
 | `IFormSubmissionSink` | Take ownership of a completed submission: persist it, start workflow, notify, or enqueue work. |
 | `IFieldComponentRegistry` | Optionally replace default fields with host design-system components per `NodeType`. |
+| Document `<h1>` | Neither `FormRenderer` nor `FormDesigner` ever emits one — the host page owns it. Both start their own internal headings at `h2`. A host using `<FocusOnNavigate Selector="h1">` needs a real `<h1>` on every page, including a page rendering only `FormDesigner`'s own chrome; `.bf-visually-hidden` (in `blazeforms.css`) lets that heading exist without a redundant visible caption. See [docs/theming.md](https://github.com/dannydel/blaze-forms/blob/main/docs/theming.md#headings-and-document-structure). |
 
 The library intentionally ships no database, authentication scheme, tenant model, or workflow engine. Production stores and submission handlers should enforce authorization, use idempotent submission persistence, and retain the captured definition version alongside each submission.
 

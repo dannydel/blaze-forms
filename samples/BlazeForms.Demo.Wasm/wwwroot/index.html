@@ -8,9 +8,13 @@
     <title>BlazeForms Demo</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='4' fill='%232563eb'/%3E%3Cpath d='M7 6h10M7 12h7M7 18h10' stroke='%23fff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E" />
     <base href="/" />
-    <link rel="stylesheet" href="app.css" />
+    <!-- blazeforms*.css load BEFORE app.css: same specificity (a bare class selector on both
+         sides), so cascade order alone decides who wins a shared custom property or class -- and
+         docs/theming.md's own "re-declare these tokens and change nothing else" contract only
+         holds if the host's own stylesheet loads LAST. -->
     <link rel="stylesheet" href="_content/BlazeForms.Renderer/blazeforms.css" />
     <link rel="stylesheet" href="_content/BlazeForms.Designer/blazeforms-designer.css" />
+    <link rel="stylesheet" href="app.css" />
     <link rel="stylesheet" href="BlazeForms.Demo.Wasm.styles.css" />
 </head>
 

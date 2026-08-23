@@ -12,10 +12,19 @@ Add one `<link>` to the host page:
 <link rel="stylesheet" href="_content/BlazeForms.Renderer/blazeforms.css" />
 ```
 
+**This stylesheet is functionally required, not an optional default look a host can skip in
+favor of mapping the `--bf-*` tokens somewhere else.** It carries structural CSS with no token
+equivalent: the `--bf-breakpoint-dock-collapse`/`--bf-breakpoint-collapse` media queries, the
+`prefers-reduced-motion` zeroing, and — load-bearing for accessibility — the global
+`.bf-visually-hidden` rule `FormRenderer`'s own aria-live announcer regions render with (nothing
+in `BlazeForms.Designer` uses this class today). A host that never links `blazeforms.css` at all
+renders those announcer regions as visible page text instead of assistive-technology-only
+content. A host restyling the renderer still links this stylesheet and *re-declares* tokens on
+top of it (see "Restyling" below) — it never replaces it outright.
+
 Component-scoped CSS (the `.razor.css` files collocated with each field/structure component) is
 bundled automatically by the Blazor build into `BlazeForms.Renderer.styles.css` — reference that
-too, the way any Razor Class Library's isolated CSS is referenced. Nothing else is required to
-render a legible, accessible form.
+too, the way any Razor Class Library's isolated CSS is referenced.
 
 ## Restyling: the token contract
 
@@ -25,6 +34,12 @@ properties — on `:root`, or on any ancestor of the rendered form to scope the 
 change nothing else. No build step and no Tailwind toolchain is required downstream; Tailwind is
 used only to *produce* the shipped default theme at library build time (PRD §10), and that
 pipeline is deferred to a later slice — today's `blazeforms.css` is hand-authored, plain CSS.
+
+**Cascade order matters.** A `--bf-*` re-declaration and `blazeforms.css`'s own `:root` block are
+declared at the same selector specificity, so whichever `<link>` loads LAST wins a given token.
+Load your own stylesheet AFTER `blazeforms.css`, or a re-declared token is silently overridden by
+the RCL's own default instead of taking effect — contradicting "re-declare and change nothing
+else" above.
 
 | Token | Purpose |
 |---|---|
@@ -101,6 +116,39 @@ links both stylesheets:
 | `--bf-canvas-row-selected-bg` | `DesignerCanvas`'s selected node row background — a designer-only concept the renderer's own token set has no equivalent for. |
 | `--bf-publish-note-min-height` | `PublishDialog`'s change-note textarea minimum height. |
 | `--bf-breakpoint-dock-collapse` | The viewport width, 60rem (960px), below which the three-pane docked layout stacks to a single column in DOM order — palette, canvas, properties (WCAG 1.4.10 Reflow). **Documentation only**, for the same reason `--bf-breakpoint-collapse` above is: `FormDesigner.razor.css`'s own `@media (max-width: 60rem)` literal is what actually governs the breakpoint (kept in sync by `DesignerThemeCssTests.DockCollapseBreakpointMediaQueryLiteralMatchesItsOwnToken`). Note the unit mismatch with `--bf-breakpoint-collapse` (`px` there, `rem` here) — nothing forces the two breakpoint token families to agree on a unit; treat each literally. |
+
+## Headings and document structure
+
+Neither RCL ever emits an `<h1>`: the document heading is the host page's own responsibility, not
+a library's (a form embedded halfway down a page cannot know whether it owns the page's only
+`h1`, or one of several). **The shallowest heading either RCL emits is `h2`** — the current
+page's title, a dialog's title, `FormCard`'s own name, and so on. Author-configurable heading
+blocks (`HeadingBlock`, the definition's own `Heading` node type) and internal sub-structure
+(`FormSubmissionView`'s per-page/per-section headings, the Designer's `PreviewPane`,
+`CanvasSection`, and `FieldPalette`) go to `h3`/`h4` beneath that. A `HeadingLevel` parameter that
+would let a host shift this whole structure down further (for embedding under an `h3`, say) is
+deferred until one actually needs it — additive, so any minor release can add it later without
+breaking anything.
+
+A host using `<FocusOnNavigate Selector="h1">` (the standard Blazor Router pattern, and the one
+`samples/BlazeForms.Sample/Components/Routes.razor` and
+`samples/BlazeForms.Demo.Wasm/Components/Routes.razor` both use) therefore needs a real `<h1>` on
+every routable page, including one that renders nothing but `FormDesigner`'s own three-pane shell
+— which supplies no heading of its own to be that target. `.bf-visually-hidden` (declared once,
+globally, in `blazeforms.css` — never CSS-isolated, so it works on markup either host page
+renders, not only markup `FormRenderer` itself renders) is the documented way to satisfy that
+without a redundant visible caption above the shell:
+
+```razor
+<h1 class="bf-visually-hidden">Design</h1>
+<FormDesigner ... />
+```
+
+Both sample hosts' own `Design.razor` do exactly this. Skipping it is a focus-management defect —
+no WCAG success criterion mandates that focus move on every SPA navigation, but 2.4.3 Focus Order
+is the closest one, since a host that opts into `FocusOnNavigate` and then gives it nothing to
+land on gets silent, unpredictable focus behavior on navigation instead of the deterministic
+order that pattern exists to guarantee.
 
 ## A worked example: mapping Bootstrap tokens
 

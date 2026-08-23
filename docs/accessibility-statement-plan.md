@@ -315,3 +315,19 @@ things; budget fixes inside it rather than deferring them into Increment E.**
     renderer is a small but real new dependency. Either render it (better artifact) or ship
     Markdown-only and link to GitHub (zero machinery, worse impression for the one document whose
     entire point is polish).
+11. **Open:** activating a canvas row — `DesignerCanvas.Activate`, both the click path and Enter
+    on the row the roving cursor already sits on — always moves real DOM focus out of the
+    `role="listbox"` canvas entirely, onto whichever `PropertiesPanel` control the newly-committed
+    selection arms (its Label input for a plain selection change, per that type's own remarks).
+    That deviates from the WAI-ARIA grouped-listbox pattern this canvas otherwise implements,
+    where activating an option is expected to leave focus inside the listbox — and it means the
+    canvas's own keyboard shortcuts (Delete, Alt+↑/↓, Ctrl+M) are not reachable immediately after
+    selecting a row without first tabbing back in, for keyboard users exactly as much as for a
+    Playwright test driving the same path. It is deliberate and unit-tested today
+    (`PropertiesPanelTests.SelectingANewNodeWithNoFocusIntentMovesFocusToTheLabelInput`) — this
+    is the exact behavior Increment B's own new E2E scenarios kept tripping over when they tried
+    to select one row and immediately act on it via the canvas's own keyboard shortcuts, and had
+    to route around instead of relying on. Leave the product behavior alone for this increment,
+    but Increment D's own SR test matrix and `KeyboardHelpDialog` should settle whether "select,
+    then land in the properties panel" or "select, stay in the listbox" is the intended keyboard
+    model before either gets documented as a stable contract.
