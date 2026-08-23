@@ -78,6 +78,22 @@ public sealed class ThemeCssTests
     }
 
     /// <summary>
+    /// <c>@media</c> can't reference a custom property, so the <c>.bf-row</c> collapse query
+    /// (blazeforms.css, just below this token's declaration) carries its own literal copy of
+    /// <c>--bf-breakpoint-collapse</c>'s value — a comment says to keep the two in sync, but
+    /// nothing enforced it before this test. A token bumped without its media query (or vice
+    /// versa) now fails loudly instead of shipping a green build with a stale breakpoint.
+    /// </summary>
+    [Fact]
+    public void CollapseBreakpointMediaQueryLiteralMatchesItsOwnToken()
+    {
+        var css = File.ReadAllText(BlazeFormsCssPath());
+        var breakpoint = CssRootTokenParser.ParseRootTokens(css)["--bf-breakpoint-collapse"];
+
+        Assert.Contains($"@media (max-width: {breakpoint})", css, StringComparison.Ordinal);
+    }
+
+    /// <summary>
     /// Locates the shipped stylesheet relative to this test file's own path, using
     /// <see cref="CallerFilePathAttribute"/> — robust regardless of the test runner's working
     /// directory or output folder, unlike a path derived from <see cref="AppContext.BaseDirectory"/>.

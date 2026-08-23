@@ -53,5 +53,17 @@ git tags by [MinVer](https://github.com/adamralph/minver) (`v*` tag prefix), not
 
 - **Renderer**: Date field draft values now hydrate back to `DateOnly` correctly on resume,
   instead of surfacing as a raw string.
+- **Renderer (accessibility, user-visible)**: `--bf-color-border`'s default value changed from
+  `#c7c9cd` to `#82878e` — the previous value measured 1.66:1 against `--bf-color-bg` and 1.55:1
+  against `--bf-color-surface`, both below the 3:1 WCAG 1.4.11 Non-text Contrast minimum for
+  every text input, textarea, and select the shipped theme renders. A host relying on the exact
+  previous shade should re-declare `--bf-color-border` explicitly. New computed-contrast tests
+  (`ThemeContrastTests`) now pin every color token pair's ratio against this and future changes.
+- **Designer (accessibility)**: `FormDesigner`'s three-pane docked layout now collapses to a
+  single stacked column (palette → canvas → properties, DOM order unchanged) below a new
+  `--bf-breakpoint-dock-collapse` (60rem) breakpoint — the layout previously had no `@media` query
+  at all and required two-dimensional scrolling at the 320 CSS px viewport WCAG 1.4.10 Reflow
+  requires. New `ReflowAccessibilityTests` gate this and WCAG 1.4.12 Text Spacing at 320×512 for
+  `/fill`, `/design`, `/library`, and `/submission/{id}`.
 
 [Unreleased]: https://github.com/dannydel/blaze-forms/commits/main

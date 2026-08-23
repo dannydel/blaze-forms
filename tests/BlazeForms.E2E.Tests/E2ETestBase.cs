@@ -30,10 +30,18 @@ public abstract class E2ETestBase : IAsyncLifetime
     /// <summary>This test's own page, in its own browser context.</summary>
     internal IPage Page { get; private set; } = null!;
 
+    /// <summary>
+    /// The browser context options this suite opens its <see cref="Page"/> with. Playwright's
+    /// default (no override) is the standard 1280×720 desktop viewport every existing suite
+    /// scans at; a suite exercising WCAG 1.4.10 Reflow overrides this to request a small
+    /// viewport instead of duplicating <see cref="BrowserFixture"/> or <see cref="SampleAppFixture"/>.
+    /// </summary>
+    private protected virtual BrowserNewContextOptions ContextOptions => new();
+
     /// <inheritdoc />
     public async Task InitializeAsync()
     {
-        _context = await _browserFixture.Browser.NewContextAsync().ConfigureAwait(false);
+        _context = await _browserFixture.Browser.NewContextAsync(ContextOptions).ConfigureAwait(false);
         Page = await _context.NewPageAsync().ConfigureAwait(false);
     }
 

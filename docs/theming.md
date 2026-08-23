@@ -49,10 +49,26 @@ pipeline is deferred to a later slice — today's `blazeforms.css` is hand-autho
 | `--bf-border-width` | Default border thickness. |
 | `--bf-focus-ring-width` | Focus ring thickness. |
 | `--bf-focus-ring-offset` | Focus ring offset from the element it outlines. |
-| `--bf-touch-target` | Minimum interactive target size, 44px (WCAG 2.2 AA, PRD §11). |
+| `--bf-touch-target` | Minimum interactive *hit-area* block-size, 44px — deliberately exceeding the WCAG 2.2 AA floor (2.5.8 Target Size (Minimum) is 24×24 CSS px at AA; 44px is 2.5.5 Target Size (Enhanced), AAA) (PRD §11). Sets `min-height` directly on each text input/textarea/select control itself, and on the `.bf-choice` wrapper around a radio/checkbox (the only one of these that *is* a wrapper) — the radio/checkbox glyph itself is sized by `--bf-space-5` (24px), still comfortably at the AA floor on its own. |
 | `--bf-motion-duration` | Transition duration; zeroed under `prefers-reduced-motion: reduce`. |
 | `--bf-motion-ease` | Transition easing. |
-| `--bf-breakpoint-collapse` | The viewport width, 480px, below which half-width field pairs stack to one column (PRD §4.2). |
+| `--bf-breakpoint-collapse` | The viewport width, 480px, below which half-width field pairs stack to one column (PRD §4.2). **Documentation only**: no stylesheet can consume this via `var()` — a `@media` condition can't reference a custom property — so re-declaring it has zero effect; `blazeforms.css`'s own `@media (max-width: 480px)` literal is what actually governs the breakpoint (kept in sync by `ThemeCssTests.CollapseBreakpointMediaQueryLiteralMatchesItsOwnToken`). |
+
+### Contrast guarantees
+
+The shipped default theme's color tokens are computed (`tests/BlazeForms.Renderer.Tests/ThemeContrastTests.cs`)
+against the WCAG 2.x relative-luminance formula, not eyeballed — a re-theming host inherits the
+same floor its own re-declared values are on the hook for:
+
+| Token pair | Minimum ratio | Criterion |
+|---|---|---|
+| `--bf-color-text`, `--bf-color-muted`, `--bf-color-primary`, `--bf-color-danger` each against `--bf-color-bg` and `--bf-color-surface` | 4.5:1 | 1.4.3 Contrast (Minimum) |
+| `--bf-color-primary-contrast` against `--bf-color-primary`; `--bf-color-danger-contrast` against `--bf-color-danger` | 4.5:1 | 1.4.3 Contrast (Minimum) |
+| `--bf-color-border`, `--bf-color-focus-ring` each against `--bf-color-bg` and `--bf-color-surface` | 3:1 | 1.4.11 Non-text Contrast |
+
+A host that re-declares any of these tokens — including on an ancestor that only scopes part of
+the page — re-verifies its own replacement against the same floor; conformance is claimed for the
+shipped default values only.
 
 ## Restyling: the component registry
 
@@ -84,6 +100,7 @@ links both stylesheets:
 | `--bf-dock-height` | The docked shell's minimum height; panes scroll independently past it. |
 | `--bf-canvas-row-selected-bg` | `DesignerCanvas`'s selected node row background — a designer-only concept the renderer's own token set has no equivalent for. |
 | `--bf-publish-note-min-height` | `PublishDialog`'s change-note textarea minimum height. |
+| `--bf-breakpoint-dock-collapse` | The viewport width, 60rem (960px), below which the three-pane docked layout stacks to a single column in DOM order — palette, canvas, properties (WCAG 1.4.10 Reflow). **Documentation only**, for the same reason `--bf-breakpoint-collapse` above is: `FormDesigner.razor.css`'s own `@media (max-width: 60rem)` literal is what actually governs the breakpoint (kept in sync by `DesignerThemeCssTests.DockCollapseBreakpointMediaQueryLiteralMatchesItsOwnToken`). Note the unit mismatch with `--bf-breakpoint-collapse` (`px` there, `rem` here) — nothing forces the two breakpoint token families to agree on a unit; treat each literally. |
 
 ## A worked example: mapping Bootstrap tokens
 

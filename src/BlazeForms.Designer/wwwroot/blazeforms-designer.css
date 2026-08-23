@@ -1,7 +1,7 @@
 /*
  * BlazeForms designer layout tokens (PRD §4.1, §10, docs/theming.md).
  *
- * These four tokens are new to the designer -- the color, typography, spacing, radius, focus,
+ * These seven tokens are new to the designer -- the color, typography, spacing, radius, focus,
  * and motion tokens the designer's own component CSS (the collocated `.razor.css` files under
  * `FormDesigner.razor.css` and `Palette/FieldPalette.razor.css`) builds on are the ones
  * BlazeForms.Renderer's `blazeforms.css` already declares (PRD §9: BlazeForms.Designer depends
@@ -30,4 +30,20 @@
      wholly new token -- the renderer's spacing scale (--bf-space-1 … --bf-space-6) has nothing
      sized for a multi-line text area, and none of its own values happen to fit. */
   --bf-publish-note-min-height: 6rem;
+
+  /* Reflow (WCAG 1.4.10, docs/accessibility-statement-plan.md Increment A2): below this width the
+     three-pane docked layout has no room for --bf-palette-width + --bf-properties-width beside a
+     usable canvas, so FormDesigner.razor.css stacks the panes to one column in DOM order instead.
+     60rem (960px), not the 36rem (576px) mechanical floor (--bf-palette-width +
+     --bf-properties-width): at 960px the canvas gets only 352px between the two fixed panes
+     once the two --bf-pane-gap tracks (1rem/16px each) are counted too, already cramped for a
+     form field's own controls, so the layout gives up the three-column arrangement well before
+     it would be forced to. Documentation only -- no stylesheet can apply
+     this via var() (a `@media` condition cannot reference a custom property), so
+     FormDesigner.razor.css's own literal must mirror this value by hand -- keep the two in sync
+     if it ever changes, guarded by DesignerThemeCssTests.DockCollapseBreakpointMediaQueryLiteralMatchesItsOwnToken
+     (the same constraint blazeforms.css:215-222 documents, and ThemeCssTests now guards, for
+     --bf-breakpoint-collapse -- that one's a raw px, this one's a rem, and nothing forces the two
+     token families to agree on a unit). */
+  --bf-breakpoint-dock-collapse: 60rem;
 }

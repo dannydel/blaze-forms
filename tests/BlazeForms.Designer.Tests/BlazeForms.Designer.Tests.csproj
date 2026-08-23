@@ -24,6 +24,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\BlazeForms.Designer\BlazeForms.Designer.csproj" />
+    <!-- DesignerContrastTests and DesignerThemeCssTests reuse WcagContrast and
+         CssRootTokenParser from Renderer.Tests rather than duplicating the luminance/parsing
+         math, mirroring the source-side dependency (BlazeForms.Designer depends on
+         BlazeForms.Renderer, PRD §9). -->
+    <ProjectReference Include="..\BlazeForms.Renderer.Tests\BlazeForms.Renderer.Tests.csproj" />
   </ItemGroup>
 
 </Project>
