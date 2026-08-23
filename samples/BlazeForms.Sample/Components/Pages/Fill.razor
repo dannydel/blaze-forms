@@ -1,5 +1,5 @@
 @page "/fill"
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @inject IFormDefinitionStore DefinitionStore
 @inject NavigationManager Navigation
 

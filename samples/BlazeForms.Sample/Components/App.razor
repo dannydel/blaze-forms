@@ -6,35 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
     <ResourcePreloader />
-    @* NOTE (docs/theming.md's "re-declare these tokens and change nothing else" contract):
-       app.css loads BEFORE blazeforms.css/blazeforms-designer.css here, so at equal specificity
-       (both are plain custom property declarations) blazeforms.css's own :root declarations win
-       over any --bf-* token this file re-declares. Swapping the order (blazeforms*.css first,
-       app.css last) is the correct cascade fix, and is not a CSS defect in itself, but this host
-       cannot take it yet: every page here is `@rendermode InteractiveServer`
-       (prerendering on), the Playwright + axe E2E suite fills fields immediately after its own
-       "wait for the heading" step with no separate wait for interactivity, and reordering these
-       links shifts asset-load timing enough to expose a fill landing during the STATIC
-       prerendered pass -- before the circuit's own @bind handlers are live to capture it. That
-       race is present in the suite TODAY regardless of link order (this reorder only made it
-       surface more often); the fix is a real hydration barrier, not a link-order change. Tried
-       `prerender: false` on this host's own pages as that barrier and reverted it: it stops the
-       fill race, but Blazor's own HeadOutlet then never injects <title>/<meta> content at all
-       under this hosting configuration (confirmed via a document.head dump showing no
-       HeadOutlet-authored content several seconds after full interactivity) -- trading one race
-       for a hard regression axe's own document-title rule catches on every scan. Until a working
-       hydration barrier exists, this file's own link order stays as shipped and the cascade fix
-       above is documented, not applied. *@
-    <link rel="stylesheet" href="@Assets["app.css"]" />
+    @* docs/theming.md's "re-declare these tokens and change nothing else" contract: blazeforms.css
+       and blazeforms-designer.css load BEFORE app.css so that, at equal specificity, this host's
+       own --bf-* re-declarations win the cascade. *@
     <link rel="stylesheet" href="_content/BlazeForms.Renderer/blazeforms.css" />
     <link rel="stylesheet" href="_content/BlazeForms.Designer/blazeforms-designer.css" />
+    <link rel="stylesheet" href="@Assets["app.css"]" />
     @* MudBlazor lives only in this sample (never src/) -- see Mud/MudFieldComponentRegistry.cs.
        Its stylesheet and Roboto webfont are the two assets its own setup docs require in <head>. *@
     <link rel="stylesheet" href="_content/MudBlazor/MudBlazor.min.css" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
     <link rel="stylesheet" href="@Assets["BlazeForms.Sample.styles.css"]" />
     <ImportMap />
-    <HeadOutlet />
+    <HeadOutlet @rendermode="InteractiveServer" />
 </head>
 
 <body>

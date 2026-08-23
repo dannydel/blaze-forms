@@ -1,5 +1,5 @@
 @page "/submission/{SubmissionId}"
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @inject IFormDefinitionStore DefinitionStore
 @inject SampleSubmissionSink SubmissionSink
 

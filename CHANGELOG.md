@@ -160,29 +160,31 @@ git tags by [MinVer](https://github.com/adamralph/minver) (`v*` tag prefix), not
   documented in `README.md` and `docs/theming.md`, including that the shallowest heading either
   RCL emits is `h2` — not "and never lower", since author content and internal sub-structure do
   go to `h3`/`h4`.
-- **The WASM demo now links `blazeforms.css`/`blazeforms-designer.css` BEFORE its own `app.css`**,
+- **Both hosts now link `blazeforms.css`/`blazeforms-designer.css` BEFORE their own `app.css`**,
   not after — same specificity on both sides (a bare class selector), so the load order alone
   previously meant a host re-declaring a `--bf-*` token in `app.css` was silently overridden by
   the RCL's own default, contradicting `docs/theming.md`'s "re-declare these tokens and change
   nothing else" contract (now stated plainly there). `eng/demo-smoke-test.mjs`'s own
-  fill-and-submit flow confirms this reorder is safe there. The identical defect in
-  `samples/BlazeForms.Sample`'s own `App.razor` is documented (in a comment in that file) instead
-  of fixed the same way. **Diagnosis, corrected across two review passes:** that host's own pages
-  are all `@rendermode InteractiveServer` (prerendering on), and the Playwright + axe E2E suite
-  fills fields immediately after its own "wait for the heading" step with no separate wait for
-  interactivity — a fill can land during the STATIC prerendered pass, before the circuit's own
-  `@bind` handlers are live to capture it. That race is present in the suite **today, independent
-  of link order** — reordering the links only shifted asset-load timing enough to surface it more
-  often; it is not a defect the reorder itself introduces. The fix is a real hydration barrier, not
-  a link-order change, and `prerender: false` on this host's own `@rendermode` directives was
-  tried as that barrier and reverted: it does stop the fill race, but Blazor's own `HeadOutlet`
-  then never injects `<title>`/`<meta>` content at all under this hosting configuration (confirmed
-  via a `document.head` dump showing no `HeadOutlet`-authored content several seconds after full
-  interactivity) — trading one race for a hard, universal `document-title` violation on every
-  scan. Until a working hydration barrier exists, `samples/BlazeForms.Sample/Components/App.razor`
-  keeps its original link order (`app.css` first) and the cascade fix is documented there, not
-  applied; the WASM demo's own reorder is unaffected (that host is Blazor WebAssembly, with no
-  prerendering concept and no such race). The WASM demo's `app.css` also finishes the `--bf-*` →
+  fill-and-submit flow confirms the reorder is safe on the demo.
+  The sample host could not take the same fix until its E2E suite gained a real hydration barrier:
+  its pages were all `@rendermode InteractiveServer` (prerendering on), and the Playwright + axe
+  suite filled fields immediately after its own "wait for the heading" step with no separate wait
+  for interactivity — so a fill could land during the STATIC prerendered pass, before the circuit's
+  own `@bind` handlers were live to capture it. That race was present **on every run, independent
+  of link order**; reordering the links only shifted asset-load timing enough to lose it more often.
+  **Fixed:** those five pages now render with `prerender: false`, and `HeadOutlet` carries the
+  matching `@rendermode="InteractiveServer"`. That second half is what an earlier attempt was
+  missing: a *static* `HeadOutlet` receives nothing from a prerender-skipped page and never updates
+  from the circuit either, which is why `prerender: false` alone regressed `<title>`/`<meta>`
+  injection into a universal `document-title` violation — a one-line omission in the sample, not the
+  framework defect it was first taken for. With prerendering off, the driver's existing
+  "wait for the heading" step *is* the interactivity barrier, since the heading only exists once the
+  circuit has rendered. Demonstrated closed rather than merely passing: under CDP throttling
+  (6× CPU, 400 ms latency) the old code loses the fill and stays on page 1, while the fixed code
+  captures it and advances. `SubmissionAccessibilityTests` now asserts its post-submit navigation
+  with `Expect(Page).ToHaveURLAsync` instead of `Page.WaitForURLAsync`, because under
+  `prerender: false` that transition is same-document and never fires the browser `Load` event the
+  latter waits on. The WASM demo's `app.css` also finishes the `--bf-*` →
   `--demo-*` rename for its own chrome variables (`--bf-font-sans`, `--bf-canvas`,
   `--bf-page-max` were still squatting the real token namespace after the earlier partial rename).
 - **Fixed two independent, real focus races in three new E2E scenarios**
