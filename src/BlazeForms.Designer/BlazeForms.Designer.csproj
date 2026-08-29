@@ -38,12 +38,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.11" />
     <!-- Abstractions only: FormDesigner and FieldPalette both speak IStringLocalizer<T>
          (PRD §12), but resolve it through Internal/DesignerLocalization.cs's own
          ResourceManager-backed instance, never through DI, so no concrete localization
          provider ships here, and none is required of the host. -->
-    <PackageReference Include="Microsoft.Extensions.Localization.Abstractions" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Localization.Abstractions" Version="10.0.11" />
   </ItemGroup>
 
   <ItemGroup>

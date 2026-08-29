@@ -38,12 +38,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.11" />
     <!-- Abstractions only: FieldValidator, FormRenderer, and DateRangeField all speak
          IStringLocalizer<T> (PRD §12), but every one of them resolves it through
          Internal/RendererLocalization.cs's own ResourceManager-backed instance, never through
          DI — so no concrete localization provider ships here, and none is required of the host. -->
-    <PackageReference Include="Microsoft.Extensions.Localization.Abstractions" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Localization.Abstractions" Version="10.0.11" />
   </ItemGroup>
 
   <ItemGroup>
