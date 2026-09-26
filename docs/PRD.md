@@ -231,9 +231,15 @@ The Tyler design system in the reference design project is proprietary and ships
 | D16 | Dev standards | See `AGENTS.md` (canonical); CONTRIBUTING.md points into it |
 | D17 | Markdown support | Authors get Markdown in `help`/`paragraph`/`callout` via a shared Markdig pipeline in Core (raw HTML disabled, protocol allow-list); labels, options, and respondent input stay plain text |
 | D18 | Repeating groups (P2) | A repeating group's answer is one structured value under the group's node id: an ordered array of `{ rowId, values }` rows (opaque `row-` ids, kept in both drafts and the submission envelope). Logic scopes positionally — a rule inside a group resolves within its row; a reference crossing the group boundary is a blocking lint (FR-04). Cross-row aggregation (sum/count over rows) is deferred to a later additive change. Added schema v3 (`minRows`/`maxRows`/`itemLabel` on a node); see `docs/repeating-groups-plan.md` |
+| D19 | 1.0 feature boundary | GA waits for complete file-upload, external-lookup, and localized-form-content vertical slices across Core, Renderer, Designer, samples, documentation, and accessibility coverage. Preview packages ship before those features are complete; see `docs/ROADMAP.md`. |
+| D20 | Project surfaces | The public project website explains the product, hosts task-oriented documentation, and links the demo/NuGet/GitHub. A separate contributor-facing Dev Lab provides deterministic component, edge-case, failure, accessibility, and performance scenarios for manual and automated testing; development controls never leak into the public demo. |
 
 ## 16. Open questions
 
 - **OQ-1:** Multi-target net8.0 at 1.0? (Revisit with adoption data.)
 - **OQ-2:** Draft retention/expiry policy — library default or purely host policy? (Leaning host policy + documented guidance.)
 - **OQ-3:** Does `FormLibrary` paginate via the store contract in P1, or is in-memory filtering acceptable at launch scale?
+
+Release sequencing and the 1.0 exit criteria live in [ROADMAP.md](ROADMAP.md). The phase labels in
+this PRD describe feature dependency, not package stability: P2 work may land in 0.x previews when
+it is part of the approved 1.0 boundary.

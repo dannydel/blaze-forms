@@ -10,6 +10,9 @@
 
 > ⚠️ **Pre-release.** The API is unstable through 0.x. BlazeForms targets .NET 10 and requires an interactive Blazor render mode for filling and designing forms. See [docs/PRD.md](https://github.com/dannydel/blaze-forms/blob/main/docs/PRD.md) for the locked product scope and phasing.
 
+See the [roadmap](https://github.com/dannydel/blaze-forms/blob/main/docs/ROADMAP.md) for the preview
+release train and the features required before 1.0.
+
 ## Packages
 
 | Package | Purpose | Depends on |
@@ -245,9 +248,11 @@ For a host UI library, implement `IFieldComponentRegistry` and map individual `N
 - Schema, serialization, version lifecycle, safe Markdown, visibility expressions, and cross-field validation rules.
 - Renderer, submission view, default semantic field components, drafts, validation, and JSON export.
 - Keyboard-first designer, library, linter, version history, preview, and a MudBlazor sample adapter.
-- P1 fields: text, textarea, email, phone, number, currency, date, date range, select, radio, checkbox group, yes/no, boolean, heading, paragraph, callout, divider, and a read-only calc placeholder.
+- Fields: text, textarea, email, phone, number, currency, date, date range, select, radio, checkbox group, yes/no, boolean, heading, paragraph, callout, divider, calculated values, and repeating groups.
 
-Repeating groups, file upload, lookup fields, calculated-value evaluation, and localized form content are planned follow-on work. See [docs/PRD.md](https://github.com/dannydel/blaze-forms/blob/main/docs/PRD.md) for the full phased roadmap.
+File upload, lookup fields, and localized form content are required before 1.0. See the
+[roadmap](https://github.com/dannydel/blaze-forms/blob/main/docs/ROADMAP.md) for their release order
+and acceptance criteria.
 
 ## Development
 
