@@ -13,7 +13,7 @@
       later slice, so nothing references it yet. It must never appear in a public signature; the
       agnosticism test in tests/BlazeForms.Architecture.Tests enforces that.
     -->
-    <PackageReference Include="Markdig" Version="1.3.2" />
+    <PackageReference Include="Markdig" Version="1.4.0" />
   </ItemGroup>
 
 </Project>
